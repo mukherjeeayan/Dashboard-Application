@@ -68,6 +68,7 @@ export default function App() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [targetRetirementDate, setTargetRetirementDate] = useState("");
   const [packId, setPackId] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const refreshPlans = useCallback(async () => {
     try {

@@ -17,6 +17,7 @@ test("WCAG 2.1 AA: no axe violations across the plan screens", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   // Add an account so the holdings/overview tables render real content.
+  await page.getByRole("tab", { name: "Accounts & Holdings" }).click();
   await page.getByPlaceholder("Label (e.g. Retirement fund)").fill("Mutual fund");
   await page.getByPlaceholder("Balance").fill("2000000");
   await page.getByRole("button", { name: "Add", exact: true }).click();

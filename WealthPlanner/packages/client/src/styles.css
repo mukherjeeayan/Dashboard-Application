@@ -305,3 +305,35 @@ figcaption.chart-cap { font-size: 0.8rem; color: var(--text-faint); margin-top: 
   .app { grid-template-columns: 1fr; }
   .app-sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+/* ---- Plan manager ---- */
+.plan-manager .card-header { margin-bottom: 0; }
+.plan-manager p { margin: 0.35rem 0 0; }
+
+/* ---- Tab bar ---- */
+.tabbar {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--border);
+  margin: 1rem 0 1.25rem;
+  padding-bottom: 0.6rem;
+}
+.tab {
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.tab:hover { background: var(--surface-muted); color: var(--text); }
+.tab.active {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  border-color: var(--brand);
+}

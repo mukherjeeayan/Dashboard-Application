@@ -34,6 +34,7 @@ test("holdings, reconciliation, and emergency fund panels", async ({ page, reque
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   // Add a liquid-cash (Bank) account via the UI — feeds the emergency fund.
+  await page.getByRole("tab", { name: "Accounts & Holdings" }).click();
   await page.getByPlaceholder("Label (e.g. Retirement fund)").fill("Savings");
   await page
     .getByRole("combobox")
@@ -69,6 +70,7 @@ test("holdings, reconciliation, and emergency fund panels", async ({ page, reque
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   // ---- Direct holdings ----
+  await page.getByRole("tab", { name: "Accounts & Holdings" }).click();
   await expect(page.getByRole("heading", { name: /Holdings — Stocks/ })).toBeVisible();
 
   await page.getByLabel("Buy ticker").fill("TATAMOTORS");
@@ -93,6 +95,7 @@ test("holdings, reconciliation, and emergency fund panels", async ({ page, reque
   await expect(page.getByText(/Account value/)).toBeVisible();
 
   // ---- Reconciliation ----
+  await page.getByRole("tab", { name: "Reconciliation" }).click();
   await expect(page.getByRole("heading", { name: "Balance Reconciliation" })).toBeVisible();
   await expect(page.getByRole("cell", { name: "Savings" }).last()).toBeVisible();
   await expect(page.getByRole("cell", { name: "Stocks" }).last()).toBeVisible();

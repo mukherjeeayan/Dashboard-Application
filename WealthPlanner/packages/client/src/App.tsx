@@ -3,6 +3,7 @@ import {
   api,
   runMonteCarloStream,
   type Plan,
+  type UpdatePlanInput,
   type Account,
   type Goal,
   type JurisdictionPackSummary,
@@ -111,6 +112,17 @@ export default function App() {
   const selectedLocale =
     packs.find((p) => p.packId === selected?.jurisdictionPackId)?.locale ?? "en-IN";
 
+  const updatePlan = async (id: string, input: UpdatePlanInput) => {
+    await api.updatePlan(id, input);
+    await refreshPlans();
+  };
+
+  const deletePlan = async (id: string) => {
+    await api.deletePlan(id);
+    if (selectedId === id) setSelectedId(null);
+    await refreshPlans();
+  };
+
   return (
     <div className="app">
       <aside className="app-sidebar">
@@ -173,12 +185,21 @@ export default function App() {
 
       <main className="app-main">
         {selected ? (
-          <PlanView
-            planId={selected.id}
-            baseCurrency={selected.baseCurrency}
-            locale={selectedLocale}
-            jurisdictionPackId={selected.jurisdictionPackId}
-          />
+          <>
+            <PlanManager
+              key={selected.id}
+              plan={selected}
+              packs={packs}
+              onUpdate={(input) => updatePlan(selected.id, input)}
+              onDelete={() => deletePlan(selected.id)}
+            />
+            <PlanView
+              planId={selected.id}
+              baseCurrency={selected.baseCurrency}
+              locale={selectedLocale}
+              jurisdictionPackId={selected.jurisdictionPackId}
+            />
+          </>
         ) : (
           <Welcome packs={packs} />
         )}
@@ -228,6 +249,8 @@ function PlanView({
     CASH: "",
   });
   const [assumptionMsg, setAssumptionMsg] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<string>("overview");
 
   const load = useCallback(async () => {
     setMc(null);
@@ -344,176 +367,230 @@ function PlanView({
       </div>
       <p className="hint">Plan {planId}</p>
 
-      <div className="stat-row">
-        <Stat label="Net worth" value={formatMoney(netWorth, baseCurrency, locale)} />
-        <Stat label="Accounts" value={String(accounts.length)} />
-        <Stat label="Goals" value={String(goals.length)} />
-        {mc && (
-          <>
-            <Stat label="Success probability" value={`${(mc.result.probabilityOfSuccess * 100).toFixed(1)}%`} />
-            <Stat label="Median corpus" value={formatMoney(mc.result.median, baseCurrency, locale)} />
-          </>
-        )}
-      </div>
+      <nav className="tabbar" role="tablist" aria-label="Plan sections">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={activeTab === t.id}
+            className={activeTab === t.id ? "tab active" : "tab"}
+            onClick={() => setActiveTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
 
-      {risk && (
-        <PortfolioRiskPanel risk={risk} currency={baseCurrency} locale={locale} />
+      {activeTab === "overview" && (
+        <>
+          <div className="stat-row">
+            <Stat label="Net worth" value={formatMoney(netWorth, baseCurrency, locale)} />
+            <Stat label="Accounts" value={String(accounts.length)} />
+            <Stat label="Goals" value={String(goals.length)} />
+            {mc && (
+              <>
+                <Stat label="Success probability" value={`${(mc.result.probabilityOfSuccess * 100).toFixed(1)}%`} />
+                <Stat label="Median corpus" value={formatMoney(mc.result.median, baseCurrency, locale)} />
+              </>
+            )}
+          </div>
+
+          {risk && (
+            <PortfolioRiskPanel risk={risk} currency={baseCurrency} locale={locale} />
+          )}
+
+          <section className="card">
+            <div className="card-header">
+              <h3 className="card-title">Monte Carlo simulation</h3>
+              <button onClick={run} disabled={running} className="btn">
+                {running ? `Running… ${progress ? `${pct}%` : ""}` : "Run Monte Carlo"}
+              </button>
+            </div>
+            {running && progress && progress.total > 0 && (
+              <div className="progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <div className="progress-fill" style={{ width: `${pct}%` }} />
+              </div>
+            )}
+            {error && <p className="error">{error}</p>}
+            {mc && (
+              <div style={{ marginTop: "0.75rem" }}>
+                <h3 style={{ marginBottom: "0.25rem" }}>Monte Carlo projection</h3>
+                <FanChart curves={mc.result.curves} currency={baseCurrency} locale={locale} />
+              </div>
+            )}
+          </section>
+        </>
       )}
 
-      <ProjectionPanel planId={planId} currency={baseCurrency} locale={locale} />
+      {activeTab === "projection" && (
+        <ProjectionPanel planId={planId} currency={baseCurrency} locale={locale} />
+      )}
 
-      <section className="card">
-        <div className="card-header">
-          <h3 className="card-title">Monte Carlo simulation</h3>
-          <button onClick={run} disabled={running} className="btn">
-            {running ? `Running… ${progress ? `${pct}%` : ""}` : "Run Monte Carlo"}
-          </button>
-        </div>
-        {running && progress && progress.total > 0 && (
-          <div className="progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className="progress-fill" style={{ width: `${pct}%` }} />
-          </div>
-        )}
-        {error && <p className="error">{error}</p>}
-        {mc && (
-          <div style={{ marginTop: "0.75rem" }}>
-            <h3 style={{ marginBottom: "0.25rem" }}>Monte Carlo projection</h3>
-            <FanChart curves={mc.result.curves} currency={baseCurrency} locale={locale} />
-          </div>
-        )}
-      </section>
+      {activeTab === "accounts" && (
+        <>
+          <section className="card">
+            <div className="card-header">
+              <h3 className="card-title">Accounts</h3>
+            </div>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Instrument</th>
+                  <th className="num">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.label}</td>
+                    <td>{a.instrumentType}</td>
+                    <td className="num">{formatMoney(a.currentBalance, baseCurrency, locale)}</td>
+                  </tr>
+                ))}
+                {accounts.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="muted">
+                      No accounts yet. Add one below.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
-      <section className="card">
-        <div className="card-header">
-          <h3 className="card-title">Accounts</h3>
-        </div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Label</th>
-              <th>Instrument</th>
-              <th className="num">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {accounts.map((a) => (
-              <tr key={a.id}>
-                <td>{a.label}</td>
-                <td>{a.instrumentType}</td>
-                <td className="num">{formatMoney(a.currentBalance, baseCurrency, locale)}</td>
-              </tr>
-            ))}
-            {accounts.length === 0 && (
-              <tr>
-                <td colSpan={3} className="muted">
-                  No accounts yet. Add one below.
-                </td>
-              </tr>
+            <h4 style={{ margin: "1rem 0 0.5rem" }}>Add account</h4>
+            <div className="row">
+              <label className="field">
+                Label
+                <input className="input" placeholder="Label (e.g. Retirement fund)" value={accLabel} onChange={(e) => setAccLabel(e.target.value)} />
+              </label>
+              <label className="field">
+                Instrument
+                <select className="input" value={effectiveRuleKey} onChange={(e) => setAccRuleKey(e.target.value)}>
+                  {instrumentChoices.map((c) => (
+                    <option key={c.ruleKey} value={c.ruleKey}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Balance
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Balance"
+                  value={accBalance}
+                  onChange={(e) => setAccBalance(e.target.value)}
+                  style={{ width: 140 }}
+                />
+              </label>
+              <label className="field">
+                Risk bucket
+                <select className="input" value={accBucket} onChange={(e) => setAccBucket(e.target.value)}>
+                  <option value="">Default (by instrument)</option>
+                  {RISK_BUCKET_OPTIONS.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button onClick={addAccount} className="btn">
+                Add
+              </button>
+            </div>
+            {selectedChoice && pack && (
+              <p className="hint">
+                Treats this as a {selectedChoice.instrumentType.replace(/_/g, " ")} account under{" "}
+                {pack.displayName} rules.
+              </p>
             )}
-          </tbody>
-        </table>
+          </section>
 
-        <h4 style={{ margin: "1rem 0 0.5rem" }}>Add account</h4>
-        <div className="row">
-          <label className="field">
-            Label
-            <input className="input" placeholder="Label (e.g. Retirement fund)" value={accLabel} onChange={(e) => setAccLabel(e.target.value)} />
-          </label>
-          <label className="field">
-            Instrument
-            <select className="input" value={effectiveRuleKey} onChange={(e) => setAccRuleKey(e.target.value)}>
-              {instrumentChoices.map((c) => (
-                <option key={c.ruleKey} value={c.ruleKey}>
-                  {c.label}
-                </option>
+          <section className="card">
+            <div className="card-header">
+              <h3 className="card-title">Assumptions — target allocation (%)</h3>
+              <span className="hint">{assumptionMsg}</span>
+            </div>
+            <div className="row">
+              {RISK_BUCKET_OPTIONS.map((bucket) => (
+                <label key={bucket} className="field">
+                  {bucket}
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={targetAlloc[bucket]}
+                    onChange={(e) => setTargetAlloc({ ...targetAlloc, [bucket]: e.target.value })}
+                    style={{ width: 80 }}
+                  />
+                </label>
               ))}
-            </select>
-          </label>
-          <label className="field">
-            Balance
-            <input
-              className="input"
-              type="number"
-              placeholder="Balance"
-              value={accBalance}
-              onChange={(e) => setAccBalance(e.target.value)}
-              style={{ width: 140 }}
+              <button onClick={saveTargetAllocation} className="btn secondary">
+                Save target allocation
+              </button>
+            </div>
+          </section>
+
+          {directAccounts(accounts).map((a) => (
+            <HoldingsPanel
+              key={a.id}
+              planId={planId}
+              accountId={a.id}
+              label={a.label}
+              currency={baseCurrency}
+              locale={locale}
             />
-          </label>
-          <label className="field">
-            Risk bucket
-            <select className="input" value={accBucket} onChange={(e) => setAccBucket(e.target.value)}>
-              <option value="">Default (by instrument)</option>
-              {RISK_BUCKET_OPTIONS.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button onClick={addAccount} className="btn">
-            Add
-          </button>
-        </div>
-        {selectedChoice && pack && (
-          <p className="hint">
-            Treats this as a {selectedChoice.instrumentType.replace(/_/g, " ")} account under{" "}
-            {pack.displayName} rules.
-          </p>
-        )}
-      </section>
-
-      <section className="card">
-        <div className="card-header">
-          <h3 className="card-title">Assumptions — target allocation (%)</h3>
-          <span className="hint">{assumptionMsg}</span>
-        </div>
-        <div className="row">
-          {RISK_BUCKET_OPTIONS.map((bucket) => (
-            <label key={bucket} className="field">
-              {bucket}
-              <input
-                className="input"
-                type="number"
-                min={0}
-                max={100}
-                value={targetAlloc[bucket]}
-                onChange={(e) => setTargetAlloc({ ...targetAlloc, [bucket]: e.target.value })}
-                style={{ width: 80 }}
-              />
-            </label>
           ))}
-          <button onClick={saveTargetAllocation} className="btn secondary">
-            Save target allocation
-          </button>
-        </div>
-      </section>
+        </>
+      )}
 
-      <SequenceRiskPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <WithdrawalStrategyPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <SensitivityMatrixPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <ScenarioAnalysisPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <ActionItemsPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <TaxPanel planId={planId} currency={baseCurrency} locale={locale} />
+      {activeTab === "analysis" && (
+        <>
+          <SequenceRiskPanel planId={planId} currency={baseCurrency} locale={locale} />
+          <WithdrawalStrategyPanel planId={planId} currency={baseCurrency} locale={locale} />
+          <SensitivityMatrixPanel planId={planId} currency={baseCurrency} locale={locale} />
+          <ScenarioAnalysisPanel planId={planId} currency={baseCurrency} locale={locale} />
+        </>
+      )}
 
-      <PlanningPanel planId={planId} currency={baseCurrency} locale={locale} />
+      {activeTab === "planning" && (
+        <PlanningPanel planId={planId} currency={baseCurrency} locale={locale} />
+      )}
 
-      {directAccounts(accounts).map((a) => (
-        <HoldingsPanel
-          key={a.id}
-          planId={planId}
-          accountId={a.id}
-          label={a.label}
-          currency={baseCurrency}
-          locale={locale}
-        />
-      ))}
-      <ReconciliationPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <EmergencyFundPanel planId={planId} currency={baseCurrency} locale={locale} />
-      <AiInsightsPanel planId={planId} locale={locale} />
+      {activeTab === "compliance" && (
+        <>
+          <TaxPanel planId={planId} currency={baseCurrency} locale={locale} />
+          <ActionItemsPanel planId={planId} currency={baseCurrency} locale={locale} />
+        </>
+      )}
+
+      {activeTab === "data" && (
+        <>
+          <ReconciliationPanel planId={planId} currency={baseCurrency} locale={locale} />
+          <EmergencyFundPanel planId={planId} currency={baseCurrency} locale={locale} />
+        </>
+      )}
+
+      {activeTab === "insights" && (
+        <AiInsightsPanel planId={planId} locale={locale} />
+      )}
     </div>
   );
 }
+
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "projection", label: "Projection" },
+  { id: "accounts", label: "Accounts & Holdings" },
+  { id: "analysis", label: "Risk Analysis" },
+  { id: "planning", label: "Planning" },
+  { id: "compliance", label: "Tax & Compliance" },
+  { id: "data", label: "Reconciliation" },
+  { id: "insights", label: "AI Insights" },
+];
 
 const directAccounts = (
   accounts: Account[],
@@ -581,6 +658,137 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
     </div>
+  );
+}
+
+function PlanManager({
+  plan,
+  packs,
+  onUpdate,
+  onDelete,
+}: {
+  plan: Plan;
+  packs: JurisdictionPackSummary[];
+  onUpdate: (input: UpdatePlanInput) => Promise<void>;
+  onDelete: () => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [ownerName, setOwnerName] = useState(plan.ownerName ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState(plan.dateOfBirth);
+  const [targetRetirementDate, setTargetRetirementDate] = useState(
+    plan.targetRetirementDate,
+  );
+  const [packId, setPackId] = useState(plan.jurisdictionPackId);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const startEdit = () => {
+    setOwnerName(plan.ownerName ?? "");
+    setDateOfBirth(plan.dateOfBirth);
+    setTargetRetirementDate(plan.targetRetirementDate);
+    setPackId(plan.jurisdictionPackId);
+    setMsg(null);
+    setErr(null);
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setErr(null);
+    setMsg(null);
+    if (!dateOfBirth || !targetRetirementDate || !packId) {
+      setErr("Please fill in date of birth, target retirement date, and a jurisdiction.");
+      return;
+    }
+    const pack = packs.find((p) => p.packId === packId);
+    try {
+      await onUpdate({
+        ownerName: ownerName || undefined,
+        dateOfBirth,
+        targetRetirementDate,
+        baseCurrency: pack?.currency ?? plan.baseCurrency,
+        jurisdictionPackId: packId,
+      });
+      setEditing(false);
+      setMsg("Plan updated.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const remove = async () => {
+    setErr(null);
+    setMsg(null);
+    if (!confirming) {
+      setConfirming(true);
+      return;
+    }
+    try {
+      await onDelete();
+    } catch (e) {
+      setConfirming(false);
+      setErr(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  return (
+    <section className="card plan-manager">
+      <div className="card-header">
+        <span className="card-title">Plan</span>
+        <div className="row" style={{ gap: "0.4rem" }}>
+          {!editing && (
+            <button onClick={startEdit} className="btn sm secondary">
+              Edit plan
+            </button>
+          )}
+          <button
+            onClick={remove}
+            className={confirming ? "btn sm danger" : "btn sm secondary"}
+          >
+            {confirming ? "Confirm delete?" : "Delete plan"}
+          </button>
+        </div>
+      </div>
+
+      {msg && <p className="success">{msg}</p>}
+      {err && <p className="error" role="alert">{err}</p>}
+
+      {editing ? (
+        <>
+          <div className="row">
+            <label className="field">
+              Owner name
+              <input className="input" placeholder="Owner name" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
+            </label>
+            <label className="field">
+              Date of birth
+              <input className="input" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+            </label>
+            <label className="field">
+              Target retirement
+              <input className="input" type="date" value={targetRetirementDate} onChange={(e) => setTargetRetirementDate(e.target.value)} />
+            </label>
+            <label className="field">
+              Jurisdiction pack
+              <select className="input" value={packId} onChange={(e) => setPackId(e.target.value)}>
+                {packs.map((p) => (
+                  <option key={p.packId} value={p.packId}>
+                    {p.displayName} ({p.packId})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button onClick={save} className="btn">Save changes</button>
+            <button onClick={() => setEditing(false)} className="btn secondary">Cancel</button>
+          </div>
+        </>
+      ) : (
+        <p className="muted">
+          {plan.ownerName || "Unnamed plan"} · {plan.jurisdictionPackId} · DOB{" "}
+          {plan.dateOfBirth} · retirement {plan.targetRetirementDate}
+        </p>
+      )}
+    </section>
   );
 }
 

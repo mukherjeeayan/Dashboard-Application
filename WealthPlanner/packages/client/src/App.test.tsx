@@ -8,6 +8,8 @@ import type { Plan, MonteCarloOutcome } from "./api";
 const mocks = vi.hoisted(() => ({
   listPlans: vi.fn(),
   createPlan: vi.fn(),
+  updatePlan: vi.fn(),
+  deletePlan: vi.fn(),
   listAccounts: vi.fn(),
   listGoals: vi.fn(),
   getPortfolioRisk: vi.fn(),
@@ -38,6 +40,8 @@ vi.mock("./api", () => ({
   api: {
     listPlans: mocks.listPlans,
     createPlan: mocks.createPlan,
+    updatePlan: mocks.updatePlan,
+    deletePlan: mocks.deletePlan,
     listAccounts: mocks.listAccounts,
     listGoals: mocks.listGoals,
     getPortfolioRisk: mocks.getPortfolioRisk,
@@ -231,7 +235,7 @@ describe("App", () => {
 
     expect(await screen.findByText(/Aya/)).toBeInTheDocument();
     await userEvent.click(screen.getByText(/Aya/));
-    expect(await screen.findByText("Overview")).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Overview" })).toBeInTheDocument();
     expect(mocks.listAccounts).toHaveBeenCalledWith("plan-abc123");
   });
 
@@ -293,6 +297,7 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByText(/Aya/));
+    await user.click(await screen.findByRole("tab", { name: "Accounts & Holdings" }));
     await user.type(screen.getByPlaceholderText(/Label/), "NPS Tier 1");
     await user.selectOptions(screen.getByLabelText(/Risk bucket/), "EQUITY");
     await user.type(screen.getByPlaceholderText("Balance"), "500000");
@@ -315,6 +320,7 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByText(/Aya/));
+    await user.click(await screen.findByRole("tab", { name: "Accounts & Holdings" }));
     // Pack is loaded: the instrument dropdown exposes the pack's named
     // instrument ("Mutual Fund") rather than the generic instrument type.
     await waitFor(() => expect(screen.getByLabelText("Instrument")).toHaveValue("MF"));
@@ -340,6 +346,7 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByText(/Aya/));
+    await user.click(await screen.findByRole("tab", { name: "Accounts & Holdings" }));
     await user.clear(screen.getByLabelText(/EQUITY/));
     await user.type(screen.getByLabelText(/EQUITY/), "50");
     await user.clear(screen.getByLabelText(/DEBT/));
@@ -351,5 +358,46 @@ describe("App", () => {
       "plan-abc123",
       expect.objectContaining({ targetAllocationJson: JSON.stringify({ EQUITY: 0.5, DEBT: 0.5 }) }),
     );
+  });
+
+  it("edits a selected plan's fields and saves them", async () => {
+    mocks.listPlans.mockResolvedValue([PLAN]);
+    mocks.updatePlan.mockResolvedValue({
+      ...PLAN,
+      ownerName: "Aya Updated",
+      dateOfBirth: "1987-01-01",
+    });
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByText(/Aya/));
+    await user.click(await screen.findByRole("button", { name: "Edit plan" }));
+    const nameInput = screen.getAllByPlaceholderText("Owner name").at(-1) as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, "Aya Updated");
+    const dobInput = screen.getAllByLabelText(/Date of birth/i).at(-1) as HTMLInputElement;
+    await fireEvent.change(dobInput, { target: { value: "1987-01-01" } }); 
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(mocks.updatePlan).toHaveBeenCalled());
+    expect(mocks.updatePlan).toHaveBeenCalledWith(
+      "plan-abc123",
+      expect.objectContaining({ ownerName: "Aya Updated", dateOfBirth: "1987-01-01" }),
+    );
+    expect(await screen.findByText("Plan updated.")).toBeInTheDocument();
+  });
+
+  it("deletes a selected plan after confirmation", async () => {
+    mocks.listPlans.mockResolvedValue([PLAN]);
+    mocks.deletePlan.mockResolvedValue(undefined as never);
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByText(/Aya/));
+    await user.click(screen.getByRole("button", { name: "Delete plan" }));
+    await user.click(screen.getByRole("button", { name: "Confirm delete?" }));
+
+    await waitFor(() => expect(mocks.deletePlan).toHaveBeenCalledWith("plan-abc123"));
+    expect(screen.queryByRole("button", { name: /Delete plan/ })).not.toBeInTheDocument();
   });
 });

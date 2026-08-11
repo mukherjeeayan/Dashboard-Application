@@ -5,6 +5,12 @@ All notable changes to this project are documented here per build phase.
 ## [Unreleased]
 
 ### Phase 6 — packaging, accessibility, performance, docs polish
+- **Tabbed plan view.** The `PlanView` no longer renders every panel on one
+  scrolling page: the plan screens are grouped under eight tabs (Overview,
+  Projection, Accounts & Holdings, Risk Analysis, Planning, Tax & Compliance,
+  Reconciliation, AI Insights) with `role="tablist"`/`role="tab"` semantics so
+  keyboard and screen-reader navigation work. Panel-triggering tests (unit and
+  E2E) now click the owning tab first.
 - **Packaging fix (docs/13 §13.2).** The published `wealthpath` tarball could
   not resolve the unpublished `@wealthpath/*` workspace packages at runtime
   (npm does not ship a `node_modules` inside the tarball), so `npx wealthpath`

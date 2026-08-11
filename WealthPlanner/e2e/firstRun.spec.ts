@@ -41,17 +41,23 @@ test("first-run journey: create a plan, add an account, run Monte Carlo", async 
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   // Add an account so the overview has data.
+  await page.getByRole("tab", { name: "Accounts & Holdings" }).click();
   await page.getByPlaceholder("Label (e.g. Retirement fund)").fill("Mutual fund");
   await page.getByPlaceholder("Balance").fill("2000000");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByText("Mutual fund", { exact: true })).toBeVisible();
+
+  // The overview stats reflect the new account.
+  await page.getByRole("tab", { name: "Overview" }).click();
   await expect(page.getByText(/Net worth/)).toBeVisible();
 
   // The projection panel should render (with a very small/short-horizon plan it
   // may be empty but the section is present).
+  await page.getByRole("tab", { name: "Projection" }).click();
   await expect(page.getByRole("heading", { name: "Projection" })).toBeVisible();
 
   // Run a Monte Carlo simulation and wait for results.
+  await page.getByRole("tab", { name: "Overview" }).click();
   await page.getByRole("button", { name: /Run Monte Carlo/ }).click();
   await expect(page.getByRole("button", { name: /Running…/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Monte Carlo projection" })).toBeVisible({ timeout: 90_000 });

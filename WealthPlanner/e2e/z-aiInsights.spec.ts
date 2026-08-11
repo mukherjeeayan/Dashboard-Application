@@ -66,6 +66,7 @@ test("AI insights: configure a fake key and generate one insight of each type", 
     await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
     // Configure the AI connection with a fake key against the local mock.
+    await page.getByRole("tab", { name: "AI Insights" }).click();
     await expect(page.getByRole("heading", { name: "AI Insights" })).toBeVisible();
     await page.getByRole("checkbox", { name: "Enabled" }).check();
     await page.getByLabel("Provider").selectOption("CUSTOM");

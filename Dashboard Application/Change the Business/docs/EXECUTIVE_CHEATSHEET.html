@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTB Portfolio Dashboard — Executive Cheat Sheet · CW21</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet" />
+<style>
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:    #07101F;
+  --navy2:   #0E1B2E;
+  --navy3:   #162540;
+  --navy4:   #1F3251;
+  --border:  rgba(255,255,255,.08);
+  --green:   #22C55E;
+  --amber:   #F59E0B;
+  --red:     #EF4444;
+  --grey:    #6B7280;
+  --gold:    #F5C842;
+  --blue:    #60A5FA;
+  --text:    #EFF6FF;
+  --text2:   #94A3B8;
+  --text3:   #4E6E8A;
+  --mono:    'DM Mono', monospace;
+  --sans:    'Sora', sans-serif;
+}
+
+html { background: var(--navy); }
+
+body {
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--navy);
+  min-height: 100vh;
+  padding: 32px 24px 48px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── PAGE WRAPPER ── */
+.page {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.header-left {}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 7px;
+}
+.header-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+.header-sub {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text2);
+  margin-top: 4px;
+}
+.header-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px;
+  background: var(--navy2);
+}
+
+/* ── GRID LAYOUTS ── */
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy3);
+}
+.card-letter {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  background: var(--navy4);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--text);
+}
+.card-meta {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.card-body { padding: 14px 16px; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label span {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── RAG ORB ── */
+.rag-showcase {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.rag-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--navy3);
+}
+.rag-orb {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  color: rgba(0,0,0,.55);
+  flex-shrink: 0;
+}
+.orb-green  { background: var(--green);  box-shadow: 0 0 22px rgba(34,197,94,.45); }
+.orb-amber  { background: var(--amber);  box-shadow: 0 0 22px rgba(245,158,11,.45); }
+.orb-red    { background: var(--red);    box-shadow: 0 0 22px rgba(239,68,68,.45); }
+.orb-hold   { background: var(--grey);   box-shadow: 0 0 22px rgba(107,114,128,.35); }
+
+.rag-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.rag-label.green { color: var(--green); }
+.rag-label.amber { color: var(--amber); }
+.rag-label.red   { color: var(--red); }
+.rag-label.hold  { color: var(--grey); }
+
+.rag-meaning {
+  font-size: 10px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── ROLLUP LOGIC ── */
+.rollup-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rollup-table th {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 500;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.rollup-table td {
+  padding: 9px 10px;
+  font-size: 11px;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: middle;
+}
+.rollup-table tr:last-child td { border-bottom: none; }
+.rollup-table .dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(0,0,0,.6);
+  flex-shrink: 0;
+}
+.dot-g { background: var(--green); }
+.dot-a { background: var(--amber); }
+.dot-r { background: var(--red); }
+.dot-h { background: var(--grey); }
+.dots-row { display: flex; gap: 4px; align-items: center; }
+
+.global-result {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.result-green { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+.result-amber { background: rgba(245,158,11,.12); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
+.result-red   { background: rgba(239,68,68,.12);  color: var(--red);   border: 1px solid rgba(239,68,68,.25); }
+
+/* ── RULE BOX ── */
+.rule-box {
+  background: rgba(245,200,66,.06);
+  border: 1px solid rgba(245,200,66,.2);
+  border-radius: 8px;
+  padding: 11px 14px;
+  margin-top: 12px;
+}
+.rule-box p {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.55;
+}
+.rule-box strong { color: var(--gold); }
+
+/* ── VISUAL CUES ── */
+.cue-list { display: flex; flex-direction: column; gap: 10px; }
+.cue-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--navy3);
+}
+.cue-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1.2;
+  width: 28px;
+  text-align: center;
+}
+.cue-body {}
+.cue-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.cue-desc {
+  font-size: 10.5px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.cue-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.tag-red    { background: rgba(239,68,68,.12);  color: var(--red);  border: 1px solid rgba(239,68,68,.25); }
+.tag-amber  { background: rgba(245,158,11,.12); color: var(--amber);border: 1px solid rgba(245,158,11,.25);}
+.tag-grey   { background: rgba(107,114,128,.12);color: var(--grey); border: 1px solid rgba(107,114,128,.25);}
+.tag-green  { background: rgba(34,197,94,.12);  color: var(--green);border: 1px solid rgba(34,197,94,.25); }
+.tag-blue   { background: rgba(96,165,250,.12); color: var(--blue); border: 1px solid rgba(96,165,250,.25);}
+.tag-gold   { background: rgba(245,200,66,.1);  color: var(--gold); border: 1px solid rgba(245,200,66,.25);}
+
+/* ── NAVIGATION GUIDE ── */
+.nav-guide { display: flex; flex-direction: column; gap: 7px; }
+.nav-row {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.nav-badge {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  background: var(--navy4);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.nav-text {}
+.nav-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+.nav-section-desc {
+  font-size: 9.5px;
+  color: var(--text2);
+}
+
+/* ── COLUMN KEY ── */
+.col-key { display: flex; flex-direction: column; gap: 7px; }
+.col-key-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 10.5px;
+}
+.col-key-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .06em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.col-key-desc { color: var(--text2); line-height: 1.4; }
+
+/* ── SCORECARD DEMO ── */
+.sc-demo {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sc-card-demo {
+  flex: 1;
+  min-width: 100px;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px 10px 14px;
+  position: relative;
+  overflow: hidden;
+}
+.sc-accent-demo {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 8px 0 0 8px;
+}
+.accent-green { background: var(--green); }
+.accent-amber { background: var(--amber); }
+.sc-name-demo { font-size: 9.5px; font-weight: 600; margin-bottom: 2px; }
+.sc-phase-demo { font-family: var(--mono); font-size: 7.5px; color: var(--text3); margin-bottom: 6px; }
+.sc-dots-demo { display: flex; gap: 4px; }
+.sc-dot-demo {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 5px; font-weight: 700; color: rgba(0,0,0,.6);
+}
+
+/* ── PHASE PILLS ── */
+.phases { display: flex; flex-direction: column; gap: 6px; }
+.phase-row { display: flex; align-items: center; gap: 10px; }
+.phase-pill {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--navy4);
+  border: 1px solid var(--border);
+  color: var(--blue);
+  white-space: nowrap;
+  width: 90px;
+  text-align: center;
+}
+.phase-desc { font-size: 10px; color: var(--text2); }
+
+/* ── FOOTER ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text3);
+  letter-spacing: .08em;
+}
+.footer-conf {
+  padding: 3px 10px;
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: 3px;
+  color: rgba(239,68,68,.6);
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; color: #111; padding: 0; }
+  :root {
+    --navy: #fff; --navy2: #f8f9fb; --navy3: #f0f2f5; --navy4: #e5e7ec;
+    --border: rgba(0,0,0,.1);
+    --text: #111; --text2: #444; --text3: #888;
+  }
+  .header { border-bottom-color: rgba(0,0,0,.15); }
+  .card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">SAP CRM · Change-the-Business Portfolio</div>
+      <div class="header-title">Dashboard Cheat Sheet</div>
+      <div class="header-sub">A quick guide to reading the CTB Portfolio Dashboard</div>
+    </div>
+    <div class="header-badge">IT Leadership · Confidential-Internal</div>
+  </div>
+
+  <!-- ── ROW 1: RAG GUIDE + ROLLUP LOGIC ── -->
+  <div class="section-label"><span>RAG Status — What Each Colour Means</span></div>
+
+  <div class="grid-2-1">
+
+    <!-- RAG showcase -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-letter">A</div>
+        <div class="card-title">RAG Colour Reference</div>
+        <div class="card-meta">Applied to every project dimension</div>
+      </div>
+      <div class="card-body">
+        <div class="rag-showcase">
+
+          <div class="rag-item">
+            <div class="rag-orb orb-green">G</div>
+            <div class="rag-label green">GREEN</div>
+            <div class="rag-meaning">On Track — project is delivering to plan with no significant issues</div>
+          </div>
+
+          <div class="rag-item">
+            <div class="rag-orb orb-amber">A</div>
+            <div class="rag-label amber">AMBER</div>
+            <div class="rag-meaning">At Risk — issues exist and are being managed; may need support</div>
+          </div>
+
+          <div class="rag-item">
+            <div class="rag-orb orb-red">R</div>
+            <div class="rag-label red">RED</div>
+            <div class="rag-meaning">Off Track — significant issue that will impact delivery without intervention</div>
+          </div>
+
+          <div class="rag-item">
+            <div class="rag-orb orb-hold">H</div>
+            <div class="rag-label hold">HOLD</div>
+            <div class="rag-meaning">On Hold — intentionally paused; excluded from global portfolio health calculation</div>
+          </div>
+
+        </div>
+
+        <div class="rule-box" style="margin-top:14px;">
+          <p>Each project is rated across four dimensions — <strong>Schedule · Budget · Scope · Quality</strong> — plus one <strong>Overall RAG</strong> that is the single source of truth for project health. The four dimension dots inform the narrative; only the Overall dot drives the global portfolio colour.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rollup logic -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-letter">B</div>
+        <div class="card-title">Global RAG — Rollup Logic</div>
+      </div>
+      <div class="card-body">
+        <table class="rollup-table">
+          <thead>
+            <tr>
+              <th>Project Overall RAGs</th>
+              <th>Portfolio Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="dots-row">
+                  <div class="dot dot-g">G</div>
+                  <div class="dot dot-g">G</div>
+                  <div class="dot dot-g">G</div>
+                </div>
+              </td>
+              <td><span class="global-result result-green">GREEN — On Track</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="dots-row">
+                  <div class="dot dot-g">G</div>
+                  <div class="dot dot-a">A</div>
+                  <div class="dot dot-g">G</div>
+                </div>
+              </td>
+              <td><span class="global-result result-amber">AMBER — At Risk</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="dots-row">
+                  <div class="dot dot-g">G</div>
+                  <div class="dot dot-a">A</div>
+                  <div class="dot dot-r">R</div>
+                </div>
+              </td>
+              <td><span class="global-result result-red">RED — Off Track</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="dots-row">
+                  <div class="dot dot-g">G</div>
+                  <div class="dot dot-h">H</div>
+                  <div class="dot dot-g">G</div>
+                </div>
+              </td>
+              <td><span class="global-result result-green">GREEN (HOLD excluded)</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="rule-box">
+          <p><strong>Single RED = entire portfolio turns RED.</strong> HOLD projects are invisible to this calculation — they never pull the colour down.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROW 2: VISUAL CUES + NAVIGATION MAP ── -->
+  <div class="section-label"><span>Automated Visual Cues &amp; Dashboard Navigation</span></div>
+
+  <div class="grid-2">
+
+    <!-- Visual cues glossary -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-letter">C</div>
+        <div class="card-title">Automated UI States — What to Look For</div>
+      </div>
+      <div class="card-body">
+        <div class="cue-list">
+
+          <div class="cue-item">
+            <div class="cue-icon">🔴</div>
+            <div class="cue-body">
+              <div class="cue-title">Pulsing Red Badge — Decision Due Soon</div>
+              <div class="cue-desc">Appears on Executive Asks in Section D. The badge animates with a repeating red glow when a decision is due within the next 7 days. A solid red badge labelled OVERDUE appears once the date has passed.</div>
+              <span class="cue-tag tag-red">⚡ PULSES WITHIN 7 DAYS</span>
+              <span class="cue-tag tag-red" style="margin-left:4px;">OVERDUE — PAST DUE DATE</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">🟢</div>
+            <div class="cue-body">
+              <div class="cue-title">LIVE Indicator — Data is Current</div>
+              <div class="cue-desc">A small pulsing green dot in the top-right of the masthead confirms the dashboard is connected to live data and last refreshed successfully (auto-refreshes every 5 minutes).</div>
+              <span class="cue-tag tag-green">● LIVE · [timestamp]</span>
+              <span class="cue-tag tag-grey" style="margin-left:4px;">STALE — connection lost</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">⚑</div>
+            <div class="cue-body">
+              <div class="cue-title">Gold Key Flag Banner — Headline Announcement</div>
+              <div class="cue-desc">A gold banner appears below the project scorecards when the Portfolio Coordinator has set a weekly headline (e.g. gate approvals, critical decisions made). Hidden when there is no announcement.</div>
+              <span class="cue-tag tag-gold">⚑ KEY FLAG: [headline text]</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">🔅</div>
+            <div class="cue-body">
+              <div class="cue-title">Dimmed Row / Card — Completed Project</div>
+              <div class="cue-desc">A project row in the matrix and its scorecard card are displayed at reduced opacity when the project has been marked complete by the Portfolio Coordinator. It remains visible for reference but signals no further action is needed.</div>
+              <span class="cue-tag tag-grey">COMPLETE — reduced opacity</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">🔵</div>
+            <div class="cue-body">
+              <div class="cue-title">Deep Dive Link — Direct to Source</div>
+              <div class="cue-desc">Each project in the matrix has a coloured "Deep Dive" button. Clicking it opens the linked MS Teams Planner board or SharePoint page for that project directly in your browser. The button label may be customised per project.</div>
+              <span class="cue-tag tag-blue">↗ M365</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">☀</div>
+            <div class="cue-body">
+              <div class="cue-title">Dark / Light Theme Toggle</div>
+              <div class="cue-desc">The ☀ button in the top-right masthead switches between the default dark theme and a light theme. Your preference is remembered for the current browser session.</div>
+              <span class="cue-tag tag-grey">☀ LIGHT · ☽ DARK</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">🔤</div>
+            <div class="cue-body">
+              <div class="cue-title">Font Size Controls — A− / A+</div>
+              <div class="cue-desc">Two buttons in the masthead scale the entire dashboard smaller or larger across seven steps (82%–122%). Useful on high-resolution screens or when presenting on a projector. Preference is saved for the session.</div>
+              <span class="cue-tag tag-grey">A− smaller · A+ larger</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">⎙</div>
+            <div class="cue-body">
+              <div class="cue-title">Print / Export to PDF</div>
+              <div class="cue-desc">The ⎙ button opens the browser's print dialog. Interactive controls, the filter bar, and the help panel are hidden automatically — only portfolio content is printed. Use "Save as PDF" in the print dialog to produce a shareable file.</div>
+              <span class="cue-tag tag-grey">⎙ PRINT / SAVE AS PDF</span>
+            </div>
+          </div>
+
+          <div class="cue-item">
+            <div class="cue-icon">⌕</div>
+            <div class="cue-body">
+              <div class="cue-title">Project Matrix Filter Bar — Search &amp; RAG Chips</div>
+              <div class="cue-desc">A search box and RAG chip buttons (Green / Amber / Red / Hold) sit above the project matrix. Type a project name to narrow the rows, or click a chip to show only projects at that health status. Click All to reset.</div>
+              <span class="cue-tag tag-green">● Green</span>
+              <span class="cue-tag tag-amber" style="margin-left:4px;">● Amber</span>
+              <span class="cue-tag tag-red" style="margin-left:4px;">● Red</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation map -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-letter">D</div>
+        <div class="card-title">Dashboard Layout — Section by Section</div>
+      </div>
+      <div class="card-body">
+        <div class="nav-guide">
+
+          <div class="nav-row">
+            <div class="nav-badge">A</div>
+            <div class="nav-text">
+              <div class="nav-section-title">The Pulse — Portfolio Delivery Health</div>
+              <div class="nav-section-desc">Global RAG orb + project scorecards + Key Flag banner. Read this first — it's the one-number summary of the whole portfolio.</div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <div class="nav-badge">B</div>
+            <div class="nav-text">
+              <div class="nav-section-title">Project Matrix</div>
+              <div class="nav-section-desc">All active projects in a single table. Compare phase, schedule status, four-dimension RAG, next milestone, and links to detailed plans side by side.</div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <div class="nav-badge">C</div>
+            <div class="nav-text">
+              <div class="nav-section-title">Upcoming Milestones</div>
+              <div class="nav-section-desc">Chronological list of portfolio milestones. Colour-coded by type (go-live, review, approval, decision). Upcoming milestones appear first, sorted nearest date at the top. Past milestones appear in a dimmed "Past" section below — visible for reference but clearly separated.</div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <div class="nav-badge">D</div>
+            <div class="nav-text">
+              <div class="nav-section-title">Executive Decisions / C-Suite Asks</div>
+              <div class="nav-section-desc">Open items requiring a decision or action from leadership. Each shows the ask, context, due date, and the project it belongs to. Check this section for any pulsing items.</div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <div class="nav-badge">E</div>
+            <div class="nav-text">
+              <div class="nav-section-title">Cross-Project Risks &amp; Dependencies</div>
+              <div class="nav-section-desc">Risks being tracked across the portfolio. Severity levels: HIGH · MED · LOW · DEP (dependency) · ESC (escalated) · WATCH.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Project matrix column key -->
+        <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Matrix Column Key</div>
+          <div class="col-key">
+            <div class="col-key-row"><span class="col-key-name">Phase</span><span class="col-key-desc">SAP Activate phase (DISCOVER → PREPARE → EXPLORE → REALIZE → DEPLOY → RUN)</span></div>
+            <div class="col-key-row"><span class="col-key-name">Schedule</span><span class="col-key-desc">Variance in days (+0d = on time) + status pill (ON TRACK / AT RISK / DELAYED)</span></div>
+            <div class="col-key-row"><span class="col-key-name">SCH·BDG·SCP·QLT</span><span class="col-key-desc">Four coloured dots: Schedule / Budget / Scope / Quality — independent from the Overall RAG</span></div>
+            <div class="col-key-row"><span class="col-key-name">RAG</span><span class="col-key-desc">Overall health dot — the single figure that drives the global portfolio colour</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROW 3: PHASES ── -->
+  <div class="section-label"><span>SAP Activate Phase Reference</span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-letter">E</div>
+      <div class="card-title">Project Phase Lifecycle</div>
+      <div class="card-meta">SAP Activate Methodology</div>
+    </div>
+    <div class="card-body">
+      <div class="grid-3" style="gap:10px;">
+
+        <div class="phases">
+          <div class="phase-row">
+            <div class="phase-pill">DISCOVER</div>
+            <div class="phase-desc">Feasibility, value case, and solution exploration</div>
+          </div>
+          <div class="phase-row">
+            <div class="phase-pill">PREPARE</div>
+            <div class="phase-desc">Project initiation, team setup, infrastructure provisioning</div>
+          </div>
+        </div>
+
+        <div class="phases">
+          <div class="phase-row">
+            <div class="phase-pill">EXPLORE</div>
+            <div class="phase-desc">Fit-to-standard workshops, gap analysis, requirements</div>
+          </div>
+          <div class="phase-row">
+            <div class="phase-pill">REALIZE</div>
+            <div class="phase-desc">Configuration, development, sprint cycles, SIT/UAT testing</div>
+          </div>
+        </div>
+
+        <div class="phases">
+          <div class="phase-row">
+            <div class="phase-pill">DEPLOY</div>
+            <div class="phase-desc">Cutover planning, training, go-live execution</div>
+          </div>
+          <div class="phase-row">
+            <div class="phase-pill">RUN</div>
+            <div class="phase-desc">Hypercare, system monitoring, continuous improvement</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    <span>CTB Portfolio Dashboard · Executive Cheat Sheet · SAP CRM Team · CW21 · May 2026</span>
+    <span class="footer-conf">Confidential — Internal Use Only</span>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

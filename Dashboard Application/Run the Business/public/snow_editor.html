@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNOW Dashboard Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#0e0f13;--bg2:#15171d;--bg3:#1c1f28;--bg4:#232733;
+  --border:#2a2e3d;--border2:#353a4d;
+  --accent:#4f7eff;--accent-glow:rgba(79,126,255,.15);
+  --green:#3dbd7e;--amber:#f5a623;--red:#e84c4c;
+  --purple:#b57cff;--blue:#4faeff;--muted:#8a8fa8;
+  --text:#e2e5f0;--text2:#8a8fa8;--text3:#5a6075;
+  --sidebar-w:220px;--topbar-h:56px;--r:8px;--rs:5px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
+#topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:12px;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.45)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;color:var(--text);white-space:nowrap}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.topbar-sep{width:1px;height:24px;background:var(--border2);margin:0 4px}
+.fbadge{font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:5px}
+.fbadge .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.fbadge.ok .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.fbadge.ok{color:var(--text);border-color:rgba(61,189,126,.25)}
+.topbar-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--rs);border:1px solid transparent;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(79,126,255,.3)}
+.btn-accent:hover{background:#3a68e8}
+.btn-green{background:rgba(61,189,126,.12);border-color:rgba(61,189,126,.3);color:var(--green)}
+.btn-green:hover{background:rgba(61,189,126,.22)}
+.btn-red{background:rgba(232,76,76,.12);border-color:rgba(232,76,76,.3);color:var(--red)}
+.btn-red:hover{background:rgba(232,76,76,.22)}
+.btn-amber{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.3);color:var(--amber)}
+.btn-amber:hover{background:rgba(245,166,35,.22)}
+.btn-purple{background:rgba(181,124,255,.12);border-color:rgba(181,124,255,.3);color:var(--purple)}
+.btn-purple:hover{background:rgba(181,124,255,.22)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:10.5px}
+#shell{display:flex;margin-top:var(--topbar-h);height:calc(100vh - var(--topbar-h));overflow:hidden}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:12px 0}
+.sidebar-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:8px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;margin:1px 8px;border-radius:var(--rs);cursor:pointer;font-size:12.5px;font-weight:500;color:var(--text2);transition:all .12s;user-select:none;border:1px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent-glow);color:var(--accent);border-color:rgba(79,126,255,.2)}
+.nav-item.locked{opacity:.4;cursor:not-allowed;pointer-events:none}
+.nav-icon{font-size:14px;width:18px;text-align:center}
+.nav-badge{margin-left:auto;font-family:'DM Mono';font-size:10px;padding:1px 6px;border-radius:10px;background:var(--bg4);color:var(--muted)}
+.nav-badge.ok{background:rgba(61,189,126,.15);color:var(--green)}
+.sidebar-footer{margin-top:auto;padding:12px 16px;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);font-family:'DM Mono'}
+#main{flex:1;overflow-y:auto;background:var(--bg);padding:24px}
+.panel{display:none;animation:fadeIn .15s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.panel-hdr{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.panel-hdr-icon{font-size:22px;line-height:1;margin-top:2px}
+.panel-hdr-text h2{font-size:17px;font-weight:700;color:var(--text)}
+.panel-hdr-text p{font-size:12px;color:var(--text2);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.card-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.sect-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.sect-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.fg{margin-bottom:12px}
+.fl{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=number],select,textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-family:'Sora',sans-serif;font-size:12.5px;padding:7px 10px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+input.overridden{border-color:var(--amber)!important;box-shadow:0 0 0 2px rgba(245,166,35,.2)!important}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8fa8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+textarea{resize:vertical;min-height:68px;line-height:1.55;font-size:12px}
+.cfg-locked input,.cfg-locked select,.cfg-locked textarea{opacity:.5;cursor:not-allowed;pointer-events:none;user-select:none}
+.cfg-locked .dropzone{opacity:.5;cursor:not-allowed;pointer-events:none}
+.cfg-locked .item-del,.cfg-locked .btn-ghost.btn-sm{pointer-events:none;opacity:.3}
+.cfg-actions,.cfg-actions .dropzone,.cfg-actions button,.cfg-actions input[type=file]{pointer-events:auto!important;opacity:1!important;cursor:pointer!important}
+.kpi-section .kpi-row input,.kpi-section .kpi-row select{background:var(--bg);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:'DM Mono',monospace}
+.mono{font-family:'DM Mono',monospace!important;font-size:11.5px!important}
+.dropzone{border:2px dashed var(--border2);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg3)}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--accent);background:var(--accent-glow)}
+.dropzone.ok{border-color:var(--green);border-style:solid;background:rgba(61,189,126,.06)}
+.dropzone.err{border-color:var(--red);border-style:solid;background:rgba(232,76,76,.06)}
+.dropzone.loading{border-color:var(--blue);border-style:solid;background:rgba(79,174,255,.06)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:none;background:none;padding:0}
+.dz-icon{font-size:26px;margin-bottom:6px}
+.dz-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.dz-sub{font-size:11px;color:var(--text2)}
+.dz-status{font-size:11px;margin-top:8px;font-family:'DM Mono'}
+.dz-status.ok{color:var(--green)}.dz-status.err{color:var(--red)}.dz-status.warn{color:var(--amber)}
+.coverage-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cov-cell{padding:6px 10px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);text-align:center;min-width:64px}
+.cov-cell.ok{border-color:rgba(61,189,126,.3);background:rgba(61,189,126,.07)}
+.cov-cell.warn{border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.07)}
+.cov-cell.empty{border-color:rgba(232,76,76,.3);background:rgba(232,76,76,.07)}
+.cov-wk{font-family:'DM Mono';font-size:10px;color:var(--text2)}
+.cov-cnt{font-family:'DM Mono';font-size:13px;font-weight:600;color:var(--text)}
+.health-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:var(--rs);font-size:12px;margin-bottom:6px}
+.health-item.warn{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);color:var(--amber)}
+.health-item.err{background:rgba(232,76,76,.08);border:1px solid rgba(232,76,76,.2);color:var(--red)}
+.health-item.ok{background:rgba(61,189,126,.08);border:1px solid rgba(61,189,126,.2);color:var(--green)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:14px}
+.collapsible-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:4px;user-select:none}
+.collapsible-hdr:hover{border-color:var(--border2)}
+.collapsible-hdr h4{font-size:12px;font-weight:600;color:var(--text2)}
+.collapsible-hdr .chev{color:var(--text3);font-size:10px;transition:transform .2s}
+.collapsible-hdr.open .chev{transform:rotate(90deg)}
+.collapsible-body{display:none;padding:14px;background:var(--bg3);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--rs) var(--rs);margin-bottom:8px}
+.collapsible-body.open{display:block}
+.sc-row{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.sc-row:hover{border-color:var(--border2)}
+.sc-row.active{border-color:var(--accent);background:rgba(79,126,255,.05)}
+.sc-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.sc-label{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.sc-status{font-size:11px;padding:2px 10px;border-radius:10px;font-weight:600}
+.sc-status.pending{background:var(--bg4);color:var(--text3)}
+.sc-status.inprog{background:rgba(79,126,255,.15);color:var(--accent)}
+.sc-status.done{background:rgba(61,189,126,.15);color:var(--green)}
+.sc-status.na{background:rgba(90,96,117,.15);color:var(--muted)}
+.comm-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px}
+.comm-col-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.comm-col-body{padding:12px}
+.prev-ref-panel{background:rgba(255,255,255,.02);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 var(--rs) var(--rs) 0;padding:12px;margin-bottom:12px}
+.prev-ref-label{font-size:10px;color:var(--accent);font-family:'DM Mono';margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.comm-ref-item{font-size:11.5px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border);margin-bottom:3px}
+.comm-ref-item:last-child{border-bottom:none;margin-bottom:0}
+.item-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:10px;margin-bottom:8px;position:relative}
+.item-del{position:absolute;top:8px;right:8px;background:rgba(232,76,76,.1);border:1px solid rgba(232,76,76,.2);color:var(--red);border-radius:4px;cursor:pointer;font-size:10px;padding:2px 7px;font-family:'Sora'}
+.item-del:hover{background:rgba(232,76,76,.25)}
+.sc-table-wrap{overflow-x:auto}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px}
+.sc-table th{background:var(--bg3);color:var(--text2);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;border:1px solid var(--border);text-align:center}
+.sc-table th.cur{color:var(--blue);background:rgba(79,174,255,.08)}
+.sc-table td{padding:7px 10px;border:1px solid var(--border);text-align:center;font-family:'DM Mono';font-size:11.5px}
+.sc-table td.row-lbl{text-align:left;font-family:'Sora';font-size:12px;font-weight:600;color:var(--text);background:var(--bg2)}
+.check-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg2);margin-bottom:6px}
+.check-icon{font-size:16px;width:20px;flex-shrink:0}
+.check-label{flex:1;font-size:12.5px;color:var(--text)}
+.check-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.check-badge.pass{background:rgba(61,189,126,.15);color:var(--green)}
+.check-badge.fail{background:rgba(232,76,76,.15);color:var(--red)}
+.check-badge.na{background:var(--bg4);color:var(--muted)}
+.gen-summary{background:linear-gradient(135deg,rgba(79,126,255,.08),rgba(61,189,126,.05));border:1px solid rgba(79,126,255,.2);border-radius:var(--r);padding:20px;margin-bottom:20px;text-align:center}
+.gen-week{font-size:28px;font-weight:700;font-family:'DM Mono';color:var(--accent);margin-bottom:4px}
+.gen-sub{font-size:12px;color:var(--text2)}
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;animation:fadeIn .15s ease}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:90vw;max-width:900px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.modal-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-header h3{flex:1;font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px}
+.modal-close:hover{color:var(--text);background:var(--bg3)}
+.modal-body{flex:1;overflow-y:auto;padding:20px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border)}
+/* ── JSON Viewer ── */
+.jv-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--rs);font-size:12px;border-bottom:1px solid var(--border)}
+.jv-row:hover{background:var(--bg3)}
+.jv-path{font-family:'DM Mono';font-size:11px;color:var(--accent);min-width:260px;flex-shrink:0;word-break:break-all}
+.jv-val{flex:1;font-family:'DM Mono';font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jv-val.editing{white-space:normal;overflow:visible}
+.jv-edit-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.jv-edit-btn:hover{color:var(--accent);background:var(--accent-glow)}
+.jv-input{background:var(--bg);border:1px solid var(--accent);border-radius:3px;color:var(--text);font-family:'DM Mono';font-size:11px;padding:3px 6px;width:100%}
+.jv-search{width:100%;margin-bottom:12px}
+/* ── JSON Preview ── */
+.json-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;max-height:500px;overflow:auto;font-family:'DM Mono';font-size:11px;line-height:1.6;color:var(--text2);white-space:pre-wrap;word-break:break-all}
+/* ── Validation Table ── */
+.val-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px}
+.val-table th{background:var(--bg3);color:var(--text2);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--border);text-align:left}
+.val-table td{padding:5px 10px;border:1px solid var(--border);font-family:'DM Mono';font-size:11px}
+.val-table tr.err-row td{background:rgba(232,76,76,.05)}
+.val-table .issue-cell{color:var(--red)}
+.success-msg{background:rgba(61,189,126,.08);border:1px solid rgba(61,189,126,.25);border-radius:var(--rs);padding:10px 14px;color:var(--green);font-size:12px;font-weight:600;margin-top:10px;display:flex;align-items:center;gap:8px}
+/* ── Week Window Display ── */
+.week-grid{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.week-chip{padding:6px 10px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);text-align:center;min-width:110px}
+.week-chip.current{border-color:rgba(79,126,255,.4);background:rgba(79,126,255,.08)}
+.week-chip .wc-label{font-family:'DM Mono';font-size:11px;font-weight:700;color:var(--accent)}
+.week-chip .wc-dates{font-size:9.5px;color:var(--text3);font-family:'DM Mono'}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand"><div class="brand-dot"></div>SNOW Dashboard Editor</div>
+  <div class="topbar-sep"></div>
+  <div class="fbadge" id="badge-config"><div class="dot"></div><span>Config</span></div>
+  <div class="fbadge" id="badge-inc"><div class="dot"></div><span>INC</span></div>
+  <div class="fbadge" id="badge-sr"><div class="dot"></div><span>SR</span></div>
+  <div class="fbadge" id="badge-rfac"><div class="dot"></div><span>RFAC</span></div>
+  <div class="fbadge" id="badge-prb"><div class="dot"></div><span>PRB</span></div>
+  <div class="topbar-spacer"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-purple btn-sm" onclick="document.getElementById('inp-top-prev').click()">📄 Load Previous JSON<input type="file" id="inp-top-prev" accept=".json" style="display:none" onchange="loadPrevJSONFromTop(event)"></button>
+    <button class="btn btn-accent btn-sm" id="btn-dl-json" disabled onclick="downloadJSON()">↓ Generate JSON</button>
+  </div>
+</div>
+
+<div id="shell">
+  <div id="sidebar">
+    <div class="sidebar-label">Workflow</div>
+    <div class="nav-item active" id="nav-welcome" onclick="goPanel('welcome')"><span class="nav-icon">👋</span>Welcome / Guide<span class="nav-badge" id="nb-welcome"></span></div>
+    <div class="nav-item" id="nav-config" onclick="goPanel('config')"><span class="nav-icon">⚙️</span>Configuration<span class="nav-badge" id="nb-config">—</span></div>
+    <div class="nav-item" id="nav-data" onclick="goPanel('data')"><span class="nav-icon">📂</span>Data Upload<span class="nav-badge" id="nb-data">0/4</span></div>
+    <div class="nav-item locked" id="nav-kpis" onclick="goPanel('kpis')"><span class="nav-icon">📊</span>Calculated KPIs<span class="nav-badge" id="nb-kpis">—</span></div>
+    <div class="nav-item locked" id="nav-manual" onclick="goPanel('manual')"><span class="nav-icon">✏️</span>Manual Sections<span class="nav-badge" id="nb-manual">0/3</span></div>
+    <div class="nav-item locked" id="nav-generate" onclick="goPanel('generate')"><span class="nav-icon">📦</span>Generate JSON<span class="nav-badge" id="nb-generate">—</span></div>
+    <div class="sidebar-footer">v3.0.0 · ISO 8601</div>
+  </div>
+
+  <div id="main">
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 0: WELCOME / GUIDE                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel active" id="panel-welcome">
+      <div class="panel-hdr"><div class="panel-hdr-icon">👋</div><div class="panel-hdr-text"><h2>Welcome to the SNOW Dashboard Editor</h2><p>Your step-by-step guide to building the weekly IT Operations dashboard.</p></div></div>
+
+      <div style="max-width:820px">
+
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:24px">
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:8px">🧭 What this tool does</h3>
+          <p style="font-size:12.5px;color:var(--text2);line-height:1.7">
+            This editor takes your ServiceNow weekly extracts (Incidents, Service Requests, RFCs, and Problems)
+            and turns them into a ready-to-use dashboard JSON file. You work through five simple stages — from
+            setting your target week all the way to downloading the final file. No coding required.
+          </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">⚙️</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">1. Configuration</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Set your target ISO week, timezone, SLA thresholds, priority maps, and ServiceNow instance URLs.
+              This is where you tell the tool what "good" looks like.
+            </p>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">📂</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">2. Data Upload</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Upload your INC, SR, RFAC, and PRB Excel or CSV extracts. The tool validates each file automatically
+              and shows you a coverage overview so you know nothing is missing.
+            </p>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">📊</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">3. Calculated KPIs</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Review the week-over-week KPIs computed from your data — volumes, SLA achievements, RAG ratings,
+              and breach trends. Everything is calculated automatically.
+            </p>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">✏️</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">4. Manual Sections</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Add your weekly summary commentary, leadership intervention notes, and the WoW RFAC scorecard.
+              These sections give context to the numbers.
+            </p>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">📦</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">5. Generate JSON</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Review the final checklist, download the <code style="background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px">snow_weekly.json</code> file, and drop it into the dashboard viewer.
+            </p>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:20px;margin-bottom:4px">📄</div>
+            <h4 style="font-size:13px;font-weight:600;margin-bottom:4px">Load Previous JSON</h4>
+            <p style="font-size:11.5px;color:var(--text2);line-height:1.6">
+              Already have a previous week's JSON? Click <strong>Load Previous JSON</strong> in the top bar to
+              pre-fill config and manual sections so you only update what changed.
+            </p>
+          </div>
+
+        </div>
+
+        <div style="background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:6px">💡 Tips for a smooth run</h4>
+          <ul style="font-size:12px;color:var(--text2);line-height:1.8;padding-left:18px">
+            <li>Complete the steps <strong>in order</strong> — the tool will unlock each stage as you go.</li>
+            <li>Your work is <strong>auto-saved</strong> in your browser's local storage. Closing the page won't lose it.</li>
+            <li>Use the <strong>Upload Config JSON</strong> option in the Configuration panel to reuse settings week over week.</li>
+            <li>Upload files should cover <strong>at least 8 weeks</strong> of data for proper WoW comparisons.</li>
+            <li>Need to start fresh? Use the <strong>Reset All</strong> button (top-right) to clear everything.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 1: CONFIGURATION                          -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-config">
+      <div class="panel-hdr"><div class="panel-hdr-icon">⚙️</div><div class="panel-hdr-text"><h2>Configuration</h2><p>Set the target week, timezone, thresholds, valid field values, and ServiceNow URLs.</p></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px"><span id="cfg-lock-badge" class="fbadge"><div class="dot"></div><span>Locked</span></span><button class="btn btn-ghost btn-sm" id="btn-cfg-edit" onclick="toggleConfigEdit()" title="Toggle edit mode">✏️</button></div></div>
+
+      <div id="cfg-body"><div class="card" style="margin-bottom:14px">
+        <div class="card-title">📅 Target Week & Timezone</div>
+        <div class="grid-4">
+          <div class="fg"><label class="fl">ISO Week Number</label><input type="number" id="cfg-week" min="1" max="53" value="22" oninput="onWeekYearChange()"></div>
+          <div class="fg"><label class="fl">Year</label><input type="number" id="cfg-year" min="2020" max="2040" value="2026" oninput="onWeekYearChange()"></div>
+          <div class="fg"><label class="fl">Timezone</label><select id="cfg-tz" onchange="onWeekYearChange()"></select></div>
+        </div>
+        <div id="week-window-display"></div>
+      </div>
+
+      <div class="collapsible-hdr open" onclick="toggleCol('col-portfolio')"><h4>📋 Portfolio & ServiceNow</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body open" id="col-portfolio">
+        <div class="grid-2">
+          <div class="fg"><label class="fl">Portfolio Name</label><input type="text" id="cfg-portfolio" oninput="updateCfg('meta.portfolio',this.value)"></div>
+          <div class="fg"><label class="fl">Prepared By</label><input type="text" id="cfg-prepby" oninput="updateCfg('meta.prepared_by',this.value)"></div>
+        </div>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-thresh')"><h4>🎯 Thresholds & Bar Maxes</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-thresh">
+        <div class="grid-4">
+          <div class="fg"><label class="fl">SLA Target %</label><input type="number" id="cfg-sla-t" oninput="updateCfg('thresholds.sla_target_pct',+this.value)"></div>
+          <div class="fg"><label class="fl">PRB SLA Days</label><input type="number" id="cfg-prb-d" oninput="updateCfg('thresholds.prb_sla_days',+this.value)"></div>
+          <div class="fg"><label class="fl">PRB Amber Days</label><input type="number" id="cfg-prb-a" oninput="updateCfg('thresholds.prb_amber_days',+this.value)"></div>
+          <div class="fg"><label class="fl">RAG Amber %</label><input type="number" id="cfg-rag-a" oninput="updateCfg('thresholds.rag_sla_amber',+this.value)"></div>
+          <div class="fg"><label class="fl">RAG Red %</label><input type="number" id="cfg-rag-r" oninput="updateCfg('thresholds.rag_sla_red',+this.value)"></div>
+        </div>
+        <div class="grid-4">
+          <div class="fg"><label class="fl">Bar Max INC</label><input type="number" id="cfg-bm-inc" oninput="updateCfg('bar_maxes.incidents',+this.value)"></div>
+          <div class="fg"><label class="fl">Bar Max SR</label><input type="number" id="cfg-bm-sr" oninput="updateCfg('bar_maxes.service_requests',+this.value)"></div>
+          <div class="fg"><label class="fl">Bar Max RFAC</label><input type="number" id="cfg-bm-rfac" oninput="updateCfg('bar_maxes.rfac',+this.value)"></div>
+          <div class="fg"><label class="fl">Bar Max PRB</label><input type="number" id="cfg-bm-prb" oninput="updateCfg('bar_maxes.problems',+this.value)"></div>
+        </div>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-states')"><h4>🔀 State Maps</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-states"><div id="state-map-editor"></div></div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-pri')"><h4>⬆ Priority Maps</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-pri"><div id="priority-maps-editor"></div></div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-cat')"><h4>📂 Category Maps</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-cat"><div id="category-maps-editor"></div></div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-urls')"><h4>🔗 ServiceNow URLs</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-urls">
+        <div class="grid-2">
+          <div class="fg"><label class="fl">INC – View All <span style="color:var(--red)">*</span></label><input type="text" id="cfg-url-inc" class="mono" placeholder="https://instance.service-now.com/incident_list.do?..." oninput="updateCfg('snow_urls.incidents',this.value)"></div>
+          <div class="fg"><label class="fl">SR – View All <span style="color:var(--red)">*</span></label><input type="text" id="cfg-url-sr" class="mono" placeholder="https://instance.service-now.com/sc_req_item_list.do?..." oninput="updateCfg('snow_urls.service_requests',this.value)"></div>
+          <div class="fg"><label class="fl">PRB – View All <span style="color:var(--red)">*</span></label><input type="text" id="cfg-url-prb" class="mono" placeholder="https://instance.service-now.com/problem_list.do?..." oninput="updateCfg('snow_urls.problems',this.value)"></div>
+          <div class="fg"><label class="fl">RFAC – View All <span style="color:var(--red)">*</span></label><input type="text" id="cfg-url-rfac" class="mono" placeholder="https://instance.service-now.com/change_request_list.do?..." oninput="updateCfg('snow_urls.rfac',this.value)"></div>
+        </div>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleCol('col-valid')"><h4>✅ Valid Field Values</h4><span class="chev">▶</span></div>
+      <div class="collapsible-body" id="col-valid"><div id="valid-values-editor"></div></div>
+
+      <div class="cfg-actions" style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+        <div class="dropzone" id="dz-config" style="flex:1;min-width:200px;padding:14px">
+          <input type="file" id="inp-config" accept=".json" onchange="loadConfig(event)">
+          <div class="dz-title" style="font-size:12px">⬆ Upload Config JSON</div>
+          <div class="dz-status" id="ds-config" style="font-size:10px">Click or drop snow_config.json</div>
+        </div>
+        <button class="btn btn-ghost" onclick="previewConfigJSON()">👁 Preview Config</button>
+        <button class="btn btn-ghost" onclick="downloadConfig()">↓ Download Config</button>
+        <button class="btn btn-accent" onclick="completeConfig()">Continue to Data Upload →</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 2: DATA UPLOAD                            -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-data">
+      <div class="panel-hdr"><div class="panel-hdr-icon">📂</div><div class="panel-hdr-text"><h2>Data Upload</h2><p>Upload INC, SR, RFAC and PRB sheets. Validation runs automatically on upload.</p></div></div>
+
+      <div class="sect-title">8-Week Extracts</div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <!-- Incidents -->
+        <div>
+          <div class="dropzone" id="dz-inc">
+            <input type="file" id="inp-inc" accept=".xlsx,.csv,.xls" onchange="handleUpload(event,'incidents')">
+            <div class="dz-icon">🎫</div><div class="dz-title">Incidents</div><div class="dz-sub">8-week extract · XLSX or CSV</div>
+            <div class="dz-status" id="ds-inc">Click or drag file here</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadTemplate('incidents')">↓ Template</button>
+            <button class="btn btn-red btn-sm" id="clr-inc" style="display:none" onclick="clearUpload('incidents')">✕</button>
+          </div>
+          <div id="validation-inc"></div>
+          <div id="coverage-inc"></div>
+        </div>
+        <!-- Service Requests -->
+        <div>
+          <div class="dropzone" id="dz-sr">
+            <input type="file" id="inp-sr" accept=".xlsx,.csv,.xls" onchange="handleUpload(event,'service_requests')">
+            <div class="dz-icon">📋</div><div class="dz-title">Service Requests</div><div class="dz-sub">8-week extract · XLSX or CSV</div>
+            <div class="dz-status" id="ds-sr">Click or drag file here</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadTemplate('service_requests')">↓ Template</button>
+            <button class="btn btn-red btn-sm" id="clr-sr" style="display:none" onclick="clearUpload('service_requests')">✕</button>
+          </div>
+          <div id="validation-sr"></div>
+          <div id="coverage-sr"></div>
+        </div>
+      </div>
+
+      <div class="sect-title">Open Snapshots</div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <!-- RFAC -->
+        <div>
+          <div class="dropzone" id="dz-rfac">
+            <input type="file" id="inp-rfac" accept=".xlsx,.csv,.xls" onchange="handleUpload(event,'rfac')">
+            <div class="dz-icon">🔀</div><div class="dz-title">RFAC / Changes</div><div class="dz-sub">All open records · no date filter</div>
+            <div class="dz-status" id="ds-rfac">Click or drag file here</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadTemplate('rfac')">↓ Template</button>
+            <button class="btn btn-red btn-sm" id="clr-rfac" style="display:none" onclick="clearUpload('rfac')">✕</button>
+          </div>
+          <div id="validation-rfac"></div>
+          <div id="coverage-rfac"></div>
+        </div>
+        <!-- Problems -->
+        <div>
+          <div class="dropzone" id="dz-prb">
+            <input type="file" id="inp-prb" accept=".xlsx,.csv,.xls" onchange="handleUpload(event,'problems')">
+            <div class="dz-icon">🐛</div><div class="dz-title">Problems (PRB)</div><div class="dz-sub">All open records · no date filter</div>
+            <div class="dz-status" id="ds-prb">Click or drag file here</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="downloadTemplate('problems')">↓ Template</button>
+            <button class="btn btn-red btn-sm" id="clr-prb" style="display:none" onclick="clearUpload('problems')">✕</button>
+          </div>
+          <div id="validation-prb"></div>
+          <div id="coverage-prb"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="goPanel('config')">← Back</button>
+        <button class="btn btn-accent" id="btn-compute" disabled onclick="runCompute()">⚡ Compute & Continue →</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 3: CALCULATED KPIs                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-kpis">
+      <div class="panel-hdr"><div class="panel-hdr-icon">📊</div><div class="panel-hdr-text"><h2>Calculated KPIs</h2><p>Auto-calculated values from uploaded data. Click ✏️ on any section to override values.</p></div></div>
+      <div id="kpi-content"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="goPanel('data')">← Back</button>
+        <button class="btn btn-accent" onclick="goPanel('manual')">Continue to Manual Sections →</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 4: MANUAL SECTIONS                        -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-manual">
+      <div class="panel-hdr"><div class="panel-hdr-icon">✏️</div><div class="panel-hdr-text"><h2>Manual Sections</h2><p>Complete Weekly Summary, Leadership Intervention, and WoW RFAC State Data.</p></div></div>
+
+      <div id="section-tabs">
+        <div class="sc-row active" id="sc-row-comm" onclick="openSection('comm')"><span class="sc-icon">📝</span><span class="sc-label">Weekly Summary</span><span class="sc-status pending" id="scs-comm">Pending</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-green btn-xs" onclick="event.stopPropagation();markSection('comm','done')">Done</button><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();markSection('comm','na')">N/A</button></div></div>
+        <div class="sc-row" id="sc-row-int" onclick="openSection('int')"><span class="sc-icon">⚡</span><span class="sc-label">Leadership Intervention</span><span class="sc-status pending" id="scs-int">Pending</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-green btn-xs" onclick="event.stopPropagation();markSection('int','done')">Done</button><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();markSection('int','na')">N/A</button></div></div>
+        <div class="sc-row" id="sc-row-rfach" onclick="openSection('rfach')"><span class="sc-icon">📊</span><span class="sc-label">WoW RFAC State Data</span><span class="sc-status pending" id="scs-rfach">Pending</span><div style="display:flex;gap:4px;margin-left:8px"><button class="btn btn-green btn-xs" onclick="event.stopPropagation();markSection('rfach','done')">Done</button><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();markSection('rfach','na')">N/A</button></div></div>
+      </div>
+      <div id="section-content" style="margin-top:16px"></div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="goPanel('data')">← Back</button>
+        <button class="btn btn-accent" id="btn-to-gen" disabled onclick="goPanel('generate')">Continue to Generate →</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- PANEL 4: GENERATE JSON                          -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-generate">
+      <div class="panel-hdr"><div class="panel-hdr-icon">📦</div><div class="panel-hdr-text"><h2>Generate JSON</h2><p>Review pre-flight checklist, preview the JSON, then download.</p></div></div>
+      <div class="gen-summary">
+        <div class="gen-week" id="gen-week">—</div>
+        <div class="gen-sub" id="gen-period">—</div>
+        <div class="gen-sub" id="gen-asof" style="margin-top:4px;color:var(--text3);font-family:'DM Mono';font-size:10px">—</div>
+      </div>
+      <div class="sect-title">Pre-flight Checklist</div>
+      <div id="checklist"></div>
+      <div class="sect-title">JSON Preview</div>
+      <div style="position:relative">
+        <button class="btn btn-ghost btn-sm" style="position:absolute;top:8px;right:8px;z-index:1" onclick="copyJSON()">📋 Copy</button>
+        <div class="json-preview" id="json-preview-content"></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button class="btn btn-ghost" onclick="goPanel('manual')">← Back</button>
+        <button class="btn btn-accent" id="btn-dl-main" onclick="downloadJSON()">↓ Download snow_weekly.json</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODAL: Previous JSON Viewer/Editor                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-prev">
+  <div class="modal" style="max-width:1000px">
+    <div class="modal-header">
+      <h3>📄 Previous JSON – Viewer / Editor</h3>
+      <button class="modal-close" onclick="closeModal('modal-prev')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="jv-search" id="jv-search" placeholder="🔍  Filter by path or value..." oninput="filterJV()">
+      <div id="jv-list"></div>
+    </div>
+    <div class="modal-footer">
+      <span style="flex:1;font-size:11px;color:var(--text3)" id="jv-count">—</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prev')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MODAL: Config JSON Preview                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-cfg-preview">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚙️ Config JSON Preview</h3>
+      <button class="modal-close" onclick="closeModal('modal-cfg-preview')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="json-preview" id="cfg-preview-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-cfg-preview')">Close</button>
+      <button class="btn btn-accent btn-sm" onclick="downloadConfig();closeModal('modal-cfg-preview')">↓ Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// DEFAULT CONFIG
+// ═══════════════════════════════════════════════════════
+const DEFAULT_CONFIG = {
+  _schema_version:'3.0.0',
+  meta:{
+    portfolio:'Client IT Portfolio',
+    prepared_by:'IT Portfolio Management Office',
+    instance_timezone:'UTC'
+  },
+  week_number: 22,
+  year: 2026,
+  thresholds:{sla_target_pct:90,prb_sla_days:45,prb_amber_days:8,rag_sla_amber:85,rag_sla_red:80,rag_prb_breach_amber:2,rag_prb_breach_red:5},
+  bar_maxes:{incidents:50,service_requests:100,rfac:20,problems:10},
+  state_maps:{
+    incidents:{closed:'Closed,Resolved,Cancelled'},
+    service_requests:{closed:'Closed Complete,Closed Incomplete,Cancelled',pending:'Pending Approval,Pending Change,Pending Vendor',in_progress:'Work in Progress,In Progress',on_hold:'On Hold'},
+    rfac:{assess:'Assess,Authorize',approved:'Approved',scheduled:'Scheduled',implement:'Implement',review:'Review',cab_pending:'CAB Required,Pending CAB',draft:'Draft',rejected:'Cancelled,Rejected'},
+    problems:{in_progress:'In Progress,Root Cause Analysis,RCA',known_error:'Known Error',investigating:'New,Open',pending_change:'Pending Change'}
+  },
+  stats_display:{
+    incidents:[{key:'openCount',label:'Open',rag:true},{key:'p1',label:'P1',color:'red',zero_color:'green'},{key:'p2',label:'P2',color:'amber',zero_color:'green'},{key:'slaPct',label:'SLA',suffix:'%',fallback:'—',rag:true}],
+    service_requests:[{key:'openCount',label:'Open',rag:true},{key:'pending',label:'Pending',color:'amber',zero_color:'green'},{key:'inProg',label:'In Progress',color:'green'},{key:'onHold',label:'On Hold',color:'muted'},{key:'slaPct',label:'SLA',suffix:'%',fallback:'—',rag:true}],
+    problems:[{key:'total',label:'Open',rag:true},{key:'inProgress',label:'Root Cause',color:'red',zero_color:'green'},{key:'knownError',label:'Known Error',color:'amber',zero_color:'green'},{key:'investigating',label:'Investigating',color:'red'},{key:'pendingChange',label:'Pending Change',color:'muted'},{key:'slaPct',label:'SLA',suffix:'%',fallback:'—',rag:true}],
+    rfac:[{key:'total',label:'Active',rag:true},{key:'assess',label:'Assess',color:'amber'},{key:'approved',label:'Approved',color:'green'},{key:'scheduled',label:'Scheduled',color:'blue'},{key:'implement',label:'Implement',color:'purple'},{key:'review',label:'Review',color:'amber'},{key:'cabPending',label:'CAB Pending',color:'amber',zero_color:'green'},{key:'draft',label:'Draft',color:'muted'},{key:'rejected',label:'Rejected',color:'red',zero_color:'muted'}]
+  },
+  chart_display:{
+    rfac_pipeline:[{key:'assess',label:'Assess',color_key:'amber'},{key:'approved',label:'Approved',color_key:'green'},{key:'scheduled',label:'Scheduled',color_key:'blue'},{key:'implement',label:'Implement',color_key:'purple'},{key:'review',label:'Review',color_key:'amber'},{key:'cabPending',label:'Pending CAB',color_key:'amber'},{key:'draft',label:'Draft',color_key:'muted'},{key:'rejected',label:'Rejected',color_key:'red'}]
+  },
+  priority_maps:{p1:'1 - Critical,1-Critical,Critical,P1',p2:'2 - High,2-High,High,P2',p3:'3 - Medium,3-Medium,Medium,P3',p4:'4 - Low,4-Low,Low,P4'},
+  category_maps:{
+    sr_subcategories:{'Access Management,Access Provisioning,User Access':'Access Mgmt','Configuration,Config Change,Config':'Config Chg','Data Fix,Data Correction,Data':'Data Fix','Report,Reporting,Analytics,Report Request':'Report Req','User Maintenance,User Admin,User Management':'User Maint','Interface,Integration,Middleware':'Interface'},
+    inc_modules:{'CRM Integration,PI,PI/PO,Interface,Integration':'Integration/PI','Sales Order,Order Management,Sales':'Sales Order','Pricing,IPC,Pricing/IPC':'Pricing/IPC','Basis,Infrastructure,BASIS':'Basis','CRM WebUI,WebUI,UI':'CRM WebUI','Billing,Invoice,Billing Document':'Billing','Business Partner,BP,BP Data':'BP Data'}
+  },
+  snow_urls:{
+    incidents:'https://your-instance.service-now.com/incident_list.do?sysparm_query=state!=6',
+    service_requests:'https://your-instance.service-now.com/sc_req_item_list.do?sysparm_query=state!=3',
+    problems:'https://your-instance.service-now.com/problem_list.do?sysparm_query=state!=4',
+    rfac:'https://your-instance.service-now.com/change_request_list.do?sysparm_query=state!=3'
+  },
+  valid_values:{
+    incidents:{
+      Priority:'1 - Critical,2 - High,3 - Medium,4 - Low',
+      State:'New,In Progress,On Hold,Resolved,Closed,Cancelled',
+      Subcategory:'',
+      'Assignment Group':'',
+      'SLA Breached':'true,false,True,False,Yes,No,TRUE,FALSE'
+    },
+    service_requests:{
+      State:'Closed Complete,Closed Incomplete,Cancelled,Pending Approval,Pending Change,Pending Vendor,Work in Progress,In Progress',
+      Subcategory:'',
+      'Assignment Group':'',
+      'SLA Breached':'true,false,True,False,Yes,No,TRUE,FALSE'
+    },
+    rfac:{
+      State:'New,Assess,Authorize,Scheduled,Implement,Review,Closed,Cancelled,Draft,Approved,CAB Required,Pending CAB,Rejected',
+      'CAB Status':'Not Required,Requested,Approved,Rejected,Pending',
+      'Assignment Group':''
+    },
+    problems:{
+      Priority:'1 - Critical,2 - High,3 - Medium,4 - Low',
+      State:'New,Open,In Progress,Root Cause Analysis,RCA,Known Error,Pending Change,Closed,Resolved,Cancelled',
+      Subcategory:'',
+      'Assignment Group':'',
+      'SLA Breached':'true,false,True,False,Yes,No,TRUE,FALSE'
+    }
+  }
+};
+
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let uploadedRows = {incidents:null,service_requests:null,rfac:null,problems:null};
+let uploadedRaw = {incidents:null,service_requests:null,rfac:null,problems:null};
+let computedData = {incidents:null,service_requests:null,rfac:null,problems:null,rag:null,weekWindows:null};
+let prevJSON = null;
+let prevJSONEdits = {};
+let manualState = {comm:'pending',int:'pending',rfach:'pending'};
+let manualData = {commentary:null,intervention:null,rfacScorecard:null};
+let configLocked = true;
+let kpiOverrides = {};
+let kpiLocks = {inc:true,sr:true,rfac:true,prb:true,rag:true};
+
+// ═══════════════════════════════════════════════════════
+// ISO 8601 WEEK HELPERS
+// ═══════════════════════════════════════════════════════
+function getISOWeeksInYear(y) {
+  const p = (yr) => (yr + Math.floor(yr/4) - Math.floor(yr/100) + Math.floor(yr/400)) % 7;
+  return (p(y) === 4 || p(y - 1) === 3) ? 53 : 52;
+}
+
+function getISOWeekMonday(isoYear, isoWeek) {
+  // Jan 4 is always in ISO week 1
+  const jan4 = new Date(Date.UTC(isoYear, 0, 4));
+  const dow = jan4.getUTCDay() || 7; // Mon=1..Sun=7
+  const week1Monday = new Date(Date.UTC(isoYear, 0, 4 - dow + 1));
+  const result = new Date(week1Monday);
+  result.setUTCDate(week1Monday.getUTCDate() + (isoWeek - 1) * 7);
+  return result;
+}
+
+function getTzAdjustedDate(year, month, day, hour, minute, second, tz) {
+  const temp = new Date(Date.UTC(year, month, day, hour, minute, second));
+  if (!tz || tz === 'UTC') return temp;
+  try {
+    const format = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    });
+    const parts = format.formatToParts(temp);
+    const map = {};
+    parts.forEach(p => map[p.type] = parseInt(p.value));
+    let h = map.hour;
+    if (h === 24) h = 0;
+    const tzDate = Date.UTC(map.year, map.month - 1, map.day, h, map.minute, map.second);
+    const offset = tzDate - temp.getTime();
+    return new Date(temp.getTime() - offset);
+  } catch(e) {
+    return temp;
+  }
+}
+
+function buildWeekWindows(targetYear, targetWeek, tz) {
+  const windows = [];
+  tz = tz || 'UTC';
+  for (let i = -7; i <= 0; i++) {
+    let wk = targetWeek + i;
+    let yr = targetYear;
+    while (wk < 1) {
+      yr--;
+      wk += getISOWeeksInYear(yr);
+    }
+    while (wk > getISOWeeksInYear(yr)) {
+      wk -= getISOWeeksInYear(yr);
+      yr++;
+    }
+    const mondayUTC = getISOWeekMonday(yr, wk);
+    const y = mondayUTC.getUTCFullYear();
+    const m = mondayUTC.getUTCMonth();
+    const d = mondayUTC.getUTCDate();
+    const monday = getTzAdjustedDate(y, m, d, 0, 0, 0, tz);
+    
+    const sundayUTC = new Date(mondayUTC);
+    sundayUTC.setUTCDate(mondayUTC.getUTCDate() + 6);
+    const sy = sundayUTC.getUTCFullYear();
+    const sm = sundayUTC.getUTCMonth();
+    const sd = sundayUTC.getUTCDate();
+    const sunday = getTzAdjustedDate(sy, sm, sd, 23, 59, 59, tz);
+
+    windows.push({
+      label: `W${String(wk).padStart(2,'0')}`,
+      weekNum: wk, year: yr,
+      start: monday, end: sunday,
+      isCurrent: i === 0
+    });
+  }
+  return windows;
+}
+
+function onWeekYearChange() {
+  const wk = parseInt(document.getElementById('cfg-week').value) || 1;
+  const yr = parseInt(document.getElementById('cfg-year').value) || 2026;
+  const tz = document.getElementById('cfg-tz').value || 'UTC';
+  config.week_number = wk;
+  config.year = yr;
+  config.meta.instance_timezone = tz;
+  computedData.weekWindows = buildWeekWindows(yr, wk, tz);
+  renderWeekWindowDisplay();
+}
+
+function renderWeekWindowDisplay() {
+  const el = document.getElementById('week-window-display');
+  if (!el || !computedData.weekWindows) return;
+  const ww = computedData.weekWindows;
+  el.innerHTML = `<div class="week-grid">${ww.map(w => `
+    <div class="week-chip ${w.isCurrent ? 'current' : ''}">
+      <div class="wc-label">${w.label} (${w.year})</div>
+      <div class="wc-dates">${fmtDateShort(w.start)} – ${fmtDateShort(w.end)}</div>
+    </div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════════════
+function parseDateInTimeZone(v, tz) {
+  if (v === null || v === undefined || v === '') return null;
+  
+  let d = null;
+  if (typeof v === 'number') {
+    const dateMs = (v - 25569) * 86400000;
+    d = new Date(dateMs);
+  } else if (typeof v === 'string') {
+    const s = v.trim();
+    if (!s) return null;
+    
+    if (s.includes('Z') || /[-+]\d{2}:?\d{2}$/.test(s)) {
+      const parsed = new Date(s);
+      if (!isNaN(parsed)) return parsed;
+    }
+    
+    try {
+      d = new Date(s.replace(' ','T'));
+      if (isNaN(d)) {
+        d = new Date(s);
+      }
+    } catch(e) {}
+    
+    if (!d || isNaN(d)) {
+      const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+      if (match) {
+        const day = parseInt(match[1]);
+        const month = parseInt(match[2]) - 1;
+        const year = parseInt(match[3]);
+        const hour = match[4] ? parseInt(match[4]) : 0;
+        const minute = match[5] ? parseInt(match[5]) : 0;
+        const second = match[6] ? parseInt(match[6]) : 0;
+        d = new Date(year, month, day, hour, minute, second);
+      }
+    }
+  } else if (v instanceof Date) {
+    d = v;
+  }
+  
+  if (!d || isNaN(d)) return null;
+  
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const day = d.getDate();
+  const hour = d.getHours();
+  const minute = d.getMinutes();
+  const second = d.getSeconds();
+  
+  const temp = new Date(Date.UTC(year, month, day, hour, minute, second));
+  if (isNaN(temp)) return null;
+  
+  if (!tz || tz === 'UTC') return temp;
+  
+  try {
+    const format = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    });
+    const parts = format.formatToParts(temp);
+    const map = {};
+    parts.forEach(p => map[p.type] = parseInt(p.value));
+    let h = map.hour;
+    if (h === 24) h = 0;
+    const tzDate = Date.UTC(map.year, map.month - 1, map.day, h, map.minute, map.second);
+    const offset = tzDate - temp.getTime();
+    return new Date(temp.getTime() - offset);
+  } catch(e) {
+    return temp;
+  }
+}
+
+function parseDate(v) {
+  return parseDateInTimeZone(v, config.meta.instance_timezone || 'UTC');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});
+}
+function fmtDateShort(d) {
+  if (!d) return '';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',timeZone:'UTC'});
+}
+function fmtDT(d) {
+  if (!d) return '';
+  const tz = config.meta.instance_timezone || 'UTC';
+  try {
+    return d.toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:tz}) + ' ' + tz.split('/').pop();
+  } catch(e) {
+    return d.toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+}
+function fmtWeekRange(start, end) {
+  if (!start || !end) return '—';
+  const startYear = start.getUTCFullYear();
+  const endYear = end.getUTCFullYear();
+  const startStr = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+  const endStr = end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  if (startYear === endYear) {
+    return `${startStr} – ${endStr}`;
+  } else {
+    const startStrFull = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    return `${startStrFull} – ${endStr}`;
+  }
+}
+function getISOWeek(d) {
+  const D = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dn = D.getUTCDay() || 7;
+  D.setUTCDate(D.getUTCDate() + 4 - dn);
+  const ys = new Date(Date.UTC(D.getUTCFullYear(), 0, 1));
+  return Math.ceil((((D - ys) / 86400000) + 1) / 7);
+}
+
+// ═══════════════════════════════════════════════════════
+// COMPUTATION HELPERS
+// ═══════════════════════════════════════════════════════
+function inRange(d, w) { return d && d >= w.start && d <= w.end; }
+function openAtEndOf(row, w, closedStates) {
+  if (!row.opened_at) return false;
+  if (row.opened_at > w.end) return false;
+  if (closedStates && closedStates.length && row.state && !closedStates.includes(row.state.toLowerCase())) return true;
+  if (!row.closed_at) return true;
+  return row.closed_at > w.end;
+}
+
+function toArr(s) { return (s||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean); }
+
+function getStateMaps() {
+  const sm = config.state_maps;
+  return {
+    inc: {closed: toArr(sm.incidents.closed)},
+    sr:  {closed: toArr(sm.service_requests.closed), pending: toArr(sm.service_requests.pending), inProgress: toArr(sm.service_requests.in_progress), onHold: toArr(sm.service_requests.on_hold)},
+    rfac:{assess: toArr(sm.rfac.assess), approved: toArr(sm.rfac.approved), scheduled: toArr(sm.rfac.scheduled), implement: toArr(sm.rfac.implement), review: toArr(sm.rfac.review), cabPending: toArr(sm.rfac.cab_pending), draft: toArr(sm.rfac.draft), rejected: toArr(sm.rfac.rejected)},
+    prb: {inProgress: toArr(sm.problems.in_progress), knownError: toArr(sm.problems.known_error), investigating: toArr(sm.problems.investigating), pendingChange: toArr(sm.problems.pending_change)}
+  };
+}
+function getPriMaps() {
+  const pm = config.priority_maps;
+  return {p1:toArr(pm.p1), p2:toArr(pm.p2), p3:toArr(pm.p3), p4:toArr(pm.p4)};
+}
+function parseCatMap(obj) {
+  return Object.entries(obj).map(([k,label]) => ({variants: k.split(',').map(s=>s.trim().toLowerCase()), label}));
+}
+function matchSt(row, arr) {
+  if (!row.state || !arr.length) return false;
+  return arr.includes(row.state.toLowerCase().trim());
+}
+function matchPri(row, arr) {
+  if (!row.priority || !arr.length) return false;
+  return arr.includes(row.priority.toLowerCase().trim());
+}
+function mapCat(val, catMap) {
+  if (!val) return 'Other';
+  const n = val.toLowerCase().trim();
+  const e = catMap.find(c => c.variants.includes(n));
+  return e ? e.label : 'Other';
+}
+function groupBy(rows, fn) {
+  const r = {};
+  rows.forEach(row => { const k = fn(row) || 'Other'; r[k] = (r[k]||0)+1; });
+  return r;
+}
+function deltaDir(c, p) { if (c===p) return 'flat'; return c>p?'up':'down'; }
+function buildDeltaLbl(c, p, prevLbl) {
+  if (c===p) return '— stable';
+  return `${c>p?'▲':'▼'}${Math.abs(c-p)} vs ${prevLbl}`;
+}
+function slaRAG(pct) {
+  if (pct===null) return 'muted';
+  const t = config.thresholds;
+  if (pct < t.rag_sla_red) return 'red';
+  if (pct < t.rag_sla_amber) return 'amber';
+  return 'green';
+}
+function genSegments(comp, chartKey, kpo, overridePrefix) {
+  const display = config.chart_display?.[chartKey];
+  if (!display) return [];
+  return display.map(sd => ({
+    label: sd.label,
+    value: +(kpo?.[`${overridePrefix||chartKey}_${sd.key}`]?.value ?? (comp[sd.key]||0)),
+    color_key: sd.color_key||'muted'
+  }));
+}
+function genStats(comp, type, rag) {
+  const display = config.stats_display?.[type];
+  if (!display) return [];
+  return display.map(sd => {
+    const raw = comp[sd.key];
+    const val = raw != null ? (sd.suffix ? `${raw}${sd.suffix}` : String(raw)) : (sd.fallback||'0');
+    let color;
+    if (sd.rag) {
+      color = rag[type]||'muted';
+    } else if (raw > 0) {
+      color = sd.color||'muted';
+    } else {
+      color = sd.zero_color||sd.color||'muted';
+    }
+    return {label: sd.label, value: val, color};
+  });
+}
+function parseMadeSLA(v) {
+  if (v===null||v===undefined||v==='') return null;
+  const s=String(v).toLowerCase().trim();
+  if (['true','yes','1'].includes(s)) return false; // "SLA Breached" = true means SLA NOT met
+  if (['false','no','0'].includes(s)) return true;   // "SLA Breached" = false means SLA met
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+// MANDATORY FIELDS & VALIDATION
+// ═══════════════════════════════════════════════════════
+const MANDATORY_FIELDS = {
+  incidents:        ['Number','Priority','State','Subcategory','Assignment Group','SLA Breached'],
+  service_requests: ['Number','Request Number','State','Subcategory','Assignment Group','SLA Breached'],
+  rfac:             ['Number','State','CAB Status','Assignment Group'],
+  problems:         ['Number','Priority','State','Subcategory','Assignment Group']
+};
+
+const SHEET_LABELS = {incidents:'Incidents',service_requests:'Service Requests',rfac:'RFAC',problems:'Problems'};
+
+function validateSheet(rawRows, dataType, headers) {
+  const errors = [];
+  const mandatory = MANDATORY_FIELDS[dataType] || [];
+  const validVals = config.valid_values?.[dataType] || {};
+  const sheetLabel = SHEET_LABELS[dataType];
+  const lowerHeaders = headers.map(h => String(h).toLowerCase().trim());
+
+  // Build lookup: find the actual header name for each mandatory column (case-insensitive)
+  const colMap = {};
+  for (const col of mandatory) {
+    const key = col.toLowerCase().trim();
+    const found = headers.find((h, i) => lowerHeaders[i] === key);
+    if (!found) {
+      errors.push({sheet:sheetLabel, row:'—', issue:`Missing mandatory column: "${col}"`});
+    } else {
+      colMap[col] = found;
+    }
+  }
+  if (errors.length > 0) return errors; // can't check rows if columns missing
+
+  // Check each row
+  rawRows.forEach((row, idx) => {
+    const excelRow = idx + 2; // header is row 1
+    for (const col of mandatory) {
+      const actualCol = colMap[col];
+      const val = row[actualCol];
+      if (val === null || val === undefined || String(val).trim() === '') {
+        errors.push({sheet:sheetLabel, row:excelRow, issue:`Empty mandatory field "${col}"`});
+      } else {
+        // Check against valid values if configured
+        const allowed = validVals[col];
+        if (allowed && allowed.trim()) {
+          const allowedArr = allowed.split(',').map(v => v.trim().toLowerCase());
+          const actual = String(val).trim().toLowerCase();
+          if (!allowedArr.includes(actual)) {
+            errors.push({sheet:sheetLabel, row:excelRow, issue:`Invalid value for "${col}": "${String(val).trim()}". Expected one of: ${allowed}`});
+          }
+        }
+      }
+    }
+  });
+  return errors;
+}
+
+function renderValidationReport(dataType, errors, rowCount) {
+  const p = PFX[dataType];
+  const el = document.getElementById(`validation-${p}`);
+  if (!el) return;
+
+  if (errors.length === 0) {
+    el.innerHTML = `<div class="success-msg">✅ Validation passed — ${rowCount.toLocaleString()} rows loaded successfully from ${SHEET_LABELS[dataType]}</div>`;
+    return;
+  }
+
+  const maxShow = Math.min(errors.length, 50);
+  el.innerHTML = `
+    <div class="health-item err" style="margin-top:10px">❌ ${errors.length} validation error${errors.length>1?'s':''} found in ${SHEET_LABELS[dataType]}</div>
+    <div style="max-height:250px;overflow-y:auto">
+      <table class="val-table">
+        <thead><tr><th>Sheet</th><th>Row</th><th>Issue</th></tr></thead>
+        <tbody>${errors.slice(0, maxShow).map(e => `<tr class="err-row"><td>${e.sheet}</td><td>${e.row}</td><td class="issue-cell">${esc(e.issue)}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    ${errors.length > maxShow ? `<div style="font-size:10px;color:var(--text3);margin-top:4px">... and ${errors.length - maxShow} more errors</div>` : ''}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// FIELD NORMALISATION
+// ═══════════════════════════════════════════════════════
+const FIXED_MAPPINGS = {
+  incidents:       {number:'Number',priority:'Priority',state:'State',subcategory:'Subcategory',description:'Short Description',assignment_group:'Assignment Group',assigned_to:['Assigned To','Assigned to'],opened_at:['Opened At','Opened','Created','Created On','Created At'],closed_at:['Closed At','Closed','Closed On','Closed At'],resolved_at:'Resolved At',sla_due:'SLA Due Date',made_sla:['SLA Breached','SLA','SLA Due'],escalated:'Escalated',reopen_count:'Reopen Count'},
+  service_requests:{number:'Number',request_number:'Request Number',state:'State',subcategory:'Subcategory',description:'Short Description',assignment_group:'Assignment Group',assigned_to:['Assigned To','Assigned to'],opened_at:['Opened At','Opened','Created','Created On','Created At'],closed_at:['Closed At','Closed','Closed On','Closed At'],made_sla:['SLA Breached','SLA','SLA Due']},
+  rfac:            {number:'Number',type:'Type',state:'State',cab_status:'CAB Status',category:'Category',description:'Short Description',assignment_group:'Assignment Group',assigned_to:['Assigned To','Assigned to'],opened_at:['Opened At','Opened','Created','Created On','Created At'],closed_at:['Closed At','Closed','Closed On','Closed At']},
+  problems:        {number:'Number',priority:'Priority',state:'State',subcategory:'Subcategory',description:'Short Description',assignment_group:'Assignment Group',assigned_to:['Assigned To','Assigned to'],opened_at:['Opened At','Opened','Created','Created On','Created At'],made_sla:['SLA Breached','SLA','SLA Due']}
+};
+
+function detectMappings(headers, dataType) {
+  const fm = FIXED_MAPPINGS[dataType] || {};
+  const mapping = {};
+  const lowerHeaders = headers.map(h => String(h).toLowerCase().trim());
+  for (const [key, col] of Object.entries(fm)) {
+    const candidates = Array.isArray(col) ? col : [col];
+    mapping[key] = candidates.find(c => lowerHeaders.includes(String(c).toLowerCase().trim())) || null;
+  }
+  return mapping;
+}
+
+function normaliseRows(rawRows, dataType, mapping) {
+  return rawRows
+    .filter(row => {const n=row[mapping.number]; return n!==null&&n!==undefined&&String(n).trim()!=='';})
+    .map(row => ({
+      number: String(row[mapping.number]||'').trim(),
+      state: mapping.state?String(row[mapping.state]||'').trim()||null:null,
+      priority: mapping.priority?String(row[mapping.priority]||'').trim()||null:null,
+      opened_at: parseDate(row[mapping.opened_at]),
+      closed_at: parseDate(row[mapping.closed_at]),
+      assigned_to: mapping.assigned_to?String(row[mapping.assigned_to]||'').trim()||null:null,
+      assignment_group: mapping.assignment_group?String(row[mapping.assignment_group]||'').trim()||null:null,
+      made_sla: mapping.made_sla?parseMadeSLA(row[mapping.made_sla]):null,
+      category: mapping.category?String(row[mapping.category]||'').trim()||null:null,
+      subcategory: mapping.subcategory?String(row[mapping.subcategory]||'').trim()||null:null,
+      cab_status: mapping.cab_status?String(row[mapping.cab_status]||'').trim()||null:null,
+      description: mapping.description?String(row[mapping.description]||'').trim()||null:null,
+      request_number: mapping.request_number?String(row[mapping.request_number]||'').trim()||null:null,
+    }));
+}
+
+function sortGroupedData(grouped) {
+  const entries = Object.entries(grouped).sort((a,b) => b[1] - a[1]);
+  const labels = [];
+  const data = [];
+  entries.forEach(([k,v]) => {
+    labels.push(k);
+    data.push(v);
+  });
+  return { labels, data };
+}
+
+function computeIncidents(rows, windows) {
+  const pm = getPriMaps();
+  const catMap = parseCatMap(config.category_maps.inc_modules || {});
+  const incClosed = toArr(config.state_maps.incidents.closed);
+  const weeks = windows.map(w => {
+    const opened = rows.filter(r => inRange(r.opened_at, w));
+    const closed = rows.filter(r => r.closed_at && inRange(r.closed_at, w));
+    const openEnd = rows.filter(r => openAtEndOf(r, w, incClosed));
+    const slaBase = closed.filter(r => r.made_sla !== null);
+    const slaPct = slaBase.length ? Math.round(slaBase.filter(r=>r.made_sla===true).length/slaBase.length*100) : null;
+    return {
+      label:w.label, opened:opened.length, closed:closed.length, openEnd:openEnd.length,
+      p1:openEnd.filter(r=>matchPri(r,pm.p1)).length, p2:openEnd.filter(r=>matchPri(r,pm.p2)).length,
+      p3:openEnd.filter(r=>matchPri(r,pm.p3)).length, p4:openEnd.filter(r=>matchPri(r,pm.p4)).length, slaPct
+    };
+  });
+  const cur=weeks[7], prev=weeks[6];
+  const curOpen = rows.filter(r => openAtEndOf(r, windows[7], incClosed));
+  const byModuleRaw = groupBy(curOpen, r => mapCat(r.category||r.subcategory, catMap));
+  const sortedModule = sortGroupedData(byModuleRaw);
+  
+  return {
+    visible:rows.length>0, weeks,
+    openCount:cur.openEnd, p1:cur.p1, p2:cur.p2, p3:cur.p3, p4:cur.p4, p3p4:cur.p3+cur.p4,
+    closedThisWeek:cur.closed, closedPriorWeek:prev.closed,
+    closureDelta:cur.closed-prev.closed, closureDeltaDir:deltaDir(cur.closed,prev.closed),
+    closureDeltaLabel:buildDeltaLbl(cur.closed,prev.closed,prev.label),
+    openDelta:cur.openEnd-prev.openEnd, openDeltaDir:deltaDir(cur.openEnd,prev.openEnd),
+    openDeltaLabel:buildDeltaLbl(cur.openEnd,prev.openEnd,prev.label),
+    slaPct:cur.slaPct, barPct:Math.min(Math.round(cur.openEnd/config.bar_maxes.incidents*100),100),
+    weekLabels:weeks.map(w=>w.label),
+    openHistory:weeks.map(w=>w.openEnd), closedHistory:weeks.map(w=>w.closed),
+    p1History:weeks.map(w=>w.p1), p2History:weeks.map(w=>w.p2), p3p4History:weeks.map(w=>w.p3+w.p4),
+    slaHistory:weeks.map(w=>w.slaPct),
+    byModuleLabels: sortedModule.labels,
+    byModuleData: sortedModule.data,
+    blankAssignee:curOpen.filter(r=>!r.assigned_to).length
+  };
+}
+
+function computeSR(rows, windows) {
+  const sm = getStateMaps();
+  const catMap = parseCatMap(config.category_maps.sr_subcategories || {});
+  const srClosed = toArr(config.state_maps.service_requests.closed);
+  const weeks = windows.map(w => {
+    const opened = rows.filter(r => inRange(r.opened_at, w));
+    const closed = rows.filter(r => r.closed_at && inRange(r.closed_at, w));
+    const openEnd = rows.filter(r => openAtEndOf(r, w, srClosed));
+    const slaBase = closed.filter(r => r.made_sla !== null);
+    const slaPct = slaBase.length ? Math.round(slaBase.filter(r=>r.made_sla===true).length/slaBase.length*100) : null;
+    return {label:w.label, opened:opened.length, closed:closed.length, openEnd:openEnd.length, slaPct};
+  });
+  const cur=weeks[7], prev=weeks[6];
+  const curOpen = rows.filter(r => openAtEndOf(r, windows[7], srClosed));
+  const pending = curOpen.filter(r => matchSt(r, sm.sr.pending)).length;
+  const inProg = curOpen.filter(r => matchSt(r, sm.sr.inProgress)).length;
+  const onHold = curOpen.filter(r => matchSt(r, sm.sr.onHold)).length;
+  const bySubcatRaw = groupBy(curOpen, r => mapCat(r.subcategory, catMap));
+  const sortedSubcat = sortGroupedData(bySubcatRaw);
+  
+  return {
+    visible:rows.length>0, weeks, pending, inProg, onHold,
+    openCount:cur.openEnd, closedThisWeek:cur.closed, closedPriorWeek:prev.closed,
+    closureDelta:cur.closed-prev.closed, closureDeltaDir:deltaDir(cur.closed,prev.closed),
+    closureDeltaLabel:buildDeltaLbl(cur.closed,prev.closed,prev.label),
+    openDelta:cur.openEnd-prev.openEnd, openDeltaDir:deltaDir(cur.openEnd,prev.openEnd),
+    openDeltaLabel:buildDeltaLbl(cur.openEnd,prev.openEnd,prev.label),
+    slaPct:cur.slaPct, barPct:Math.min(Math.round(cur.openEnd/config.bar_maxes.service_requests*100),100),
+    weekLabels:weeks.map(w=>w.label),
+    openHistory:weeks.map(w=>w.openEnd), closedHistory:weeks.map(w=>w.closed),
+    slaHistory:weeks.map(w=>w.slaPct),
+    bySubcatLabels: sortedSubcat.labels,
+    bySubcatData: sortedSubcat.data,
+    blankAssignee:rows.filter(r=>!r.assigned_to).length
+  };
+}
+
+function computeRFAC(rows) {
+  const sm = getStateMaps().rfac;
+  const assess = rows.filter(r=>matchSt(r,sm.assess)).length;
+  const approved = rows.filter(r=>matchSt(r,sm.approved)).length;
+  const scheduled = rows.filter(r=>matchSt(r,sm.scheduled)).length;
+  const implement = rows.filter(r=>matchSt(r,sm.implement)).length;
+  const review = rows.filter(r=>matchSt(r,sm.review)).length;
+  const cabPending = rows.filter(r=>matchSt(r,sm.cabPending)).length;
+  const draft = rows.filter(r=>matchSt(r,sm.draft)).length;
+  const rejected = rows.filter(r=>matchSt(r,sm.rejected)).length;
+  return {
+    visible:rows.length>0, total:rows.length, assess, approved, scheduled, implement, review, cabPending, draft, rejected,
+    barPct:Math.min(Math.round(rows.length/config.bar_maxes.rfac*100),100),
+    blankAssignee:rows.filter(r=>!r.assigned_to).length
+  };
+}
+
+function computePRB(rows, curWeekEnd) {
+  const sm = getStateMaps().prb;
+  const inProg = rows.filter(r=>matchSt(r,sm.inProgress)).length;
+  const knownErr = rows.filter(r=>matchSt(r,sm.knownError)).length;
+  const investigating = rows.filter(r=>matchSt(r,sm.investigating)).length;
+  const pendingChange = rows.filter(r=>matchSt(r,sm.pendingChange)).length;
+  const slaBase = rows.filter(r=>r.made_sla!==null);
+  const breached = slaBase.filter(r=>r.made_sla===false).length;
+  const slaPct = slaBase.length ? Math.round((slaBase.length-breached)/slaBase.length*100) : 100;
+  const referenceDate = curWeekEnd || new Date();
+  
+  const allWithAge = rows.filter(r=>r.opened_at).map(r=>{
+    const days = Math.floor((referenceDate-r.opened_at)/86400000);
+    return {id:r.number, days: Math.max(0, days), color_key:days>config.thresholds.prb_sla_days?'red':days>config.thresholds.prb_amber_days?'amber':'green'};
+  });
+  const aging = allWithAge
+    .filter(r => r.days > config.thresholds.prb_sla_days)
+    .sort((a,b)=>b.days-a.days)
+    .slice(0,10)
+    .map(r => ({ id: r.id, days: r.days, color_key: r.color_key }));
+    
+  return {
+    visible:rows.length>0, total:rows.length, inProgress:inProg, knownError:knownErr,
+    investigating, pendingChange,
+    slaPct, breachedCount:breached, aging,
+    barPct:Math.min(Math.round(rows.length/config.bar_maxes.problems*100),100),
+    blankAssignee:rows.filter(r=>!r.assigned_to).length
+  };
+}
+
+function computeRAG(inc, sr, rfac, prb) {
+  const t = config.thresholds;
+  return {
+    incidents: slaRAG(inc.slaPct),
+    service_requests: slaRAG(sr.slaPct),
+    rfac: rfac.total > config.bar_maxes.rfac * 0.9 ? 'amber' : 'green',
+    problems: prb.breachedCount >= t.rag_prb_breach_red ? 'red' : prb.breachedCount >= t.rag_prb_breach_amber ? 'amber' : 'green'
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// UPLOAD HANDLING
+// ═══════════════════════════════════════════════════════
+const SCHEMA_PROVIDER = Object.freeze({ inc:'incidents', sr:'service_requests', rfac:'rfac', prb:'problems' });
+const PFX = Object.fromEntries(Object.entries(SCHEMA_PROVIDER).map(([k,v])=>[v,k]));
+
+function setZone(type, status, msg) {
+  const p=PFX[type];
+  const dz=document.getElementById(`dz-${p}`);
+  const ds=document.getElementById(`ds-${p}`);
+  if (dz) dz.className='dropzone '+(status||'');
+  if (ds) { ds.className=`dz-status ${status==='ok'?'ok':status==='err'?'err':''}`;ds.textContent=msg; }
+}
+
+async function handleUpload(event, dataType) {
+  const file=event.target.files[0]; if(!file) return;
+  const p=PFX[dataType];
+  setZone(dataType,'loading','Reading file...');
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(buf), {type:'array',cellDates:false});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rawRows = XLSX.utils.sheet_to_json(ws, {raw:true,defval:null});
+    if (!rawRows.length) throw new Error('File appears empty or has no data rows');
+
+    const headers = Object.keys(rawRows[0]);
+
+    // Run validation
+    const errors = validateSheet(rawRows, dataType, headers);
+    renderValidationReport(dataType, errors, rawRows.length);
+
+    if (errors.length > 0) {
+      setZone(dataType,'err',`❌ ${errors.length} validation error(s) — fix and re-upload`);
+      uploadedRows[dataType] = null;
+      uploadedRaw[dataType] = null;
+      return;
+    }
+
+    // Normalise
+    const mapping = detectMappings(headers, dataType);
+    const rows = normaliseRows(rawRows, dataType, mapping);
+    uploadedRows[dataType] = rows;
+    uploadedRaw[dataType] = rawRows;
+
+    setZone(dataType,'ok',`✅ ${rows.length.toLocaleString()} rows loaded`);
+    const clrBtn=document.getElementById(`clr-${p}`);
+    if(clrBtn) clrBtn.style.display='inline-flex';
+
+    // Show weekly counts
+    showCoverage(dataType, rows);
+    updateBadge(dataType,'ok',rows.length);
+
+    const cnt=Object.values(uploadedRows).filter(Boolean).length;
+    document.getElementById('nb-data').textContent=`${cnt}/4`;
+    if(cnt>0) document.getElementById('btn-compute').disabled=false;
+    if(computeData()) {
+      kpiOverrides = {};
+      kpiLocks = {inc:true,sr:true,rfac:true,prb:true,rag:true};
+      document.getElementById('nav-kpis').classList.remove('locked');
+      document.getElementById('nav-manual').classList.remove('locked');
+      document.getElementById('nb-kpis').textContent='✓';
+      if(document.getElementById('panel-kpis').classList.contains('active')) renderKPIPanel();
+    }
+    autoSaveSnapshot();
+  } catch(err) {
+    setZone(dataType,'err',`❌ ${err.message}`);
+    console.error(dataType, err);
+  }
+}
+
+function showCoverage(dataType, rows) {
+  const p=PFX[dataType];
+  const el=document.getElementById(`coverage-${p}`); if(!el) return;
+  const ww = computedData.weekWindows;
+  if (!ww) { el.innerHTML='<div class="info-box" style="margin-top:8px">⚠️ Set Week/Year in Configuration first to see weekly counts.</div>'; return; }
+
+  if (dataType==='incidents' || dataType==='service_requests') {
+    // Show per-week counts
+    const cov = ww.map(w => {
+      const count = rows.filter(r =>
+        (r.opened_at && inRange(r.opened_at, w)) || (r.closed_at && inRange(r.closed_at, w))
+      ).length;
+      return {label:w.label, count, status:count===0?'empty':count<5?'warn':'ok', isCurrent:w.isCurrent};
+    });
+    const cells = cov.map(c => `<div class="cov-cell ${c.status}"><div class="cov-wk">${c.label}${c.isCurrent?'*':''}</div><div class="cov-cnt">${c.count}</div></div>`).join('');
+    el.innerHTML = `<div class="coverage-grid">${cells}</div>`;
+  } else {
+    // Snapshot: show total count
+    el.innerHTML = `<div class="cov-cell ok" style="margin-top:8px"><div class="cov-wk">Total</div><div class="cov-cnt">${rows.length}</div></div>`;
+  }
+}
+
+function clearUpload(dataType) {
+  uploadedRows[dataType]=null;
+  uploadedRaw[dataType]=null;
+  const p=PFX[dataType];
+  setZone(dataType,'','Click or drag file here');
+  const dz=document.getElementById(`dz-${p}`);if(dz)dz.className='dropzone';
+  ['validation','coverage'].forEach(id=>{ const e=document.getElementById(`${id}-${p}`);if(e)e.innerHTML=''; });
+  const inp=document.getElementById(`inp-${p}`);if(inp)inp.value='';
+  const clr=document.getElementById(`clr-${p}`);if(clr)clr.style.display='none';
+  const cnt=Object.values(uploadedRows).filter(Boolean).length;
+  document.getElementById('nb-data').textContent=`${cnt}/4`;
+  if(!cnt) document.getElementById('btn-compute').disabled=true;
+  updateBadge(dataType,'','');
+  if(cnt&&computeData()){
+    kpiOverrides={}; kpiLocks={inc:true,sr:true,rfac:true,prb:true,rag:true};
+    document.getElementById('nb-kpis').textContent='✓';
+    if(document.getElementById('panel-kpis').classList.contains('active')) renderKPIPanel();
+  } else if(!cnt){
+    document.getElementById('nav-kpis').classList.add('locked');
+    document.getElementById('nb-kpis').textContent='—';
+    computedData={incidents:null,service_requests:null,rfac:null,problems:null,rag:null,weekWindows:computedData.weekWindows};
+  }
+  autoSaveSnapshot();
+}
+
+function updateBadge(type, status, count) {
+  const p=PFX[type];
+  const el=document.getElementById(`badge-${p}`); if(!el) return;
+  el.className='fbadge'+(status==='ok'?' ok':'');
+  el.querySelector('.dot').style.background=status==='ok'?'var(--green)':'var(--muted)';
+  el.querySelector('span').textContent=` ${p.toUpperCase()}${status==='ok'?` (${count})`:''}`
+}
+
+// ═══════════════════════════════════════════════════════
+// COMPUTE
+// ═══════════════════════════════════════════════════════
+function computeData() {
+  const incR=uploadedRows.incidents||[], srR=uploadedRows.service_requests||[];
+  const rfacR=uploadedRows.rfac||[], prbR=uploadedRows.problems||[];
+  if (!incR.length && !srR.length && !rfacR.length && !prbR.length) return false;
+  const ww = computedData.weekWindows;
+  if (!ww) return false;
+
+  const emptyInc = {visible:false,openCount:0,p1:0,p2:0,p3:0,p4:0,p3p4:0,closedThisWeek:0,closedPriorWeek:0,closureDelta:0,closureDeltaDir:'flat',closureDeltaLabel:'— no data',openDelta:0,openDeltaDir:'flat',openDeltaLabel:'— no data',slaPct:null,barPct:0,weekLabels:ww.map(w=>w.label),openHistory:Array(8).fill(0),closedHistory:Array(8).fill(0),p1History:Array(8).fill(0),p2History:Array(8).fill(0),p3p4History:Array(8).fill(0),slaHistory:Array(8).fill(null),byModule:{},blankAssignee:0};
+  const emptySR = {visible:false,openCount:0,closedThisWeek:0,closedPriorWeek:0,closureDelta:0,closureDeltaDir:'flat',closureDeltaLabel:'— no data',openDelta:0,openDeltaDir:'flat',openDeltaLabel:'— no data',slaPct:null,barPct:0,weekLabels:ww.map(w=>w.label),openHistory:Array(8).fill(0),closedHistory:Array(8).fill(0),slaHistory:Array(8).fill(null),bySubcat:{},pending:0,inProg:0,onHold:0,blankAssignee:0};
+  const emptyRFAC = {visible:false,total:0,approved:0,cabPending:0,draft:0,rejected:0,assess:0,scheduled:0,implement:0,review:0,barPct:0,blankAssignee:0};
+  const emptyPRB = {visible:false,total:0,inProgress:0,knownError:0,investigating:0,pendingChange:0,slaPct:null,breachedCount:0,barPct:0,aging:[],blankAssignee:0};
+
+  computedData.incidents = incR.length ? computeIncidents(incR, ww) : emptyInc;
+  computedData.service_requests = srR.length ? computeSR(srR, ww) : emptySR;
+  computedData.rfac = rfacR.length ? computeRFAC(rfacR) : emptyRFAC;
+  computedData.problems = prbR.length ? computePRB(prbR, ww[7]?.end) : emptyPRB;
+  computedData.rag = computeRAG(computedData.incidents, computedData.service_requests, computedData.rfac, computedData.problems);
+  return true;
+}
+
+function runCompute() {
+  try {
+    if (!computeData()) { alert('Upload data files and set Week/Year first.'); return; }
+    kpiOverrides = {};
+    kpiLocks = {inc:true,sr:true,rfac:true,prb:true,rag:true};
+    document.getElementById('nav-kpis').classList.remove('locked');
+    document.getElementById('nav-manual').classList.remove('locked');
+    goPanel('kpis');
+    renderKPIPanel();
+  } catch(err) { alert('Computation error: '+err.message); console.error(err); }
+}
+
+// ═══════════════════════════════════════════════════════
+// KPI PANEL
+// ═══════════════════════════════════════════════════════
+function renderKPIPanel() {
+  const el=document.getElementById('kpi-content'); if(!el) return;
+  const d=computedData; const inc=d.incidents||{}; const sr=d.service_requests||{};
+  const rfac=d.rfac||{}; const prb=d.problems||{}; const rag=d.rag||{};
+  const prevMeters = prevJSON?.charts?.sla_by_type?.meters || [];
+  const p1Meter = prevMeters.find(m => m.label === 'P1 Response');
+  const ww=d.weekWindows||[]; const prevW=ww[6]||{};
+  const prevSlaFromData = inc.weeks?.[6]?.slaPct;
+  const prevSlaKpi = prevJSON?.kpis?.find(k=>k.id==='sla');
+  const prevP1Kpi = prevJSON?.kpis?.find(k=>k.id==='p1_critical');
+
+  // Compute deltas inline (mirrors buildJSON logic)
+  const p1Delta = prevP1Kpi&&prevP1Kpi.value ? {val:Math.abs(inc.p1-(parseInt(prevP1Kpi.value)||0)), dir:deltaDir(inc.p1,parseInt(prevP1Kpi.value)||0)} : null;
+  const slaDelta = inc.slaPct!==null&&prevSlaFromData!==null&&prevSlaFromData!==undefined ? {val:Math.abs(inc.slaPct-prevSlaFromData), dir:inc.slaPct>prevSlaFromData?'down':'up'} : inc.slaPct!==null&&prevSlaKpi?.value ? {val:Math.abs(inc.slaPct-(parseInt(prevSlaKpi.value)||0)), dir:inc.slaPct>(parseInt(prevSlaKpi.value)||0)?'down':'up'} : null;
+
+  // Compute PRB & RFAC history (same logic as buildJSON — these aren't in computedData)
+  const prbHistory = (uploadedRows.problems && ww.length) ? ww.map(w=>uploadedRows.problems.filter(r=>r.opened_at&&r.opened_at<=w.end).length) : (prevJSON?.wow_scorecard?.rows?.find(r=>r.label==='Problems (PRB)')?.values||[...Array(7).fill(0),prb.total||0]);
+  const prevWow = prevJSON?.wow_scorecard?.rows||[];
+  const rfacWowRow = prevWow.find(r=>r.label==='RFAC / Changes');
+  const rfacHistory = (manualData.rfacScorecard?.length>=3) ? Array(8).fill(0).map((_,i)=>(manualData.rfacScorecard[0].history[i]||0)+(manualData.rfacScorecard[1].history[i]||0)+(manualData.rfacScorecard[2].history[i]||0)) : (rfacWowRow?[...(rfacWowRow.values||[]).slice(1),rfac.total||0]:[...Array(7).fill(0),rfac.total||0]);
+
+  // Brief helper for delta arrow
+  const dArrow=(dir,val)=>`<span style="font-size:11px;color:var(--${dir==='up'?'red':'green'});font-weight:500">${dir==='up'?'▲':dir==='down'?'▼':''}${val!==undefined&&val!==null?val:''}</span>`;
+
+  // WoW history helper: builds 8-week row for scorecard
+  const wowRow=(label,history,unit)=>{const h=history||Array(8).fill(0);const c=h[7]!==undefined?h[7]:0;const p=h[6]!==undefined?h[6]:0;const dlt=c-p;const lab=dlt>0?'up':dlt<0?'down':'flat';return `<div style="display:flex;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);align-items:center"><span style="flex:1;color:var(--text2)">${label}</span>${h.map((v,i)=>`<span style="width:40px;text-align:right;font-family:'DM Mono';color:${i===7?'var(--text)':'var(--text3)'};font-weight:${i===7?'600':'400'}">${v!==null&&v!==undefined?unit==='%'?v+'%':v:'—'}</span>`).join('')}<span style="width:40px;text-align:right;font-family:'DM Mono';color:var(--${lab==='up'?'red':lab==='down'?'green':'muted'});font-weight:600">${dlt>0?'+'+dlt:dlt}</span></div>`;};
+
+  const sections=[
+    {key:'inc', label:'Incidents', icon:'🎫', data:[
+      {id:'incidents', label:'Open Incidents', value:String(inc.openCount||0), color:rag.incidents||'muted', barPct:inc.barPct||0, delta:`${dArrow(inc.openDeltaDir,Math.abs(inc.openDelta||0))} <span style="font-size:10px;color:var(--text3)">vs ${prevW.label||'—'}</span>`},
+      {id:'p1_critical', label:'P1 / Critical', value:String(inc.p1||0), color:inc.p1>0?'red':'green', barPct:Math.min(Math.round((inc.p1||0)/5*100),100), delta:p1Delta?dArrow(p1Delta.dir,p1Delta.val):''},
+      {id:'p2_high', label:'P2 / High', value:String(inc.p2||0), color:inc.p2>5?'amber':'green', barPct:Math.min(Math.round((inc.p2||0)/10*100),100)},
+      {id:'p3_medium', label:'P3 / Medium', value:String(inc.p3||0), color:'blue', barPct:Math.min(Math.round((inc.p3||0)/15*100),100)},
+      {id:'p4_low', label:'P4 / Low', value:String(inc.p4||0), color:'green', barPct:Math.min(Math.round((inc.p4||0)/10*100),100)},
+      {id:'sla', label:'SLA Compliance', value:inc.slaPct!==null?`${inc.slaPct}%`:'—', color:slaRAG(inc.slaPct), barPct:inc.slaPct||0, delta:slaDelta?dArrow(slaDelta.dir,slaDelta.val+'pp'):'', _noEdit:!(inc.slaPct!==null&&inc.slaPct!==undefined&&slaDelta)}
+    ]},
+    {key:'sr', label:'Service Requests', icon:'📋', data:[
+      {id:'service_requests', label:'Open SRs', value:String(sr.openCount||0), color:rag.service_requests||'muted', barPct:sr.barPct||0, delta:`${dArrow(sr.openDeltaDir,Math.abs(sr.openDelta||0))} <span style="font-size:10px;color:var(--text3)">vs ${prevW.label||'—'}</span>`},
+      {id:'sr_sla', label:'SLA Compliance', value:sr.slaPct!==null?`${sr.slaPct}%`:'—', color:slaRAG(sr.slaPct), barPct:sr.slaPct||0}
+    ]},
+    {key:'rfac', label:'RFAC / Changes', icon:'🔀', data:[
+      {id:'rfac', label:'Active Changes', value:String(rfac.total||0), color:rag.rfac||'muted', barPct:rfac.barPct||0},
+      {id:'rfac_assess', label:'Assess', value:String(rfac.assess||0), color:'amber', barPct:rfac.total?Math.round((rfac.assess||0)/rfac.total*100):0},
+      {id:'rfac_approved', label:'Approved', value:String(rfac.approved||0), color:'green', barPct:rfac.total?Math.round((rfac.approved||0)/rfac.total*100):0},
+      {id:'rfac_scheduled', label:'Scheduled', value:String(rfac.scheduled||0), color:'blue', barPct:rfac.total?Math.round((rfac.scheduled||0)/rfac.total*100):0},
+      {id:'rfac_implement', label:'Implement', value:String(rfac.implement||0), color:'purple', barPct:rfac.total?Math.round((rfac.implement||0)/rfac.total*100):0},
+      {id:'rfac_review', label:'Review', value:String(rfac.review||0), color:'amber', barPct:rfac.total?Math.round((rfac.review||0)/rfac.total*100):0},
+      {id:'rfac_cab_pending', label:'Pending CAB', value:String(rfac.cabPending||0), color:'amber', barPct:rfac.total?Math.round((rfac.cabPending||0)/rfac.total*100):0},
+      {id:'rfac_draft', label:'Draft', value:String(rfac.draft||0), color:'muted', barPct:rfac.total?Math.round((rfac.draft||0)/rfac.total*100):0},
+      {id:'rfac_rejected', label:'Rejected', value:String(rfac.rejected||0), color:'red', barPct:rfac.total?Math.round((rfac.rejected||0)/rfac.total*100):0}
+    ]},
+    {key:'prb', label:'Problems (PRB)', icon:'🐛', data:[
+      {id:'problems', label:'Open Problems', value:String(prb.total||0), color:rag.problems||'muted', barPct:prb.barPct||0},
+      {id:'prb_sla', label:'SLA Compliance', value:prb.slaPct!==null?`${prb.slaPct}%`:'—', color:slaRAG(prb.slaPct), barPct:prb.slaPct||0},
+      {id:'prb_breached', label:'Breached', value:String(prb.breachedCount||0), color:prb.breachedCount>0?'red':'green', barPct:Math.min(Math.round((prb.breachedCount||0)/5*100),100)}
+    ]}
+  ];
+
+  el.innerHTML=`
+    <div class="grid-4" style="margin-bottom:20px">
+      ${sections.map(s=>{
+        const locked=kpiLocks[s.key];
+        return `<div class="card kpi-section" id="kpi-section-${s.key}">
+          <div class="card-title" style="display:flex;align-items:center;gap:8px">
+            <span>${s.icon}</span><span style="flex:1">${s.label}</span>
+            <span class="fbadge ${locked?'':'ok'}" id="kpi-lock-${s.key}" style="font-size:9px;padding:1px 6px"><span>${locked?'Locked':'Edit'}</span></span>
+            <button class="btn btn-ghost btn-xs" onclick="toggleKPIEdit('${s.key}')" title="Toggle edit">✏️</button>
+          </div>
+          ${s.data.map(k=>{
+            const ov=kpiOverrides[k.id]||{};
+            const val=ov.value!==undefined?ov.value:k.value;
+            const col=ov.color||k.color;
+            const bp=ov.bar_pct!==undefined?ov.bar_pct:k.barPct;
+            return `<div class="kpi-item" id="kpi-${k.id}">
+              <div class="kpi-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <span style="flex:1;font-size:12px;color:var(--text2)">${k.label}</span>
+                <span style="font-size:11px;font-family:'DM Mono';color:var(--text3);margin-right:4px">${k.delta||''}</span>
+                <span class="kpi-val" style="font-family:'DM Mono';font-size:14px;font-weight:600;color:var(--${col})">${val}</span>
+                <span class="kpi-bar" style="width:50px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:${bp}%;background:var(--${col});border-radius:3px"></span></span>
+                ${!locked&&!k._noEdit?`<input type="text" class="mono" value="${esc(val)}" oninput="setKPI('${k.id}','value',this.value)" style="width:60px;padding:3px 6px;font-size:11px">
+                <select onchange="setKPI('${k.id}','color',this.value)" style="width:70px;padding:2px 4px;font-size:10px">${['red','amber','green','blue','purple','muted'].map(c=>`<option value="${c}" ${ov.color===c?'selected':''}>${c}</option>`).join('')}</select>
+                <input type="number" min="0" max="100" value="${bp}" oninput="setKPI('${k.id}','bar_pct',+this.value)" style="width:50px;padding:3px;font-size:11px">`:''}
+</div>
+
+<div id="snapshot-banner" style="display:none;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99;padding:8px 18px;background:rgba(245,166,35,.12);border-bottom:1px solid rgba(245,166,35,.3);font-size:12px;color:var(--amber);align-items:center;gap:12px">
+  <span style="flex:1">📦 Unsaved snapshot found from <span id="snap-time" style="font-family:'DM Mono'"></span>. Restore or dismiss.</span>
+  <button class="btn btn-amber btn-sm" onclick="restoreSnapshot()">Restore</button>
+  <button class="btn btn-ghost btn-sm" onclick="clearSnapshot()">Dismiss</button>
+</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">
+        <span>🎯</span><span style="flex:1">RAG Ratings</span>
+        <span class="fbadge ${kpiLocks.rag?'':'ok'}" id="kpi-lock-rag" style="font-size:9px;padding:1px 6px"><span>${kpiLocks.rag?'Locked':'Edit'}</span></span>
+        <button class="btn btn-ghost btn-xs" onclick="toggleKPIEdit('rag')">✏️</button>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">${Object.entries(rag).map(([k,v])=>{
+        const locked=kpiLocks.rag;
+        return `<div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--text2);text-transform:capitalize">${k.replace(/_/g,' ')}</span>
+          ${locked?`<span class="mono" style="color:var(--${v||'muted'});font-weight:600">${v||'—'}</span>`
+          :`<select onchange="setKPI('rag_${k}','color',this.value)" style="width:80px;padding:2px 4px;font-size:10px">${['red','amber','green','muted'].map(c=>`<option value="${c}" ${(kpiOverrides[`rag_${k}`]?.color||v)===c?'selected':''}>${c}</option>`).join('')}</select>`}
+        </div>`;
+      }).join('')}</div>
+    </div>
+    ${(sr.slaPct!==null||prb.slaPct!==null||p1Meter)?`
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">
+        <span>📈</span><span style="flex:1">SLA by Type</span>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--text2)">P1 Response</span><span class="mono" style="color:var(--${kpiOverrides.p1_response?.color||(p1Meter?.color_key||'green')});font-weight:600">${kpiOverrides.p1_response?.value||(p1Meter?.pct!==undefined?p1Meter.pct+'%':'—')}</span></div>
+      </div>
+    </div>`:''}
+    ${(inc.openHistory||sr.openHistory)?`
+    <div class="collapsible-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')" style="margin-bottom:0"><h4>📊 Week-over-Week Scorecard</h4><span class="chev">▶</span></div>
+    <div class="collapsible-body open" style="padding:0;overflow-x:auto">
+      <div style="min-width:600px;padding:12px">
+        <div style="display:flex;font-size:10px;padding:4px 0;color:var(--text3);border-bottom:1px solid var(--border2)"><span style="flex:1">Type</span>${(ww||[]).map((w,i)=>`<span style="width:40px;text-align:right">${w.label}${i===7?'*':''}</span>`).join('')}<span style="width:40px;text-align:right">Δ</span></div>
+        ${wowRow('Incidents',inc.openHistory)}
+        ${wowRow('Service Requests',sr.openHistory)}
+        ${wowRow('RFAC / Changes',rfacHistory)}
+        ${wowRow('Problems (PRB)',prbHistory)}
+        ${wowRow('SLA Compliance',inc.slaHistory,'%')}
+      </div>
+    </div>`:''}
+    <div class="collapsible-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')" style="margin-bottom:0;margin-top:12px"><h4>📈 Charts Data</h4><span class="chev">▶</span></div>
+    <div class="collapsible-body open" style="padding:12px">
+      <div class="card-title" style="margin-bottom:8px">Incident by Priority <span style="font-size:11px;color:var(--text3);font-weight:400">(doughnut chart)</span></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+        ${[{l:'P1 Critical',v:+(kpiOverrides.p1_critical?.value??inc.p1),c:'red'},{l:'P2 High',v:+(kpiOverrides.p2_high?.value??inc.p2),c:'amber'},{l:'P3 Medium',v:+(kpiOverrides.p3_medium?.value??inc.p3),c:'blue'},{l:'P4 Low',v:+(kpiOverrides.p4_low?.value??inc.p4),c:'green'}].map(({l,v,c})=>`<div style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--${c})"></span><span style="font-size:11px;color:var(--text2)">${l}</span><span class="mono" style="font-weight:600">${v}</span></div>`).join('')}
+      </div>
+      <div class="card-title" style="margin-bottom:8px">RFAC Pipeline <span style="font-size:11px;color:var(--text3);font-weight:400">(doughnut chart)</span></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+        ${genSegments(rfac,'rfac_pipeline',kpiOverrides,'rfac').map(s=>`<div style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--${s.color_key})"></span><span style="font-size:11px;color:var(--text2)">${s.label}</span><span class="mono" style="font-weight:600">${s.value}</span></div>`).join('')}
+      </div>
+      ${(inc.byModuleLabels&&inc.byModuleLabels.length)?`<div class="card-title" style="margin-bottom:8px">Incidents by Module <span style="font-size:11px;color:var(--text3);font-weight:400">(bar chart)</span></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">${inc.byModuleLabels.map((l,i)=>`<div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text2)">${l}</span><span class="mono" style="font-weight:600">${(inc.byModuleData||[])[i]||0}</span></div>`).join('')}</div>`:''}
+    </div>`;
+}
+
+function toggleKPIEdit(key) {
+  kpiLocks[key]=!kpiLocks[key];
+  if(document.getElementById('panel-kpis').classList.contains('active')) renderKPIPanel();
+}
+
+function setKPI(id, field, value) {
+  if(!kpiOverrides[id]) kpiOverrides[id]={};
+  if(value===''||value===null||value===undefined) {
+    delete kpiOverrides[id][field];
+    if(Object.keys(kpiOverrides[id]).length===0) delete kpiOverrides[id];
+  } else {
+    kpiOverrides[id][field]=value;
+  }
+  autoSaveSnapshot();
+}
+
+// ═══════════════════════════════════════════════════════
+// MANUAL SECTIONS
+// ═══════════════════════════════════════════════════════
+function markSection(sec, status) {
+  manualState[sec]=status;
+  const el=document.getElementById(`scs-${sec}`);
+  if(el){
+    el.className=`sc-status ${status}`;
+    el.textContent=status==='done'?'✅ Done':status==='na'?'N/A':status==='inprog'?'In Progress':'Pending';
+  }
+  autoSaveSnapshot();
+  const done=Object.values(manualState).filter(v=>v==='done'||v==='na').length;
+  document.getElementById('nb-manual').textContent=`${done}/3`;
+  const allOk=Object.values(manualState).every(v=>v==='done'||v==='na');
+  document.getElementById('btn-to-gen').disabled=!allOk;
+  document.getElementById('btn-dl-json').disabled=!allOk;
+  if(allOk){document.getElementById('nav-generate').classList.remove('locked');}
+}
+
+function openSection(sec) {
+  document.querySelectorAll('.sc-row').forEach(r=>r.classList.remove('active'));
+  document.getElementById(`sc-row-${sec}`)?.classList.add('active');
+  if (manualState[sec] === 'pending') markSection(sec,'inprog');
+  const c=document.getElementById('section-content');
+  if(sec==='comm') c.innerHTML=renderCommEditor();
+  else if(sec==='int') c.innerHTML=renderIntEditor();
+  else if(sec==='rfach') c.innerHTML=renderRFACStateEditor();
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Weekly Summary (Commentary) ──
+function renderCommEditor() {
+  const cols=[{id:'incidents_problems',title:'Incidents & Problems',icon:'🔥',color:'red'},{id:'changes_requests',title:'Changes & Service Requests',icon:'⚙️',color:'amber'},{id:'sla_forward',title:'SLA & Forward Look',icon:'🔭',color:'green'}];
+  if(!manualData.commentary) {
+    const demoCols=cols.map(c=>{
+      if(c.id==='incidents_problems') return {id:c.id,title:c.title,title_color:c.color,icon:c.icon,items:[{tag:'OBSERVATION',tag_color:'amber',text:'Total open incidents increased by <strong>6</strong> compared to previous week. P1 count remains elevated.'},{tag:'RISK',tag_color:'red',text:'High volume of unassigned tickets — <strong>12%</strong> have no assignee.'}]};
+      if(c.id==='changes_requests') return {id:c.id,title:c.title,title_color:c.color,icon:c.icon,items:[{tag:'UPDATE',tag_color:'blue',text:'RFAC pipeline steady with <strong>8</strong> active changes. No CAB backlog.'}]};
+      return {id:c.id,title:c.title,title_color:c.color,icon:c.icon,items:[{tag:'POSITIVE',tag_color:'green',text:'SLA compliance for incidents improved to <strong>94%</strong> this week.'}]};
+    });
+    manualData.commentary={updated:fmtDT(new Date()),author:config.meta.prepared_by,columns:demoCols};
+  }
+  const prevCols=prevJSON?.commentary?.columns||[];
+  return `<div>
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="fg"><label class="fl">Updated</label><input type="text" value="${esc(fmtDT(new Date()))}" onchange="manualData.commentary.updated=this.value"></div>
+      <div class="fg"><label class="fl">Author</label><input type="text" value="${esc(manualData.commentary.author)}" onchange="manualData.commentary.author=this.value"></div>
+    </div>
+    ${cols.map((col,i)=>{
+      const prev=prevCols[i]; const items=manualData.commentary.columns[i]?.items||[];
+      return `<div class="comm-col">
+        <div class="comm-col-hdr"><span>${col.icon}</span><strong style="color:var(--${col.color})">${col.title}</strong></div>
+        <div class="comm-col-body">
+          ${prev?`<div class="prev-ref-panel"><div class="prev-ref-label">↑ ${prevJSON?.meta?.week_label||'Previous week'}</div>${(prev.items||[]).map(it=>`<div class="comm-ref-item">${it.tag?`<strong>[${it.tag}]</strong> `:''}${it.text||''}</div>`).join('')}</div>`:''}
+          ${items.map((it,j)=>`<div class="item-card"><button class="item-del" onclick="rmComm('${col.id}',${j})">✕</button>
+            <div class="grid-2" style="gap:8px;margin-bottom:6px">
+              <div class="fg" style="margin:0"><label class="fl">Tag</label><select onchange="updComm('${col.id}',${j},'tag',this.value)"><option value="">— None —</option>${['OBSERVATION','RISK','ISSUE','WARNING','POSITIVE','UPDATE','ACTION','NOTE','ACHIEVEMENT','CONCERN','MILESTONE','HIGHLIGHT','BLOCKER','RESOLVED','PENDING','COMPLETED','ON_TRACK','AT_RISK','ESCALATED','MITIGATED'].map(t=>`<option value="${t}" ${it.tag===t?'selected':''}>${t}</option>`).join('')}</select></div>
+              <div class="fg" style="margin:0"><label class="fl">Tag Color</label><select onchange="updComm('${col.id}',${j},'tag_color',this.value)">${['red','amber','green','blue','purple','muted'].map(c=>`<option value="${c}" ${it.tag_color===c?'selected':''}>${c}</option>`).join('')}</select></div>
+            </div>
+            <textarea onchange="updComm('${col.id}',${j},'text',this.value)">${esc(it.text||'')}</textarea>
+          </div>`).join('')}
+          <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" onclick="addComm('${col.id}')">+ Add Item</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function addComm(id){const col=manualData.commentary.columns.find(c=>c.id===id);if(col){col.items.push({tag:'',tag_color:'muted',text:''});openSection('comm');}}
+function rmComm(id,j){const col=manualData.commentary.columns.find(c=>c.id===id);if(col){col.items.splice(j,1);openSection('comm');}}
+function updComm(id,j,f,v){const col=manualData.commentary.columns.find(c=>c.id===id);if(col&&col.items[j])col.items[j][f]=v;}
+
+// ── Leadership Intervention ──
+function renderIntEditor() {
+  if(!manualData.intervention) {
+    const demoItems=prevJSON?.intervention?.items?.length?[]:[
+      {id:'int-demo-1',title:'P1 Incident INC0050123 requires architecture decision',severity:'red',badge_label:'ESCALATE NOW',meta:['INC0050123','SAP SD'],body:'Critical pricing issue affecting <strong>Client A</strong> production — root cause not yet identified, workaround in place.',decision:'Confirm if emergency change can proceed without full CAB review.',raised_by:'John Smith · IT Ops Lead',avatar:'JS',age_label:'3d open',age_color:'red'},
+      {id:'int-demo-2',title:'SR backlog in Access Management exceeding SLA targets',severity:'amber',badge_label:'APPROVAL NEEDED',meta:['SR-BACKLOG','Access Mgmt'],body:'Access provisioning requests have accumulated <strong>15%</strong> above threshold due to resource constraints.',decision:'Approve temporary contractor for catch-up week.',raised_by:'Sarah Lee · Service Desk Mgr',avatar:'SL',age_label:'5d',age_color:'amber'}
+    ];
+    manualData.intervention = {
+      section_title: 'IT Leadership Intervention Required',
+      banner_title: 'items require a decision or direct action from IT Leadership this week',
+      banner_sub: 'Escalated because they exceed team authority, carry client-visible risk, or are blocked on cross-team dependencies',
+      items: demoItems,
+      decision_label: 'Decision required'
+    };
+  }
+  const prevItems=prevJSON?.intervention?.items||[];
+  const items=manualData.intervention.items;
+  return `<div>
+    <div class="grid-2" style="margin-bottom:12px">
+      <div class="fg"><label class="fl">Section Title</label><input type="text" value="${esc(manualData.intervention.section_title)}" onchange="manualData.intervention.section_title=this.value"></div>
+      <div class="fg"><label class="fl">Banner Text</label><input type="text" value="${esc(manualData.intervention.banner_title)}" onchange="manualData.intervention.banner_title=this.value"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label class="fl">Banner Subtitle</label>
+      <input type="text" value="${esc(manualData.intervention.banner_sub)}" onchange="manualData.intervention.banner_sub=this.value">
+    </div>
+    ${prevItems.length?`<div class="prev-ref-panel"><div class="prev-ref-label">↑ ${prevJSON?.meta?.week_label||'Previous'} interventions</div>${prevItems.map(it=>`<div class="comm-ref-item">• ${esc(it.title||'')}</div>`).join('')}</div>`:''}
+    ${items.map((it,j)=>{
+      const metaStr = Array.isArray(it.meta) ? it.meta.join(', ') : (it.meta || '');
+      return `<div class="item-card">
+        <button class="item-del" onclick="rmInt(${j})">✕</button>
+        <div class="grid-3" style="gap:8px">
+          <div class="fg"><label class="fl">Title</label><input type="text" value="${esc(it.title||'')}" onchange="manualData.intervention.items[${j}].title=this.value"></div>
+          <div class="fg"><label class="fl">Severity</label><select onchange="manualData.intervention.items[${j}].severity=this.value">${['red','amber'].map(c=>`<option value="${c}" ${it.severity===c?'selected':''}>${c}</option>`).join('')}</select></div>
+          <div class="fg"><label class="fl">Badge</label><select onchange="manualData.intervention.items[${j}].badge_label=this.value"><option value="">— None —</option>${['APPROVAL NEEDED','ESCALATE NOW','DECISION REQUIRED','ACTION REQUIRED','REVIEW NEEDED','BLOCKED','URGENT','ATTENTION','FOLLOW UP','ON HOLD','RESOLVED','IN PROGRESS'].map(b=>`<option value="${b}" ${it.badge_label===b?'selected':''}>${b}</option>`).join('')}</select></div>
+        </div>
+        <div class="grid-3" style="gap:8px">
+          <div class="fg"><label class="fl">Meta Tags (comma separated)</label><input type="text" value="${esc(metaStr)}" onchange="manualData.intervention.items[${j}].meta=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></div>
+          <div class="fg"><label class="fl">Age Label</label><input type="text" value="${esc(it.age_label||'')}" onchange="manualData.intervention.items[${j}].age_label=this.value"></div>
+          <div class="fg"><label class="fl">Age Color</label><select onchange="manualData.intervention.items[${j}].age_color=this.value">${['red','amber','green'].map(c=>`<option value="${c}" ${it.age_color===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        </div>
+        <div class="fg"><label class="fl">Body</label><textarea onchange="manualData.intervention.items[${j}].body=this.value">${esc(it.body||'')}</textarea></div>
+        <div class="grid-2" style="gap:8px">
+          <div class="fg"><label class="fl">Decision Required</label><textarea onchange="manualData.intervention.items[${j}].decision=this.value">${esc(it.decision||'')}</textarea></div>
+          <div class="fg"><label class="fl">Raised By</label><input type="text" value="${esc(it.raised_by||'')}" onchange="manualData.intervention.items[${j}].raised_by=this.value; manualData.intervention.items[${j}].avatar=this.value.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)"></div>
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addInt()">+ Add Item</button>
+  </div>`;
+}
+function addInt(){if(!manualData.intervention)renderIntEditor();manualData.intervention.items.push({id:`int-${Date.now()}`,title:'',severity:'amber',badge_label:'APPROVAL NEEDED',meta:[],body:'',decision:'',raised_by:'',avatar:'',age_label:'',age_color:'amber'});openSection('int');}
+function rmInt(j){manualData.intervention.items.splice(j,1);openSection('int');}
+
+// ── WoW RFAC State Data (rfac_scorecard) ──
+function renderRFACStateEditor() {
+  const ww=computedData.weekWindows||[]; const wl=ww.map(w=>w.label);
+  const phases = ['Design / Planning','Implementation / Test','Deploy / Post-Review','Closed / Completed'];
+  const statuses = ['muted','amber','blue','green'];
+  const invertFlags = [false, false, false, true];
+  if (!manualData.rfacScorecard) {
+    // Try to load from previous JSON
+    const prevRows = prevJSON?.rfac_scorecard?.rows;
+    if (prevRows && prevRows.length === 4) {
+      manualData.rfacScorecard = prevRows.map(r => ({...r, history: [...(r.history||Array(8).fill(0))]}));
+    } else {
+      manualData.rfacScorecard = [
+        {metric:'Design / Planning',history:[12,10,9,8,7,6,5,4],invert_delta:false,status:'muted'},
+        {metric:'Implementation / Test',history:[6,7,8,8,7,5,4,3],invert_delta:false,status:'amber'},
+        {metric:'Deploy / Post-Review',history:[3,4,5,6,6,5,4,3],invert_delta:false,status:'blue'},
+        {metric:'Closed / Completed',history:[2,3,5,7,9,11,12,14],invert_delta:true,status:'green'}
+      ];
+    }
+  }
+
+  return `<div>
+    <div class="sect-title">RFAC State Progression — 8-week history (manual entry)</div>
+    <div class="card">
+      <div class="sc-table-wrap"><table class="sc-table"><thead><tr>
+        <th>Phase</th>
+        ${wl.map((w,i)=>`<th class="${i===7?'cur':''}">${w}${i===7?'*':''}</th>`).join('')}
+      </tr></thead><tbody>
+        ${manualData.rfacScorecard.map((row,ri)=>`<tr>
+          <td class="row-lbl">${row.metric}</td>
+          ${wl.map((_,ci)=>`<td><input type="number" value="${row.history[ci]||0}" oninput="manualData.rfacScorecard[${ri}].history[${ci}]=+this.value||0" style="width:56px;text-align:center;padding:4px;font-family:'DM Mono';font-size:11px"></td>`).join('')}
+        </tr>`).join('')}
+      </tbody></table></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:6px">* Current week column. Enter values for each RFAC phase per week.</div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// JSON WRITER — matches data/snow_weekly.json format EXACTLY
+// ═══════════════════════════════════════════════════════
+function buildJSON() {
+  const d=computedData; const inc=d.incidents||{}; const sr=d.service_requests||{};
+  const rfac=d.rfac||{}; const prb=d.problems||{}; const rag={
+    incidents:kpiOverrides.rag_incidents?.color||d.rag?.incidents||'muted',
+    service_requests:kpiOverrides.rag_service_requests?.color||d.rag?.service_requests||'muted',
+    rfac:kpiOverrides.rag_rfac?.color||d.rag?.rfac||'muted',
+    problems:kpiOverrides.rag_problems?.color||d.rag?.problems||'muted'
+  };
+  const ww=d.weekWindows||[]; const curW=ww[7]||{}; const prevW=ww[6]||{};
+  const labels=ww.map(w=>w.label);
+
+  // RFAC & PRB history for wow_scorecard — try previous JSON, otherwise zeros
+  const prevWow = prevJSON?.wow_scorecard?.rows || [];
+  const rfacWowRow = prevWow.find(r=>r.label==='RFAC / Changes');
+  const prbWowRow = prevWow.find(r=>r.label==='Problems (PRB)');
+
+  // Calculate RFAC history (active total = Design + Implementation + Deploy)
+  let rfacHistory = Array(8).fill(0);
+  if (manualData.rfacScorecard && manualData.rfacScorecard.length >= 3) {
+    rfacHistory = Array(8).fill(0).map((_, i) => {
+      return (manualData.rfacScorecard[0].history[i] || 0) +
+             (manualData.rfacScorecard[1].history[i] || 0) +
+             (manualData.rfacScorecard[2].history[i] || 0);
+    });
+  } else {
+    rfacHistory = rfacWowRow ? [...(rfacWowRow.values||[]).slice(1), rfac.total||0] : [...Array(7).fill(0), rfac.total||0];
+  }
+
+  // Calculate PRB history automatically based on sheet data
+  let prbHistory = Array(8).fill(0);
+  if (uploadedRows.problems) {
+    prbHistory = ww.map(w => {
+      return uploadedRows.problems.filter(r => r.opened_at && r.opened_at <= w.end).length;
+    });
+  } else {
+    prbHistory = prbWowRow ? [...(prbWowRow.values||[]).slice(1), prb.total||0] : [...Array(7).fill(0), prb.total||0];
+  }
+
+  // Calculate RFAC delta
+  let rfacDeltaVal = 0;
+  let rfacDeltaDir = 'flat';
+  let rfacDeltaLabel = 'unchanged';
+  if (rfacHistory && rfacHistory.length > 1) {
+    const curVal = rfacHistory[7];
+    const prevVal = rfacHistory[6];
+    rfacDeltaVal = Math.abs(curVal - prevVal);
+    rfacDeltaDir = deltaDir(curVal, prevVal);
+    rfacDeltaLabel = rfacDeltaVal === 0 ? 'unchanged' : `vs ${prevW.label||'—'}`;
+  }
+
+  // Calculate Problem delta
+  let prbDeltaVal = 0;
+  let prbDeltaDir = 'flat';
+  let prbDeltaLabel = `vs ${prevW.label||'—'}`;
+  if (prbHistory && prbHistory.length > 1) {
+    const curVal = prbHistory[7];
+    const prevVal = prbHistory[6];
+    prbDeltaVal = Math.abs(curVal - prevVal);
+    prbDeltaDir = deltaDir(curVal, prevVal);
+  }
+
+  // Calculate P1 delta
+  let p1DeltaVal = 0;
+  let p1DeltaDir = 'flat';
+  let p1DeltaLabel = `vs ${prevW.label||'—'}`;
+  if (prevJSON && prevJSON.kpis) {
+    const prevP1Kpi = prevJSON.kpis.find(k => k.id === 'p1_critical');
+    if (prevP1Kpi && prevP1Kpi.value) {
+      const prevP1 = parseInt(prevP1Kpi.value) || 0;
+      p1DeltaVal = Math.abs(inc.p1 - prevP1);
+      p1DeltaDir = deltaDir(inc.p1, prevP1);
+    }
+  }
+
+  // Calculate SLA compliance delta
+  let slaDeltaVal = 0;
+  let slaDeltaDir = 'flat';
+  const prevSlaFromData = inc.weeks?.[6]?.slaPct;
+  if (inc.slaPct !== null && prevSlaFromData !== null && prevSlaFromData !== undefined) {
+    slaDeltaVal = Math.abs(inc.slaPct - prevSlaFromData);
+    if (inc.slaPct > prevSlaFromData) slaDeltaDir = 'down'; // down represents improvement (green)
+    else if (inc.slaPct < prevSlaFromData) slaDeltaDir = 'up'; // up represents regression (red)
+  } else if (inc.slaPct !== null && prevJSON && prevJSON.kpis) {
+    const prevSlaKpi = prevJSON.kpis.find(k => k.id === 'sla');
+    if (prevSlaKpi && prevSlaKpi.value) {
+      const prevSla = parseInt(prevSlaKpi.value) || 0;
+      slaDeltaVal = Math.abs(inc.slaPct - prevSla);
+      if (inc.slaPct > prevSla) slaDeltaDir = 'down';
+      else if (inc.slaPct < prevSla) slaDeltaDir = 'up';
+    }
+  }
+
+  const curWeekRange = curW.start && curW.end ? fmtWeekRange(curW.start, curW.end) : '—';
+
+  // Retrieve P1 Response SLA and SLA callout from prevJSON if available
+  const prevSlaChart = prevJSON?.charts?.sla_by_type;
+  const prevMeters = prevSlaChart?.meters || [];
+  const p1Meter = { ...(prevMeters.find(m => m.label === 'P1 Response') || { label: 'P1 Response', pct: 100, color_key: 'green' }),
+    pct: +(kpiOverrides.p1_response?.value??(prevMeters.find(m=>m.label==='P1 Response')?.pct??100)),
+    color_key: kpiOverrides.p1_response?.color||(prevMeters.find(m=>m.label==='P1 Response')?.color_key||'green')
+  };
+  const slaCallout = prevSlaChart?.callout || `Target: ${config.thresholds.sla_target_pct}% for all types.`;
+
+  // Problem SLA compliance trend
+  const prevSlaTrend = prevJSON?.charts?.wow_sla_trend?.datasets || [];
+  const prevPrbSlaDataset = prevSlaTrend.find(d => d.label === 'Problems');
+  const prbSlaHistory = prevPrbSlaDataset 
+    ? [...(prevPrbSlaDataset.data||[]).slice(1), prb.slaPct] 
+    : [...Array(7).fill(null), prb.slaPct];
+
+  return {
+    _instructions: {
+      _title: "HOW TO UPDATE THIS DASHBOARD EACH WEEK",
+      _rule: "Edit ONLY this file. Never touch snow_dashboard.html.",
+      steps: [
+        "1. Export Incidents, Service Requests, Problems and Changes from ServiceNow as CSV/Excel.",
+        "2. Update 'meta' — change week_label, week_range, data_as_of, source_file.",
+        "3. Update 'kpis' — set value, bar_pct, delta_val, delta_dir for each KPI tile.",
+        "4. Update 'snow_links' — update stats[] values and button.url for each card.",
+        "5. Update 'charts' — replace all data arrays with this week's numbers.",
+        "6. Update 'wow_scorecard' — append new week column, drop oldest if > 8 weeks.",
+        "7. Update 'intervention' — replace items[] with this week's escalation items (can be empty []).",
+        "8. Update 'commentary' — rewrite each column's items[] with this week's narrative.",
+        "9. Save the file as snow_weekly.json. Run Launcher.bat and choose option 1 or 2."
+      ],
+      _colour_keys: "Allowed color_key values: red | amber | green | blue | purple | muted",
+      _delta_dir: "delta_dir values: 'up' | 'down' | 'flat'  (for KPIs: up=red/bad except SLA where up=green/good)",
+      _rag_values: "rag values: 'red' | 'amber' | 'green'"
+    },
+    _schema_version: "1.0.0",
+    sections_comment: "Controls every section header label, icon, badge and which section is open on load.",
+    sections: {
+      snow: {icon:"🔗",title:"ServiceNow — Live Data Navigation",badge:"opens ServiceNow in browser",badge_color:"blue",open:false},
+      charts: {icon:"📈",title:"Current Week — Charts & Analysis",badge:null,badge_color:"green",open:true},
+      commentary: {icon:"📝",title:"Weekly Commentary & Key Observations",badge:`authored by ${config.meta.prepared_by}`,badge_color:"amber",open:false},
+      wow: {icon:"📊",title:"8-Week Week-on-Week Comparison",badge:`${labels[0]} → ${labels[7]||'—'}`,badge_color:"blue",open:false},
+      intervention: {icon:"⚡",title:"IT Leadership Intervention Required",badge:"open",badge_color:"red",open:false}
+    },
+    footer: {auto_generated_label:"Auto-generated",rag_legend:[{color:"red",label:"Action required"},{color:"amber",label:"At risk"},{color:"green",label:"On track"}]},
+    meta: {
+      data_as_of_label: "Data as of",
+      dashboard_title: `${config.meta.portfolio} — Weekly IT Operations Dashboard`,
+      portfolio: config.meta.portfolio,
+      prepared_by: config.meta.prepared_by,
+      week_label: curW.label||'—',
+      week_range: curWeekRange,
+      data_as_of: fmtDT(new Date()),
+      source_file: 'snow_weekly.json',
+      template_file: 'snow_dashboard.html'
+    },
+    kpis: [
+      {id:'incidents',label:'Open Incidents',value:kpiOverrides.incidents?.value??String(inc.openCount||0),color:kpiOverrides.incidents?.color??(rag.incidents||'muted'),bar_pct:kpiOverrides.incidents?.bar_pct??(inc.barPct||0),delta_val:Math.abs(inc.openDelta||0),delta_dir:inc.openDeltaDir||'flat',delta_label:`vs ${prevW.label||'—'}`,invert_delta:false},
+      {id:'service_requests',label:'Service Requests',value:kpiOverrides.service_requests?.value??String(sr.openCount||0),color:kpiOverrides.service_requests?.color??(rag.service_requests||'muted'),bar_pct:kpiOverrides.service_requests?.bar_pct??(sr.barPct||0),delta_val:Math.abs(sr.openDelta||0),delta_dir:sr.openDeltaDir||'flat',delta_label:`vs ${prevW.label||'—'}`,invert_delta:false},
+      {id:'rfac',label:'RFAC / Changes',value:kpiOverrides.rfac?.value??String(rfac.total||0),color:kpiOverrides.rfac?.color??(rag.rfac||'muted'),bar_pct:kpiOverrides.rfac?.bar_pct??(rfac.barPct||0),delta_val:rfacDeltaVal,delta_dir:rfacDeltaDir,delta_label:rfacDeltaLabel,invert_delta:false},
+      {id:'problems',label:'Problems (PRB)',value:kpiOverrides.problems?.value??String(prb.total||0),color:kpiOverrides.problems?.color??(rag.problems||'muted'),bar_pct:kpiOverrides.problems?.bar_pct??(prb.barPct||0),delta_val:prbDeltaVal,delta_dir:prbDeltaDir,delta_label:prbDeltaLabel,invert_delta:false},
+      {id:'p1_critical',label:'P1 / Critical',value:kpiOverrides.p1_critical?.value??String(inc.p1||0),color:kpiOverrides.p1_critical?.color??(inc.p1>0?'red':'green'),bar_pct:kpiOverrides.p1_critical?.bar_pct??Math.min(Math.round((inc.p1||0)/5*100),100),delta_val:p1DeltaVal,delta_dir:p1DeltaDir,delta_label:p1DeltaLabel,invert_delta:false},
+      {id:'sla',label:'SLA Compliance',value:kpiOverrides.sla?.value??(inc.slaPct!==null&&inc.slaPct!==undefined?`${inc.slaPct}%`:'—'),color:kpiOverrides.sla?.color??slaRAG(inc.slaPct),bar_pct:kpiOverrides.sla?.bar_pct??(inc.slaPct||0),delta_val:slaDeltaVal,delta_dir:slaDeltaDir,delta_label:`pp vs ${prevW.label||'—'}`,invert_delta:true,_note:"invert_delta=true: delta_dir=down means SLA went UP (improved), renderer colours down as green/good."}
+    ],
+    snow_links: {
+      _comment: "Each type block drives one ServiceNow navigation card with a single static URL.",
+      types: [
+        {id:'incidents',label:'Incidents',pill:'INC',pill_color:'red',rag:rag.incidents||'muted',
+          trend_label:inc.openDeltaLabel||'— stable',trend_color:rag.incidents||'muted',
+          stats:genStats(inc,'incidents',rag),
+          button:{label:'View All Incidents',color:'red',icon:'list',url:config.snow_urls.incidents}
+        },
+        {id:'service_requests',label:'Service Requests',pill:'SR',pill_color:'blue',rag:rag.service_requests||'muted',
+          trend_label:sr.openDeltaLabel||'— stable',trend_color:rag.service_requests||'muted',
+          stats:genStats(sr,'service_requests',rag),
+          button:{label:'View All SRs',color:'green',icon:'file-text',url:config.snow_urls.service_requests}
+        },
+        {id:'problems',label:'Problems',pill:'PRB',pill_color:'purple',rag:rag.problems||'muted',
+          trend_label:'— manual',trend_color:'muted',
+          stats:genStats(prb,'problems',rag),
+          button:{label:'View All Problems',color:'purple',icon:'search',url:config.snow_urls.problems}
+        },
+        {id:'rfac',label:'Changes / RFAC',pill:'RFAC',pill_color:'amber',rag:rag.rfac||'muted',
+          trend_label:'— stable',trend_color:'flat',
+          stats:genStats(rfac,'rfac',rag),
+          button:{label:'View All Changes',color:'amber',icon:'git-branch',url:config.snow_urls.rfac}
+        }
+      ]
+    },
+    charts: {
+      incident_trend_8w:{title:'Incident volume — 8-week trend',subtitle:'by priority',labels,
+        datasets:[{label:'P1 Critical',data:inc.p1History||Array(8).fill(0),color_key:'red',fill:true},{label:'P2 High',data:inc.p2History||Array(8).fill(0),color_key:'amber',fill:false},{label:'P3 + P4',data:inc.p3p4History||Array(8).fill(0),color_key:'blue',fill:true}]},
+      incident_by_priority:{title:'Incidents by priority',subtitle:`${curW.label||'—'} distribution`,type:'doughnut',
+        segments:[{label:'P1 Critical',value:+(kpiOverrides.p1_critical?.value??(inc.p1||0)),color_key:'red'},{label:'P2 High',value:+(kpiOverrides.p2_high?.value??(inc.p2||0)),color_key:'amber'},{label:'P3 Medium',value:+(kpiOverrides.p3_medium?.value??(inc.p3||0)),color_key:'blue'},{label:'P4 Low',value:+(kpiOverrides.p4_low?.value??(inc.p4||0)),color_key:'green'}]},
+      sr_by_category:{title:'Service requests by category',subtitle:curW.label||'—',type:'bar',
+        labels:(sr.bySubcatLabels||[]),data:(sr.bySubcatData||[]),color_key:'blue'},
+      rfac_pipeline:{title:'RFAC / change pipeline',subtitle:`${curW.label||'—'} status split — all active`,type:'doughnut',
+        segments:genSegments(rfac,'rfac_pipeline',kpiOverrides,'rfac')},
+      prb_aging:{title:'PRB aging — days open',subtitle:'active records',type:'bar_horizontal',axis_label:'Days open',
+        legend:[{color_key:'red',label:`Critical (> ${config.thresholds.prb_sla_days} days)`},{color_key:'amber',label:`At risk (${config.thresholds.prb_amber_days} – ${config.thresholds.prb_sla_days} days)`},{color_key:'green',label:`Recent (< ${config.thresholds.prb_amber_days} days)`}],
+        records:(prb.aging||[])},
+      sla_by_type:{title:'SLA compliance by type',target_pct:config.thresholds.sla_target_pct,
+        meters:[
+          {label:'Incidents',pct:inc.slaPct??null,color_key:slaRAG(inc.slaPct)},
+          {label:'Svc Requests',pct:sr.slaPct??null,color_key:slaRAG(sr.slaPct)},
+          p1Meter,
+          {label:'PRB Resolution',pct:prb.slaPct??null,color_key:slaRAG(prb.slaPct)}
+        ],
+        callout: slaCallout,
+        target_label:'target:'},
+      incidents_by_module:{title:'Incidents by SAP CRM module',subtitle:`${curW.label||'—'} · volume by functional area`,type:'bar',
+        labels:(inc.byModuleLabels||[]),data:(inc.byModuleData||[]),color_key:'purple'},
+      wow_volume:{title:'Incident & Problem volume — 8-week',subtitle:'grouped bar',labels,current_week_index:7,
+        datasets:[{label:'Incidents',data:inc.openHistory||Array(8).fill(0),color_key:'blue'},{label:'Problems',data:prbHistory,color_key:'purple'}]},
+      wow_sla_trend:{title:'SLA compliance — 8-week trend',target_label:'% target',y_min:50,y_max:100,labels,target_pct:config.thresholds.sla_target_pct,subtitle:'% within SLA',
+        datasets:[
+          {label:'Incidents',data:inc.slaHistory||Array(8).fill(null),color_key:'red'},
+          {label:'Svc Requests',data:sr.slaHistory||Array(8).fill(null),color_key:'blue'},
+          {label:'Problems',data:prbSlaHistory,color_key:'purple'}
+        ]}
+    },
+    wow_scorecard: {
+      title:'Volume scorecard — all ticket types',
+      subtitle:'delta vs prior week shown below each value',
+      row_header_label:'Type',
+      current_week_marker:'← now',
+      weeks:labels,
+      current_week:curW.label||'—',
+      callout:'WoW deltas: red = volume rose (worse for incidents/PRBs); green = volume fell or SLA improved. Current week always highlighted in blue.',
+      rows:[
+        {label:'Incidents',values:inc.openHistory||Array(8).fill(0),invert_delta:false,_note:'invert_delta=false means higher=red (bad)'},
+        {label:'Service Requests',values:sr.openHistory||Array(8).fill(0),invert_delta:false},
+        {label:'RFAC / Changes',values:rfacHistory,invert_delta:false},
+        {label:'Problems (PRB)',values:prbHistory,invert_delta:false},
+        {label:'SLA Compliance',delta_unit:'pp',values:(inc.slaHistory||[]).map(v=>v!==null?`${v}%`:null),raw_values:inc.slaHistory||Array(8).fill(null),invert_delta:true,_note:"invert_delta=true means higher=green (good). delta_unit='pp' appended to WoW delta. Renderer uses raw_values for delta math."}
+      ]
+    },
+    rfac_scorecard: {
+      title:'RFAC State Progression',
+      subtitle:'change phase volume distribution — 8-week lookback',
+      row_header_label:'Change Phase',
+      current_week_marker:'← now',
+      callout:`Active RFAC total (Design + Implementation + Deploy) reconciles to the WoW scorecard each week. Closed / Completed reflects weekly throughput.`,
+      weeks:labels,
+      rows: (manualData.rfacScorecard || [
+        {metric:'Design / Planning',history:Array(8).fill(0),invert_delta:false,status:'muted',_note:'invert_delta=false: rising volume is red (backlog growing is bad)'},
+        {metric:'Implementation / Test',history:Array(8).fill(0),invert_delta:false,status:'amber'},
+        {metric:'Deploy / Post-Review',history:Array(8).fill(0),invert_delta:false,status:'blue'},
+        {metric:'Closed / Completed',history:Array(8).fill(0),invert_delta:true,status:'green',_note:'invert_delta=true: rising closures is green (good)'}
+      ])
+    },
+    intervention: {
+      section_title: manualData.intervention?.section_title || 'IT Leadership Intervention Required',
+      banner_icon: '⚠️',
+      raised_by_label: 'Raised by',
+      open_suffix: 'open',
+      banner_title: manualData.intervention?.banner_title || 'items require a decision or direct action from IT Leadership this week',
+      banner_sub: manualData.intervention?.banner_sub || 'Escalated because they exceed team authority, carry client-visible risk, or are blocked on cross-team dependencies',
+      items: manualData.intervention?.items || [],
+      decision_label: 'Decision required'
+    },
+    commentary: {
+      updated: manualData.commentary?.updated || fmtDT(new Date()),
+      author: manualData.commentary?.author || config.meta.prepared_by,
+      template_note: 'All text in this object is loaded at render time. The HTML template is read-only.',
+      columns: manualData.commentary?.columns || [],
+      updated_label: 'Updated:',
+      author_icon: '✎'
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// DOWNLOADS & PREVIEW
+// ═══════════════════════════════════════════════════════
+function dlFile(name, content, mime) {
+  const b=new Blob([content],{type:mime});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=name;a.click();
+  URL.revokeObjectURL(u);
+}
+async function saveJSON(name, content) {
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await window.showSaveFilePicker({ suggestedName:name, types:[{description:'JSON',accept:{'application/json':['.json']}}] });
+      const w = await handle.createWritable();
+      await w.write(content);
+      await w.close();
+      return;
+    } catch(e) { if(e.name==='AbortError') return; }
+  }
+  dlFile(name, content, 'application/json');
+}
+function downloadJSON() {
+  const json=buildJSON();
+  saveJSON('snow_weekly.json', JSON.stringify(json,null,2));
+}
+function downloadConfig() {
+  config._generated_at=new Date().toISOString();
+  saveJSON('snow_config.json', JSON.stringify(config,null,2));
+}
+function copyJSON() {
+  const json=buildJSON();
+  navigator.clipboard.writeText(JSON.stringify(json,null,2)).then(()=>alert('JSON copied to clipboard!')).catch(()=>alert('Copy failed'));
+}
+function previewConfigJSON() {
+  config._generated_at=new Date().toISOString();
+  document.getElementById('cfg-preview-content').textContent=JSON.stringify(config,null,2);
+  openModal('modal-cfg-preview');
+}
+
+function downloadTemplate(dataType) {
+  const TEMPLATE_HEADERS = {
+    incidents:        ['Number','Priority','State','Subcategory','Short Description','Assignment Group','Assigned To','Opened At','Resolved At','Closed At','SLA Due Date','SLA Breached','Escalated','Reopen Count'],
+    service_requests: ['Number','Request Number','State','Subcategory','Short Description','Assignment Group','Assigned To','Opened At','Expected Fulfil Date','Closed At','SLA Breached'],
+    rfac:             ['Number','Type','State','CAB Status','Category','Short Description','Assignment Group','Assigned To','Planned Start Date','Planned End Date','Actual Start','Actual End','Opened At','Closed At'],
+    problems:         ['Number','Priority','State','Subcategory','Short Description','Assignment Group','Assigned To','Opened At','SLA Breached']
+  };
+  const headers = TEMPLATE_HEADERS[dataType] || [];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers]);
+  ws['!cols'] = headers.map(h => ({wch: Math.max(14, h.length + 2)}));
+  XLSX.utils.book_append_sheet(wb, ws, dataType);
+  XLSX.writeFile(wb, `${dataType}_template.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════
+// GENERATE CHECKLIST & PREVIEW
+// ═══════════════════════════════════════════════════════
+function renderChecklist() {
+  const ww=computedData.weekWindows||[]; const curW=ww[7]||{};
+  document.getElementById('gen-week').textContent=curW.label||'—';
+  document.getElementById('gen-period').textContent=curW.start&&curW.end?`${fmtDate(curW.start)} – ${fmtDate(curW.end)}`:'No data';
+  document.getElementById('gen-asof').textContent=`As of ${fmtDT(new Date())} · ${config.meta.prepared_by}`;
+  const checks=[
+    {label:'Configuration loaded',pass:!!config.meta.portfolio,badge:config.meta.portfolio||'—'},
+    {label:`Week windows set (${ww.length} weeks)`,pass:ww.length===8},
+    {label:`Incidents (${(uploadedRows.incidents||[]).length.toLocaleString()} rows)`,pass:!!(uploadedRows.incidents?.length)},
+    {label:`Service Requests (${(uploadedRows.service_requests||[]).length.toLocaleString()} rows)`,pass:!!(uploadedRows.service_requests?.length)},
+    {label:`RFAC (${(uploadedRows.rfac||[]).length.toLocaleString()} rows)`,pass:!!(uploadedRows.rfac?.length)},
+    {label:`Problems (${(uploadedRows.problems||[]).length.toLocaleString()} rows)`,pass:!!(uploadedRows.problems?.length)},
+    {label:'Weekly Summary',pass:manualState.comm==='done'||manualState.comm==='na',badge:manualState.comm},
+    {label:'Leadership Intervention',pass:manualState.int==='done'||manualState.int==='na',badge:manualState.int},
+    {label:'WoW RFAC State Data',pass:manualState.rfach==='done'||manualState.rfach==='na',badge:manualState.rfach}
+  ];
+  document.getElementById('checklist').innerHTML=checks.map(c=>`
+    <div class="check-row">
+      <div class="check-icon">${c.pass?'✅':'⬜'}</div>
+      <div class="check-label">${c.label}</div>
+      ${c.badge?`<span class="check-badge ${c.pass?'pass':'na'}">${c.badge}</span>`:''}
+    </div>`).join('');
+
+  // Render JSON preview
+  try {
+    const json = buildJSON();
+    document.getElementById('json-preview-content').textContent = JSON.stringify(json, null, 2);
+  } catch(e) {
+    document.getElementById('json-preview-content').textContent = `Error building JSON: ${e.message}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PREVIOUS JSON VIEWER/EDITOR
+// ═══════════════════════════════════════════════════════
+let jvEntries = [];
+
+function loadPrevJSONFromTop(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try {
+      prevJSON=JSON.parse(e.target.result);
+      prevJSONEdits={};
+      // Override demo data with prev week data for manual sections
+      if(prevJSON.commentary) manualData.commentary=JSON.parse(JSON.stringify(prevJSON.commentary));
+      if(prevJSON.intervention) manualData.intervention=JSON.parse(JSON.stringify(prevJSON.intervention));
+      if(prevJSON.rfac_scorecard?.rows?.length===4) manualData.rfacScorecard=prevJSON.rfac_scorecard.rows.map(r=>({...r,history:[...(r.history||Array(8).fill(0))]}));
+      // Re-render the active manual section
+      const activeSec=document.querySelector('.sc-row.active');
+      if(activeSec) openSection(activeSec.id.replace('sc-row-',''));
+      buildJVEntries();
+      renderJVList();
+      openModal('modal-prev');
+      autoSaveSnapshot();
+    } catch(err) { alert('Invalid JSON: '+err.message); }
+  };
+  r.readAsText(file);
+}
+
+function flattenJSON(obj, prefix) {
+  const result = [];
+  prefix = prefix || '';
+  if (obj === null || obj === undefined) {
+    result.push({path: prefix, value: obj, type: typeof obj});
+    return result;
+  }
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) {
+      result.push({path: prefix, value: '[]', type: 'array'});
+    } else {
+      obj.forEach((item, i) => {
+        const p = `${prefix}[${i}]`;
+        if (item && typeof item === 'object') {
+          result.push(...flattenJSON(item, p));
+        } else {
+          result.push({path: p, value: item, type: typeof item});
+        }
+      });
+    }
+  } else if (typeof obj === 'object') {
+    for (const key of Object.keys(obj)) {
+      const p = prefix ? `${prefix}.${key}` : key;
+      const val = obj[key];
+      if (val && typeof val === 'object') {
+        result.push(...flattenJSON(val, p));
+      } else {
+        result.push({path: p, value: val, type: typeof val});
+      }
+    }
+  } else {
+    result.push({path: prefix, value: obj, type: typeof obj});
+  }
+  return result;
+}
+
+function buildJVEntries() {
+  jvEntries = flattenJSON(prevJSON);
+}
+
+function renderJVList(filter) {
+  const el = document.getElementById('jv-list');
+  if (!el) return;
+  let entries = jvEntries;
+  if (filter) {
+    const f = filter.toLowerCase();
+    entries = entries.filter(e => e.path.toLowerCase().includes(f) || String(e.value).toLowerCase().includes(f));
+  }
+  document.getElementById('jv-count').textContent = `${entries.length} of ${jvEntries.length} entries`;
+  const maxShow = Math.min(entries.length, 500);
+  el.innerHTML = entries.slice(0, maxShow).map((e, i) => {
+    const edited = prevJSONEdits[e.path] !== undefined;
+    const displayVal = edited ? prevJSONEdits[e.path] : e.value;
+    return `<div class="jv-row" id="jvr-${i}">
+      <span class="jv-path">${esc(e.path)}</span>
+      <span class="jv-val" id="jvv-${i}" title="${esc(String(displayVal))}">${edited?'<span style="color:var(--amber)">✎</span> ':''}${esc(String(displayVal))}</span>
+      <button class="jv-edit-btn" onclick="startJVEdit(${i},'${esc(e.path)}')">✏️</button>
+    </div>`;
+  }).join('');
+  if (entries.length > maxShow) {
+    el.innerHTML += `<div style="padding:10px;color:var(--text3);font-size:11px;text-align:center">... ${entries.length - maxShow} more entries. Use search to filter.</div>`;
+  }
+}
+
+function startJVEdit(idx, path) {
+  const entry = jvEntries.find(e => e.path === path);
+  if (!entry) return;
+  const currentVal = prevJSONEdits[path] !== undefined ? prevJSONEdits[path] : entry.value;
+  const valEl = document.getElementById(`jvv-${idx}`);
+  if (!valEl) return;
+  valEl.className = 'jv-val editing';
+  valEl.innerHTML = `<input class="jv-input" type="text" value="${esc(String(currentVal))}" onblur="finishJVEdit('${esc(path)}',this.value,${idx})" onkeydown="if(event.key==='Enter')this.blur()">`;
+  valEl.querySelector('input').focus();
+}
+
+function finishJVEdit(path, newVal, idx) {
+  const entry = jvEntries.find(e => e.path === path);
+  if (!entry) return;
+  // Try to preserve type
+  let typed = newVal;
+  if (entry.type === 'number') typed = Number(newVal);
+  else if (entry.type === 'boolean') typed = newVal === 'true';
+  else if (newVal === 'null') typed = null;
+
+  if (String(typed) !== String(entry.value)) {
+    prevJSONEdits[path] = typed;
+    setNestedValue(prevJSON, path, typed);
+  } else {
+    delete prevJSONEdits[path];
+  }
+  renderJVList(document.getElementById('jv-search')?.value || '');
+}
+
+function setNestedValue(obj, path, value) {
+  // Handle paths like "meta.portfolio" or "kpis[0].value"
+  const parts = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = isNaN(parts[i]) ? parts[i] : Number(parts[i]);
+    if (current[key] === undefined) return;
+    current = current[key];
+  }
+  const lastKey = isNaN(parts[parts.length-1]) ? parts[parts.length-1] : Number(parts[parts.length-1]);
+  current[lastKey] = value;
+}
+
+function filterJV() {
+  const q = document.getElementById('jv-search')?.value || '';
+  renderJVList(q);
+}
+
+// ═══════════════════════════════════════════════════════
+// CONFIG MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function loadConfig(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try {
+      const parsed=JSON.parse(e.target.result);
+      config=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CONFIG)),parsed);
+      configLocked=true;
+      populateCfgForm();
+      applyConfigDisabled();
+      markDZ('dz-config','ok',`✅ ${file.name} loaded`);
+      document.getElementById('badge-config').classList.add('ok');
+      document.getElementById('nb-config').textContent='✓';
+    } catch(err) { markDZ('dz-config','err','❌ Invalid JSON: '+err.message); }
+  };
+  r.readAsText(file);
+}
+
+function markDZ(id, status, msg) {
+  const el=document.getElementById(id); if(!el) return;
+  const ds=el.querySelector('.dz-status');
+  if(ds){ds.className=`dz-status ${status==='ok'?'ok':'err'}`;ds.textContent=msg;}
+  el.className=`dropzone ${status}`;
+}
+
+function updateCfg(path, value) {
+  const parts=path.split('.');let obj=config;
+  for(let i=0;i<parts.length-1;i++){if(!obj[parts[i]])obj[parts[i]]={};obj=obj[parts[i]];}
+  obj[parts[parts.length-1]]=value;
+  autoSaveSnapshot();
+}
+
+function populateCfgForm() {
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val??'';};
+  set('cfg-week', config.week_number || 22);
+  set('cfg-year', config.year || 2026);
+  set('cfg-tz', config.meta.instance_timezone || 'UTC');
+  set('cfg-portfolio', config.meta.portfolio);
+  set('cfg-prepby', config.meta.prepared_by);
+  set('cfg-sla-t', config.thresholds.sla_target_pct);
+  set('cfg-prb-d', config.thresholds.prb_sla_days);
+  set('cfg-prb-a', config.thresholds.prb_amber_days);
+  set('cfg-rag-a', config.thresholds.rag_sla_amber);
+  set('cfg-rag-r', config.thresholds.rag_sla_red);
+  set('cfg-bm-inc', config.bar_maxes.incidents);
+  set('cfg-bm-sr', config.bar_maxes.service_requests);
+  set('cfg-bm-rfac', config.bar_maxes.rfac);
+  set('cfg-bm-prb', config.bar_maxes.problems);
+  set('cfg-url-inc', config.snow_urls?.incidents || '');
+  set('cfg-url-sr', config.snow_urls?.service_requests || '');
+  set('cfg-url-prb', config.snow_urls?.problems || '');
+  set('cfg-url-rfac', config.snow_urls?.rfac || '');
+  renderStateMap();
+  renderValidValuesEditor();
+  renderPriorityMaps();
+  renderCategoryMaps();
+  onWeekYearChange();
+}
+
+function renderStateMap() {
+  const el=document.getElementById('state-map-editor'); if(!el) return;
+  const sm=config.state_maps;
+  const rows=[
+    ['incidents','closed','INC Closed States'],
+    ['service_requests','closed','SR Closed'],['service_requests','pending','SR Pending'],['service_requests','in_progress','SR In-Progress'],['service_requests','on_hold','SR On Hold'],
+    ['rfac','assess','RFAC Assess'],['rfac','approved','RFAC Approved'],['rfac','scheduled','RFAC Scheduled'],['rfac','implement','RFAC Implement'],['rfac','review','RFAC Review'],['rfac','cab_pending','RFAC CAB Pending'],['rfac','draft','RFAC Draft'],['rfac','rejected','RFAC Rejected'],
+    ['problems','in_progress','PRB In-Progress'],['problems','known_error','PRB Known Error'],['problems','investigating','PRB Investigating'],['problems','pending_change','PRB Pending Change']
+  ];
+  el.innerHTML=`<div class="grid-2">${rows.map(([t,k,label])=>`<div class="fg"><label class="fl">${label}</label><input type="text" class="mono" value="${esc((sm[t]||{})[k]||'')}" oninput="if(!config.state_maps['${t}'])config.state_maps['${t}']={};config.state_maps['${t}']['${k}']=this.value"></div>`).join('')}</div>`;
+}
+
+function getSubcategoryVV(key) {
+  const vv = config.valid_values || {};
+  const existing = (vv[key]||{}).Subcategory || '';
+  if (existing.trim()) return existing;
+  if (key === 'incidents') {
+    const cm = config.category_maps?.inc_modules || {};
+    return Object.values(cm).join(', ');
+  }
+  if (key === 'service_requests') {
+    const cm = config.category_maps?.sr_subcategories || {};
+    return Object.values(cm).join(', ');
+  }
+  return '';
+}
+
+function renderValidValuesEditor() {
+  const el = document.getElementById('valid-values-editor'); if(!el) return;
+  const vv = config.valid_values || {};
+  const types = [
+    {key:'incidents',label:'Incidents',fields:['Priority','State','Subcategory','Assignment Group','SLA Breached']},
+    {key:'service_requests',label:'Service Requests',fields:['State','Subcategory','Assignment Group','SLA Breached']},
+    {key:'rfac',label:'RFAC',fields:['State','CAB Status','Assignment Group']},
+    {key:'problems',label:'Problems',fields:['Priority','State','Subcategory','Assignment Group']}
+  ];
+  el.innerHTML = types.map(t => {
+    const isSubcat = f => f === 'Subcategory';
+    return `<div class="sect-title" style="margin-top:14px">${t.label}</div>
+    <div class="grid-2">${t.fields.map(f => {
+      const val = isSubcat(f) ? getSubcategoryVV(t.key) : ((vv[t.key]||{})[f] || '');
+      return `<div class="fg"><label class="fl">${f}</label><input type="text" class="mono" value="${esc(val)}" placeholder="Comma-separated allowed values (empty = any)" oninput="if(!config.valid_values['${t.key}'])config.valid_values['${t.key}']={};config.valid_values['${t.key}']['${esc(f)}']=this.value"></div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+function renderPriorityMaps() {
+  const el=document.getElementById('priority-maps-editor'); if(!el) return;
+  const pm=config.priority_maps||{};
+  const fields=[
+    {key:'p1',label:'P1 — Critical'},
+    {key:'p2',label:'P2 — High'},
+    {key:'p3',label:'P3 — Medium'},
+    {key:'p4',label:'P4 — Low'}
+  ];
+  el.innerHTML=`<div class="grid-2">${fields.map(f=>`
+    <div class="fg"><label class="fl">${f.label}</label>
+    <input type="text" class="mono" value="${esc(pm[f.key]||'')}" placeholder="Comma-separated values from SNOW" oninput="config.priority_maps['${f.key}']=this.value"></div>
+  `).join('')}</div>`;
+}
+
+function renderCategoryMaps() {
+  const el=document.getElementById('category-maps-editor'); if(!el) return;
+  const cm=config.category_maps||{};
+  const groups=[
+    {key:'sr_subcategories',label:'SR Subcategories',desc:'Map SNOW subcategory values to dashboard labels'},
+    {key:'inc_modules',label:'INC Modules',desc:'Map SAP CRM module values to dashboard labels'}
+  ];
+  el.innerHTML=groups.map(g=>{
+    const map=cm[g.key]||{};
+    const entries=Object.entries(map);
+    return `<div class="sect-title" style="margin-top:10px">${g.label}</div>
+    <div class="info-box">${g.desc} — Variants (comma-sep) → Dashboard label</div>
+    <div id="cat-${g.key}">${entries.map(([variants,label],i)=>renderCatRow(g.key,i,variants,label)).join('')}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:14px" onclick="addCatMapRow('${g.key}')">+ Add Row</button>`;
+  }).join('');
+}
+
+function renderCatRow(group, idx, variants, label) {
+  return `<div class="item-card" style="padding:8px 10px">
+    <button class="item-del" onclick="rmCatMapRow('${group}',${idx})">✕</button>
+    <div class="grid-2" style="gap:8px">
+      <div class="fg" style="margin:0"><label class="fl">Variants</label><input type="text" class="mono" value="${esc(variants)}" placeholder="Comma-separated SNOW values" oninput="updCatMap('${group}',${idx},'variants',this.value)"></div>
+      <div class="fg" style="margin:0"><label class="fl">Label</label><input type="text" value="${esc(label)}" placeholder="Dashboard display label" oninput="updCatMap('${group}',${idx},'label',this.value)"></div>
+    </div>
+  </div>`;
+}
+
+function addCatMapRow(group) {
+  const map=config.category_maps[group];
+  const key=`new_variant_${Date.now()}`;
+  map[key]='New Label';
+  const idx=Object.keys(map).length-1;
+  const container=document.getElementById(`cat-${group}`);
+  if(container) container.insertAdjacentHTML('beforeend', renderCatRow(group, idx, key, 'New Label'));
+}
+
+function rmCatMapRow(group, idx) {
+  const map=config.category_maps[group];
+  const keys=Object.keys(map);
+  const key=keys[idx];
+  if(key) delete map[key];
+  const container=document.getElementById(`cat-${group}`);
+  if(container) container.innerHTML=Object.entries(config.category_maps[group]).map(([k,v],i)=>renderCatRow(group,i,k,v)).join('');
+}
+
+function updCatMap(group, idx, field, value) {
+  const map=config.category_maps[group];
+  const keys=Object.keys(map);
+  const key=keys[idx];
+  if(!key) return;
+  if(field==='variants') {
+    const val=map[key];
+    delete map[key];
+    map[value]=val;
+    renderCategoryMaps();
+  } else if(field==='label') {
+    map[key]=value;
+  }
+}
+
+function completeConfig() {
+  const urls=config.snow_urls||{};
+  const missing=Object.entries(urls).filter(([k,v])=>!String(v||'').trim()).map(([k])=>({'incidents':'INC','service_requests':'SR','problems':'PRB','rfac':'RFAC'})[k]||k);
+  if(missing.length) {
+    alert(`Please fill in all ServiceNow URLs before proceeding.\nMissing: ${missing.join(', ')}`);
+    const hdr=document.querySelector('[onclick*="col-urls"]');
+    if(hdr&&!document.getElementById('col-urls').classList.contains('open')) hdr.click();
+    document.getElementById('cfg-url-inc')?.focus();
+    return;
+  }
+  onWeekYearChange();
+  document.getElementById('badge-config').classList.add('ok');
+  document.getElementById('nb-config').textContent='✓';
+  goPanel('data');
+  autoSaveSnapshot();
+}
+
+function toggleConfigEdit() {
+  configLocked = !configLocked;
+  applyConfigDisabled();
+  autoSaveSnapshot();
+}
+
+function applyConfigDisabled() {
+  const body=document.getElementById('cfg-body');
+  if(!body) return;
+  body.classList.toggle('cfg-locked', configLocked);
+  const badge=document.getElementById('cfg-lock-badge');
+  if(badge) {
+    badge.className='fbadge'+(configLocked?'':' ok');
+    badge.querySelector('.dot').style.background=configLocked?'var(--muted)':'var(--green)';
+    badge.querySelector('span').textContent=configLocked?'Locked':'Editing';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION & UI
+// ═══════════════════════════════════════════════════════
+const PANELS=['welcome','config','data','kpis','manual','generate'];
+function goPanel(id) {
+  PANELS.forEach(p=>{
+    document.getElementById(`panel-${p}`)?.classList.toggle('active',p===id);
+    document.getElementById(`nav-${p}`)?.classList.toggle('active',p===id);
+  });
+  if(id==='generate') renderChecklist();
+  if(id==='kpis' && computedData.weekWindows) renderKPIPanel();
+}
+
+function toggleCol(id) {
+  const body=document.getElementById(id); if(!body) return;
+  const open=body.classList.toggle('open');
+  const hdr=document.querySelector(`[onclick="toggleCol('${id}')"]`);
+  if(hdr) hdr.classList.toggle('open',open);
+}
+
+function openModal(id) { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+// Close modal on backdrop click
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('open')) {
+    e.target.classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════════
+function setupDragDrop() {
+  Object.entries(SCHEMA_PROVIDER).forEach(([pfx,type])=>{
+    const dz=document.getElementById(`dz-${pfx}`); if(!dz) return;
+    ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag-over');}));
+    ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,()=>dz.classList.remove('drag-over')));
+    dz.addEventListener('drop',e=>{
+      e.preventDefault();
+      const f=e.dataTransfer.files[0]; if(!f) return;
+      handleUpload({target:{files:[f]}},type);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCALSTORAGE AUTO-SAVE / RESTORE
+// ═══════════════════════════════════════════════════════
+const SNAP_KEY = 'snow_editor_snapshot';
+function _saveSnapshot() {
+  try {
+    const snap = {
+      savedAt: new Date().toISOString(),
+      config, uploadedRows, uploadedRaw, computedData,
+      prevJSON, prevJSONEdits, manualState, manualData,
+      configLocked, kpiOverrides, kpiLocks
+    };
+    localStorage.setItem(SNAP_KEY, JSON.stringify(snap));
+  } catch(e) { /* storage full or unavailable — silently ignore */ }
+}
+function autoSaveSnapshot() { if (_saveSnapshot._timer) clearTimeout(_saveSnapshot._timer); _saveSnapshot._timer = setTimeout(_saveSnapshot, 300); }
+
+function checkForSnapshot() {
+  try {
+    const raw = localStorage.getItem(SNAP_KEY);
+    if (!raw) return;
+    const snap = JSON.parse(raw);
+    const el = document.getElementById('snapshot-banner');
+    const ts = document.getElementById('snap-time');
+    if (!el || !ts) return;
+    const d = new Date(snap.savedAt);
+    ts.textContent = d.toLocaleString();
+    el.style.display = 'flex';
+    window.__SNAP_DATA = snap;
+  } catch(e) { /* corrupt snapshot */ }
+}
+
+function restoreSnapshot() {
+  const snap = window.__SNAP_DATA; if (!snap) return;
+  Object.assign(config, snap.config);
+  Object.assign(uploadedRows, snap.uploadedRows);
+  Object.assign(uploadedRaw, snap.uploadedRaw);
+  computedData = snap.computedData;
+  prevJSON = snap.prevJSON;
+  prevJSONEdits = snap.prevJSONEdits || {};
+  Object.assign(manualState, snap.manualState);
+  Object.assign(manualData, snap.manualData);
+  configLocked = snap.configLocked;
+  kpiOverrides = snap.kpiOverrides || {};
+  Object.assign(kpiLocks, snap.kpiLocks);
+  populateCfgForm();
+  applyConfigDisabled();
+  document.getElementById('snapshot-banner').style.display = 'none';
+  delete window.__SNAP_DATA;
+  showToast('Snapshot restored');
+}
+
+function clearSnapshot() {
+  try { localStorage.removeItem(SNAP_KEY); } catch(e) {}
+  document.getElementById('snapshot-banner').style.display = 'none';
+  delete window.__SNAP_DATA;
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+const TIMEZONES=['UTC','Asia/Kolkata','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Asia/Shanghai','Europe/London','Europe/Paris','Europe/Berlin','Europe/Amsterdam','America/New_York','America/Chicago','America/Los_Angeles'];
+
+function init() {
+  const tzSel=document.getElementById('cfg-tz');
+  if(tzSel) tzSel.innerHTML=TIMEZONES.map(tz=>`<option value="${tz}">${tz}</option>`).join('');
+
+  // Set defaults based on current date
+  const now = new Date();
+  const curWeek = getISOWeek(now);
+  const curYear = now.getUTCFullYear();
+  config.week_number = curWeek;
+  config.year = curYear;
+
+  populateCfgForm();
+  applyConfigDisabled();
+  setupDragDrop();
+}
+
+init();
+checkForSnapshot();
+</script>
+</body>
+</html>

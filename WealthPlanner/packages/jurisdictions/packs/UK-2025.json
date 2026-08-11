@@ -1,0 +1,114 @@
+{
+  "packId": "UK-2025",
+  "displayName": "United Kingdom",
+  "currency": "GBP",
+  "fiscalYear": { "startMonth": 4, "convention": "APR_MAR" },
+  "locale": "en-GB",
+
+  "_provenance": "National (UK-wide) figures for Tax Year 2025/26 (6 April 2025 – 5 April 2026), per HMRC published rates. UK income tax: personal allowance £12,570 (0%), basic 20% to £50,270, higher 40% to £125,140, additional 45% above. Capital gains: the UK has NO long-term/short-term holding-period split — CGT applies on disposal of most assets regardless of holding period, at 18% (basic) or 24% (higher) on other assets (rates effective from 30 October 2024), with an annual exempt amount of £3,000 for 2025/26. The engine models a single marginal CGT rate (see notes), so this pack uses the FLAT_NO_HOLDING_PERIOD shape with the 18% basic rate; the £3,000 AEA and 24% higher rate are recorded here but not modelled at national level (consistent with docs/05-jurisdiction-tax-framework.md §5.7).",
+
+  "instrumentRules": {
+    "GIA": {
+      "instrumentType": "MARKET_LINKED_POOLED",
+      "displayLabel": "General Investment Account (taxable)",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "STOCKS": {
+      "instrumentType": "MARKET_LINKED_DIRECT",
+      "displayLabel": "Direct Shares",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "CRYPTO": {
+      "instrumentType": "DIGITAL_ASSET",
+      "displayLabel": "Cryptocurrency",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "SIPP": {
+      "instrumentType": "EMPLOYER_DISCRETIONARY_LOCKED",
+      "displayLabel": "SIPP / Pension",
+      "declaredRate": 0.07,
+      "employerContributionRate": 0.05,
+      "taxTreatment": { "onContribution": "DEDUCTIBLE", "onGrowth": "DEFERRED", "onExit": "SLAB_RATE" }
+    },
+    "NSI_BONDS": {
+      "instrumentType": "GOV_SAFE_LOCKED",
+      "displayLabel": "Premium Bonds / NS&I Savings Bonds",
+      "declaredRate": 0.04,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "EXEMPT", "onExit": "EXEMPT" }
+    },
+    "FD": {
+      "instrumentType": "FIXED_TERM_DEPOSIT",
+      "displayLabel": "Fixed-term Deposit",
+      "reinvestmentROI": 0.04,
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    },
+    "BANK": {
+      "instrumentType": "LIQUID_CASH",
+      "displayLabel": "Bank / Cash ISA",
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    }
+  },
+
+  "incomeTax": {
+    "kind": "SLAB",
+    "note": "UK 2025/26 income tax (as taxable income after the personal allowance): 0% to £12,570 (personal allowance); 20% to £50,270; 40% to £125,140; 45% above. The top bracket's 'upTo' uses a large finite sentinel since the schema requires a number. The engine prices retirement-year drawdown via marginalRateAtRetirement (a single planning assumption), set here to the basic 20% rate typical of retirement.",
+    "brackets": [
+      { "upTo": 12570, "rate": 0.0 },
+      { "upTo": 50270, "rate": 0.20 },
+      { "upTo": 125140, "rate": 0.40 },
+      { "upTo": 999999999, "rate": 0.45 }
+    ],
+    "marginalRateAtRetirement": 0.20
+  },
+
+  "capitalGains": {
+    "note": "UK CGT has no long/short-term holding-period split, so these use the FLAT_NO_HOLDING_PERIOD shape at the 18% basic rate (24% applies to higher-rate taxpayers). The £3,000 annual exempt amount and the higher rate are not modelled at national level. UK allows capital-loss offsetting (lossOffsetAllowed true).",
+    "MARKET_LINKED_POOLED": {
+      "kind": "FLAT_NO_HOLDING_PERIOD",
+      "rate": 0.18,
+      "lossOffsetAllowed": true,
+      "lotSelectionDefault": "FIFO"
+    },
+    "MARKET_LINKED_DIRECT": {
+      "kind": "FLAT_NO_HOLDING_PERIOD",
+      "rate": 0.18,
+      "lossOffsetAllowed": true,
+      "lotSelectionDefault": "FIFO"
+    },
+    "DIGITAL_ASSET": {
+      "kind": "FLAT_NO_HOLDING_PERIOD",
+      "rate": 0.18,
+      "lossOffsetAllowed": true,
+      "lotSelectionDefault": "FIFO"
+    }
+  },
+
+  "yieldIncome": {
+    "note": "UK dividends have their own rates (8.75% basic, 33.75% higher, 39.35% additional) above a £500 dividend allowance for 2025/26; interest above the savings allowance is taxed as ordinary income. The engine keeps yield income structurally separate; simplified treatments below.",
+    "MARKET_LINKED_DIRECT": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" },
+    "MARKET_LINKED_POOLED": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" },
+    "DIGITAL_ASSET": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" }
+  },
+
+  "withdrawalWaterfall": {
+    "enabledDefault": true,
+    "order": [
+      "LIQUID_CASH",
+      "FIXED_TERM_DEPOSIT",
+      "GOV_SAFE_LOCKED",
+      "MARKET_LINKED_POOLED",
+      "MARKET_LINKED_DIRECT",
+      "EMPLOYER_DISCRETIONARY_LOCKED"
+    ],
+    "lockedSleeveUnlockRule": "IRREVERSIBLE_ON_FIRST_SHORTFALL",
+    "note": "Tax-free / tax-advantaged accounts (Cash, NS&I bonds) are drawn first, then taxable investment accounts, with the pension (SIPP) drawn last since withdrawals are taxed as income."
+  },
+
+  "statutoryConstants": {
+    "marketCrashFloor": -0.60,
+    "defaultRiskFreeRate": 0.04
+  }
+}

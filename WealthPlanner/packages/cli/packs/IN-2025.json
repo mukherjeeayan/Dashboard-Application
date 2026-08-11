@@ -1,0 +1,237 @@
+{
+  "packId": "IN-2025",
+  "displayName": "India",
+  "currency": "INR",
+  "fiscalYear": { "startMonth": 4, "convention": "APR_MAR" },
+  "locale": "en-IN",
+
+  "_provenance": "Every value in this file is transcribed directly from the live Investment.xlsm workbook's Assumptions tab (19 numbered sections) as audited on the date recorded in docs/14-india-tool-gap-analysis.md and docs/15-reference-data-and-worked-examples.md. Cell references are given per field so a reviewer can re-verify against the source workbook without needing to re-derive anything. This file is a complete, directly usable starting point — not an illustrative excerpt.",
+
+  "demographics": {
+    "_source": "Assumptions §1, rows 7-16",
+    "birthYear": 1986,
+    "retirementYear": 2046,
+    "ppfAccountOpeningYear": 2019,
+    "ppfInitialLockInYears": 15,
+    "ppfExtensionBlockYears": 5,
+    "npsAccountOpeningYear": 2022,
+    "npsExitAge": 75,
+    "fdLadderTrackingBaseYear": 2025
+  },
+
+  "growthAndContribution": {
+    "_source": "Assumptions §2, rows 20-21",
+    "annualSalaryContributionGrowthRate": 0.02,
+    "lifestyleUpgradeMultiplier": 1.0
+  },
+
+  "instrumentRules": {
+    "MF": {
+      "instrumentType": "MARKET_LINKED_POOLED",
+      "displayLabel": "Mutual Fund",
+      "_source": "Assumptions row 25",
+      "assumedAnnualROI": 0.12,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "PF": {
+      "instrumentType": "EMPLOYER_MANDATORY_LOCKED",
+      "displayLabel": "Employees' Provident Fund (EPF)",
+      "_source": "Assumptions rows 26, 121-125",
+      "declaredRate": 0.0825,
+      "monthlyBasicSalary": 53700,
+      "employeeRate": 0.12,
+      "employerRate": 0.12,
+      "employerDiversion": { "capAmountPerMonth": 1250, "reason": "EPS pension scheme (8.33% of Rs.15,000 pensionable salary statutory ceiling)" },
+      "voluntaryContributionRate": 0.28,
+      "annualTaxFreeInterestThreshold": 250000,
+      "taxTreatment": {
+        "onContribution": "EXEMPT", "onGrowth": "EXEMPT_BELOW_THRESHOLD",
+        "onExit": { "condition": "continuousServiceYears >= 5", "ifMet": "EXEMPT", "ifNotMet": "SLAB_RATE" }
+      }
+    },
+    "PPF": {
+      "instrumentType": "GOV_SAFE_LOCKED",
+      "displayLabel": "Public Provident Fund (PPF)",
+      "_source": "Assumptions row 27",
+      "declaredRate": 0.071,
+      "contributionCap": { "amount": 150000, "period": "FISCAL_YEAR" },
+      "lockIn": { "years": 15, "extension": { "blockYears": 5, "unlimited": true } },
+      "taxTreatment": { "onContribution": "EXEMPT", "onGrowth": "EXEMPT", "onExit": "EXEMPT" }
+    },
+    "NPS": {
+      "instrumentType": "MARKET_LINKED_MULTI_SLEEVE",
+      "displayLabel": "National Pension System (NPS)",
+      "_source": "Assumptions rows 28-33, 126-127, 165",
+      "sleeves": ["EQUITY", "GOVT_DEBT", "CORP_DEBT"],
+      "sleeveAverageReturns": { "EQUITY": 0.12, "GOVT_DEBT": 0.06, "CORP_DEBT": 0.07 },
+      "sleeveAllocationWeights": { "EQUITY": 0.75, "GOVT_DEBT": 0.15, "CORP_DEBT": 0.10 },
+      "employerContributionRate": 0.14,
+      "employeeVoluntaryContributionMonthly": 4200,
+      "exitAge": 75,
+      "exitSplit": { "lumpSumPct": 0.60, "annuitizedPct": 0.40 },
+      "taxTreatment": {
+        "lumpSum": "EXEMPT",
+        "annuityIncome": "SLAB_RATE_ON_RECEIPT"
+      },
+      "perDrawTaxableFraction": 0.4
+    },
+    "SUPERANNUATION": {
+      "instrumentType": "EMPLOYER_DISCRETIONARY_LOCKED",
+      "displayLabel": "Superannuation",
+      "_source": "Assumptions rows 34, 128",
+      "declaredRate": 0.05,
+      "employerContributionRate": 0.15,
+      "riskBucketEquitySharePct": 0.4,
+      "taxTreatment": { "onContribution": "EXEMPT_UP_TO_LIMIT", "onGrowth": "DEFERRED", "onExit": "SLAB_RATE" }
+    },
+    "FD": {
+      "instrumentType": "FIXED_TERM_DEPOSIT",
+      "displayLabel": "Fixed Deposit",
+      "_source": "Assumptions rows 35, 129",
+      "note": "Rate is genuinely per-position (currently ranges ~6.5%-8.5% across held FDs), not a single blended assumption — set per position, not here.",
+      "reinvestmentROI": 0.07,
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    },
+    "BANK": {
+      "instrumentType": "LIQUID_CASH",
+      "displayLabel": "Bank Account",
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    }
+  },
+
+  "incomeTax": {
+    "_source": "Assumptions row 48",
+    "kind": "SLAB",
+    "note": "The workbook models a single flat marginal retirement-year slab rate rather than a full progressive bracket table. A full current-year slab table should be sourced separately (see docs/05-jurisdiction-tax-framework.md §5.7 on national-level approximation) if bracket-level precision is required; this pack ships the workbook's own simplification as its default.",
+    "marginalRateAtRetirement": 0.3
+  },
+
+  "capitalGains": {
+    "_source": "Assumptions rows 49-51",
+    "MARKET_LINKED_POOLED": {
+      "longTerm": { "holdingPeriodDays": 365, "rate": 0.125, "annualExemption": 125000 },
+      "shortTerm": { "rate": "SLAB_RATE" },
+      "safeWithdrawalRateForSwpTaxModel": 0.04
+    },
+    "MARKET_LINKED_DIRECT": {
+      "longTerm": { "holdingPeriodDays": 365, "rate": 0.125, "annualExemption": 125000 },
+      "shortTerm": { "rate": "SLAB_RATE" },
+      "lotSelectionDefault": "FIFO"
+    },
+    "DIGITAL_ASSET": {
+      "kind": "FLAT_NO_HOLDING_PERIOD",
+      "rate": 0.30,
+      "lossOffsetAllowed": false,
+      "lotSelectionDefault": "FIFO",
+      "note": "Not present in the audited workbook (it has no crypto holdings) — this is the publicly known India crypto tax treatment as of the workbook's era, included so the pack is usable, but should be independently re-verified before relying on it, unlike every other field in this file which is a direct workbook transcription."
+    }
+  },
+
+  "yieldIncome": {
+    "MARKET_LINKED_DIRECT": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" },
+    "DIGITAL_ASSET": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" }
+  },
+
+  "riskModel": {
+    "_source": "Assumptions §6, rows 55-75",
+    "volatility": { "EQUITY": 0.18, "GOLD": 0.15, "DEBT": 0.02, "CASH": 0.0 },
+    "correlationMatrix": {
+      "EQUITY_GOLD": -0.10, "EQUITY_DEBT": 0.10, "EQUITY_CASH": 0.0,
+      "GOLD_DEBT": 0.05, "GOLD_CASH": 0.0, "DEBT_CASH": 0.0
+    },
+    "npsEquitySleeveRiskBucketPct": 0.75,
+    "superannuationEquitySleeveRiskBucketPct": 0.4,
+    "currentPortfolioSplit": { "EQUITY": 0.8491, "DEBT": 0.0, "GOLD": 0.1509 },
+    "targetAllocation": { "EQUITY": 0.70, "GOLD": 0.09, "DEBT": 0.18, "CASH": 0.03 }
+  },
+
+  "scenarioAnalysis": {
+    "_source": "Assumptions §7, rows 80-82",
+    "WORST": { "fixedIncomeROI": 0.05, "marketCAGR": 0.06 },
+    "BASE":  { "fixedIncomeROI": 0.07, "marketCAGR": 0.12 },
+    "BEST":  { "fixedIncomeROI": 0.08, "marketCAGR": 0.16 }
+  },
+
+  "guardrailWithdrawal": {
+    "_source": "Assumptions §8, rows 87-89",
+    "upperGuardrailMultiple": 1.2,
+    "lowerGuardrailMultiple": 0.8,
+    "cutPct": 0.1
+  },
+
+  "monteCarloDefaults": {
+    "_source": "Assumptions §9-10, rows 93-100",
+    "singleBlended": { "marketCagrMean": 0.12, "marketCagrVolatility": 0.18, "trials": 10000 },
+    "correlated": { "equityMean": 0.12, "goldMean": 0.08, "debtMean": 0.07, "cashMean": 0.04, "trials": 10000 }
+  },
+
+  "emergencyFund": {
+    "_source": "Assumptions §11, rows 103-104",
+    "targetCoverageMonths": 12,
+    "assumedLiquidBalanceInterestRate": 0.07
+  },
+
+  "insurance": {
+    "_source": "Assumptions §12, rows 107-109",
+    "incomeReplacementYearsTermLife": 6,
+    "healthBaseCoverPerPerson": 200000,
+    "elderlyHealthCoverMultiplier": 10
+  },
+
+  "stochasticControls": {
+    "_source": "Assumptions §13, rows 115-117",
+    "freezeRandomSeedDefault": false,
+    "seedNumberDefault": 12345,
+    "accumulationPhaseStochasticModeDefault": false
+  },
+
+  "withdrawalWaterfall": {
+    "_source": "Assumptions §18, rows 164-166; §3.3.4 of the narrative spec",
+    "enabledDefault": true,
+    "order": ["LIQUID_CASH", "FIXED_TERM_DEPOSIT", "MARKET_LINKED_POOLED", "GOV_SAFE_LOCKED", "MARKET_LINKED_MULTI_SLEEVE"],
+    "lockedSleeveUnlockRule": "IRREVERSIBLE_ON_FIRST_SHORTFALL",
+    "note": "Draw order per the workbook: (1) Bank/FD - taxed at slab; (2) Mutual Funds - LTCG @12.5% above the Sec 112A exemption; (3) PPF - tax-free but drawn only once Bank/FD+MF are exhausted; (4) NPS - annuitised portion taxed at slab (perDrawTaxableFraction above)."
+  },
+
+  "twoBucketLegacyModel": {
+    "_source": "Assumptions §15, rows 134-136 — NOT used by WealthPath's engine; recorded here only for golden-value cross-checks against the source workbook's own legacy risk tabs (see docs/14-india-tool-gap-analysis.md, the 'legacy two-bucket split' finding). WealthPath's canonical engine uses the Locked/Liquid sleeve model everywhere and never reads this block.",
+    "marketLinkedPortionWeight": 0.4,
+    "fixedIncomePortionWeight": 0.6,
+    "singleYearMarketCrashFloor": -0.6
+  },
+
+  "glidePath": {
+    "_source": "Assumptions §16, rows 142-147",
+    "enabled": true,
+    "startingEquityPct": 0.70,
+    "equityGlideDownStepPpPerYear": 0.02,
+    "equityFloorPct": 0.15,
+    "goldPctHeldConstant": 0.09,
+    "debtShareOfReleasedEquity": 0.85
+  },
+
+  "inflationModel": {
+    "_source": "Assumptions §17, rows 152-159",
+    "longRunMeanInflation": 0.055,
+    "meanReversionSpeedAnnual": 0.25,
+    "shockVolatilityAnnual": 0.02,
+    "floor": 0.02,
+    "ceiling": 0.14,
+    "rateHikeTriggerThreshold": 0.08,
+    "rateHikeExtraReversionSpeed": 0.25,
+    "startingInflationAtRetirement": 0.08
+  },
+
+  "projectionHorizon": {
+    "_source": "Assumptions §19, rows 170-171",
+    "primaryHorizonAge": 90,
+    "longevityStressTestHorizonAge": 100
+  },
+
+  "statutoryConstants": {
+    "marketCrashFloor": -0.60,
+    "postRetirementBaseMonthlyExpenditure": 72000,
+    "postRetirementFixedIncomeROI": 0.07,
+    "postRetirementInflation": 0.08
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "$schema": "./ctb_data.schema.json",
+  "_instructions": {
+    "howToUpdate": "Edit only this file. The dashboard (public/dashboard.html) reads it automatically on load.",
+    "ragValues": "Use exactly: GREEN | AMBER | RED | HOLD (case-insensitive). Applied to rag.schedule, rag.budget, rag.scope, rag.quality, and rag.overall. GREEN=On Track, AMBER=At Risk, RED=Off Track, HOLD=On Hold. HOLD projects are excluded from the global RAG calculation.",
+    "ragOverallVsScheduleStatus": "These are TWO DIFFERENT fields controlling TWO DIFFERENT columns. rag.overall = the coloured dot in the Overall RAG column; it also drives the global portfolio health indicator and all pulse counts. scheduleStatus = the text pill in the Schedule column (shown alongside scheduleVariance, e.g. '+2d AT RISK'). A project can be AT RISK on schedule yet GREEN overall if budget and scope are healthy — so both fields must be set independently.",
+    "scheduleStatusValues": "Use exactly: ON TRACK | AT RISK | DELAYED | ON HOLD. Controls only the Schedule column pill — does NOT affect global RAG or pulse counts.",
+    "phaseValues": "Use exactly: DISCOVER | PREPARE | EXPLORE | REALIZE | DEPLOY | RUN (case-insensitive)",
+    "subPhaseValues": "DISCOVER: 'Solution exploration' | 'Trial & prototyping' | 'Value & roadmap definition'. PREPARE: 'Project initiation' | 'Team enablement' | 'System provisioning' | 'Scoping & planning'. EXPLORE: 'Fit-to-standard workshops' | 'Fit-gap analysis' | 'Requirements gathering'. REALIZE: 'Solution configuration' | 'Development & extensions' | 'Sprint cycles' | 'Testing (SIT/UAT)' | 'Data migration setup'. DEPLOY: 'Cutover planning' | 'Dress rehearsals' | 'End-user training' | 'Go-live execution'. RUN: 'Hypercare support' | 'System monitoring' | 'Continuous improvement'",
+    "projectStatusNote": "OPTIONAL — do not add this field unless a project is complete. When omitted, the dashboard auto-infers the status: rag.overall=HOLD → shown as On Hold; everything else → active. The only value you ever need to set manually is 'complete', which dims the row and scorecard card to indicate the project has finished.",
+    "milestoneTypeValues": "Use exactly: REVIEW | GO/NO-GO | MILESTONE | APPROVAL | DECISION",
+    "riskLevelValues": "Use exactly: HIGH | MED | LOW | DEP | ESC | WATCH",
+    "decisionProjectId": "Each decision MUST have a projectId matching the id of one of the projects in the projects array. This links the ask to its project and displays a project tag on the dashboard.",
+    "IMPORTANT": "The dashboard AUTO-COMPUTES the global RAG, summary counts, and portfolio health from rag.overall on each project — not from scheduleStatus. You only need to manually set keyFlag in the pulse section, and projectId on each decision."
+  },
+  "meta": {
+    "reportTitle": "SAP CRM · Change-the-Business Portfolio",
+    "period": "May 2026 / CW20",
+    "reportDate": "2026-05-15",
+    "lastUpdated": "2026-05-15T09:00:00",
+    "confidentiality": "IT Leadership · Confidential-Internal review only",
+    "portfolioOwner": "SAP CRM Team"
+  },
+  "pulse": {
+    "keyFlag": "GPIC approval for AssetCare and E-invoicing complete. Kickoff initiated on 21st May 2026"
+  },
+  "projects": [
+    {
+      "id": "einvoicing",
+      "name": "E-Invoicing OFR",
+      "phase": "EXPLORE",
+      "subPhase": "Fit-to-standard workshops",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Kickoff on 21st May 2026",
+      "comment": "GPIC Gate 3 approval complete. Kickoff meeting on 21st May 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/einvoicing",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "mercoline",
+      "name": "OSTE Mercoline OFR",
+      "phase": "EXPLORE",
+      "subPhase": "Fit-gap analysis",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Go Live — 3rd June 2026",
+      "comment": "Business to start testing. Go live planned on 3rd June 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/mercoline",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "assetcare",
+      "name": "Asset Care",
+      "phase": "EXPLORE",
+      "subPhase": "Requirements gathering",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Kickoff - 21st May 2026",
+      "comment": "US creation complete. Kickoff planned on 21st May 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/assetcare",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "cdsrepair",
+      "name": "CDS After Repair",
+      "phase": "REALIZE",
+      "subPhase": "Testing (SIT/UAT)",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "AMBER",
+        "budget": "GREEN",
+        "scope": "AMBER",
+        "quality": "GREEN",
+        "overall": "AMBER"
+      },
+      "nextMilestone": "TBD",
+      "comment": "Handed to business for testing. New requirements may be added.",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/cdsrepair",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "loaner",
+      "name": "Loaner Improvement",
+      "phase": "REALIZE",
+      "subPhase": "Development & extensions",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "AMBER",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "AMBER"
+      },
+      "nextMilestone": "SIT Start — 15 Jun 2026",
+      "comment": "Fixed budget. Production deployment planned 30 Jun 2026.",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/loaner",
+      "deepDiveLabel": "Teams"
+    }
+  ],
+  "risks": [
+    {
+      "level": "DEP",
+      "title": "Loaner Improvement — CPI & ACE Dev Dependency",
+      "description": "RFAC0225044 Like-for-Like Assignment is blocked on CPI and ACE development completion before SIT/UAT entry gate. Cross-team coordination with two external squads required.",
+      "affectedProjects": [
+        "loaner"
+      ],
+      "depOwner": "BUSINESS"
+    },
+    {
+      "level": "WATCH",
+      "title": "Testing feedback(UAT) from business pending and probable scope addition",
+      "description": "UAT feedback will decide on the go live date of the project and there may be some additional requirement which needs to be confirmed.",
+      "affectedProjects": [
+        "cdsrepair"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "date": "2026-07-10",
+      "type": "MILESTONE",
+      "description": "Development end date for AssetCare project"
+    },
+    {
+      "date": "2026-06-03",
+      "type": "MILESTONE",
+      "description": "Mercoline OFR business go-live"
+    },
+    {
+      "date": "2026-08-07",
+      "type": "MILESTONE",
+      "description": "End of UAT for AssetCare project"
+    },
+    {
+      "date": "2026-09-15",
+      "type": "MILESTONE",
+      "description": "Business go-live for AssetCare project"
+    },
+    {
+      "date": "2026-05-21",
+      "type": "MILESTONE",
+      "description": "Kick-off for AssetCare project"
+    },
+    {
+      "date": "2026-05-21",
+      "type": "MILESTONE",
+      "description": "E-invoicing-OFR project kickoff"
+    },
+    {
+      "date": "2026-09-01",
+      "type": "MILESTONE",
+      "description": "Business go-live for E-invoicing OFR"
+    },
+    {
+      "date": "2026-06-12",
+      "type": "MILESTONE",
+      "description": "Loaner Improvement — 3 RFAC development completion checkpoint."
+    }
+  ],
+  "decisions": [
+    {
+      "icon": "📌",
+      "ask": "Dependency with Infocus CCC Integration project",
+      "context": "Technical dependency with the Infocus CCC Integration project needs to be sorted out from ACE perspective",
+      "dueDate": "2026-05-29",
+      "dueDateLabel": "Due 29 May 2026",
+      "projectId": "loaner"
+    },
+    {
+      "icon": "✅",
+      "ask": "Legal text for Like-to-Like devices required from business for ACE Interact portal",
+      "context": "Business to provide legal text to ACE developers to complete development for US ACE-7093",
+      "dueDate": "2026-05-29",
+      "dueDateLabel": "Due 29 May 2026",
+      "projectId": "loaner"
+    },
+    {
+      "icon": "🔗",
+      "ask": "Confirm CPI & ACE Resource Allocation — Loaner Improvement",
+      "context": "Executive alignment needed to secure cross-team capacity for Loaner Improvement SIT/UAT entry gate in mid-June.",
+      "dueDate": "2026-06-10",
+      "dueDateLabel": "Due 10 Jun 2026",
+      "projectId": "loaner"
+    }
+  ]
+}

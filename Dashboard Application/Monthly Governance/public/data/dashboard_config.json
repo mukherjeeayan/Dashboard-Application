@@ -1,0 +1,339 @@
+{
+  "brand": {
+    "title": "OpsReview Dashboard",
+    "subtitle": "SAP CRM Team",
+    "confidentialityLabel": "Internal – Restricted"
+  },
+  "loading": {
+    "text": "Loading dashboard data..."
+  },
+  "labels": {
+    "asOfLabel": "As of",
+    "goLivePrefix": "Go-Live:",
+    "helpHeading": "How to Update This Dashboard — Edit ops_data.json Only",
+    "ragLegend": {
+      "green": "Good",
+      "amber": "Warning",
+      "red": "Critical"
+    },
+    "moduleSubLabels": {
+      "receivedBaseline": "vs Baseline",
+      "incSrSplit": "Reactive vs Request",
+      "resolvedNetFlow": "Net flow this period",
+      "respSla": "Response compliance",
+      "resolSla": "Resolution compliance",
+      "mttr": "Mean time to resolve"
+    },
+    "overviewCharts": {
+      "sapVolume": "SAP Volume",
+      "nsVolume": "Non-ERP Volume",
+      "sapBacklog": "SAP Backlog",
+      "nsBacklog": "Non-ERP Backlog"
+    }
+  },
+  "tabs": [
+    { "id": "overview", "label": "Overview", "icon": "📊" },
+    { "id": "sap", "label": "SAP Modules", "icon": "💻" },
+    { "id": "nsap", "label": "Non-SAP Modules", "icon": "🔧" },
+    { "id": "quality", "label": "Quality & MTTR", "icon": "🎯" },
+    { "id": "actions", "label": "Action Items", "icon": "📋" },
+    { "id": "projects", "label": "Projects & CI", "icon": "🚀" },
+    { "id": "headcount", "label": "Headcount", "icon": "👥" }
+  ],
+  "pulse": {
+    "icon": "⚑",
+    "prefix": "Pulse:"
+  },
+  "overview": {
+    "title": "Overview",
+    "display": "grid",
+    "cards": [
+      { "key": "sapTotal", "label": "SAP Total Volume", "subLabel": "MoM", "invertDelta": true },
+      { "key": "sapSLAComposite", "label": "SAP SLA Composite", "subLabel": "vs Prior", "unit": "%" },
+      { "key": "nsTotal", "label": "Non-ERP Total Volume", "subLabel": "MoM", "invertDelta": true },
+      { "key": "nsSLAComposite", "label": "Non-ERP SLA Composite", "subLabel": "vs Prior", "unit": "%" }
+    ],
+    "charts": [
+      { "id": "chart-overview-volume", "title": "6-Month Volume Trend (SAP vs Non-ERP)", "height": 250 },
+      { "id": "chart-overview-backlog", "title": "Open Backlog Growth Trend", "height": 250 }
+    ]
+  },
+  "modulePanel": {
+    "sapSection": {
+      "title": "SAP Workstreams",
+      "domain": "SAP"
+    },
+    "nsSection": {
+      "title": "Non-ERP Workstreams",
+      "domain": "NonERP"
+    },
+    "kpis": [
+      { "key": "receivedBaseline", "label": "Received vs Baseline" },
+      { "key": "incSrSplit", "label": "INC / SR Split" },
+      { "key": "resolvedNetFlow", "label": "Resolved & Net Flow" },
+      { "key": "respSla", "label": "Response SLA %" },
+      { "key": "resolSla", "label": "Resolution SLA %" },
+      { "key": "mttr", "label": "MTTR (Hours)" }
+    ],
+    "trendChart": { "title": "MoM Volume Trend (Last 6 Months)", "height": 180, "labels": { "received": "Received Tickets", "baseline": "Contracted Baseline" } },
+    "priorityChart": { "title": "Priority Distribution", "height": 110 },
+    "ageChart": { "title": "Age Distribution", "height": 110 },
+    "slaMeters": {
+      "title": "SLA Compliance",
+      "meters": [
+        { "key": "respSla", "label": "Response SLA" },
+        { "key": "resolSla", "label": "Resolution SLA" }
+      ]
+    },
+    "rfacSection": {
+      "title": "Request for Change (RFaC) Aging",
+      "headers": ["Metric", "Value"],
+      "rows": [
+        { "key": "openCount", "label": "Open RFCs", "format": "number" },
+        { "key": "under8wPct", "label": "Under 8 Weeks", "format": "pct" },
+        { "key": "under12wPct", "label": "Under 12 Weeks", "format": "pct" },
+        { "key": "emergencyCount", "label": "Emergency Changes", "format": "number" },
+        { "key": "cycleTimeAvgDays", "label": "Avg Cycle Time", "format": "days" },
+        { "key": "slaCompliant", "label": "SLA Compliant", "format": "bool" }
+      ]
+    },
+    "prbSection": {
+      "title": "Problem Record (PRB) Aging",
+      "headers": ["Metric", "Value"],
+      "rows": [
+        { "key": "openCount", "label": "Open Problems", "format": "number" },
+        { "key": "under3mPct", "label": "Under 3 Months", "format": "pct" },
+        { "key": "under6mPct", "label": "Under 6 Months", "format": "pct" },
+        { "key": "knownErrorCount", "label": "Known Errors", "format": "number" },
+        { "key": "oldestDays", "label": "Oldest (Days)", "format": "days" }
+      ]
+    },
+    "notesTitle": "Operational Notes"
+  },
+  "quality": {
+    "title": "Quality & Resolution Integrity Metrics",
+    "charts": [
+      { "id": "chart-quality-mttr", "title": "Mean Time to Resolve (MTTR) Comparison", "height": 240 },
+      { "id": "chart-quality-reopen", "title": "Reopen Rate % Comparison", "height": 240 }
+    ],
+    "tableHeaders": ["Module", "Reopen Rate", "First-Fix Rate", "SLA Near-Misses", "SLA Breaches", "MTTR"],
+    "valueKeys": ["reopenRate", "firstFixRate", "nearMissCount", "breachCount", "mttr"],
+    "colorKeys": ["reopenRate", "firstFixRate", "mttr"],
+    "colorFns": ["reopenColor", "firstFixColor", "mttrColor"]
+  },
+  "actions": {
+    "activeLogTitle": "Active Action Log",
+    "activeHeaders": ["Action Item", "Owner", "Due Date", "Status", "Next Steps"],
+    "activeKeys": ["action", "owner", "dueDate", "status", "nextSteps"],
+    "escTitle": "Leadership Escalations & Intervention Asks",
+    "escHeaders": ["Escalation Issue", "Module", "Responsible Lead", "Target Date", "Status", "Next Steps & Context"],
+    "escKeys": ["issue", "module", "responsible", "dueDate", "status", "nextSteps"],
+    "noDataMsg": "No action items logged for this period.",
+    "noEscMsg": "No active escalation items.",
+    "apprTitle": "Appreciations & Kudos Received",
+    "apprHeaders": ["Module", "Kudos Note"],
+    "apprKeys": ["module", "note"],
+    "noApprMsg": "No appreciations logged for this period.",
+    "soTitle": "Service Offers & CCRs",
+    "soHeaders": ["Requester / Subject", "Status", "Scope / Reason", "Next Steps"],
+    "soKeys": ["requester", "status", "reason", "nextSteps"],
+    "noSOMsg": "No service offers logged for this period."
+  },
+  "projects": {
+    "sectionTitle": "Active Project Scorecards",
+    "ciTitle": "Continuous Improvement Initiatives & Automation Savings",
+    "ciHeaders": ["Track", "Initiative", "Status", "Effort Saved", "Planned Deploy", "Olympus Lead"],
+    "ciKeys": ["track", "initiative", "status", "effortSaved", "plannedDeploy", "olympusLead"],
+    "noDataMsg": "No major projects logged.",
+    "noCiMsg": "No CI initiatives registered."
+  },
+  "headcount": {
+    "title": "Headcount",
+    "cards": [
+      { "key": "sapAMS", "label": "SAP AMS FTEs", "sub": "Core Run Services" },
+      { "key": "sapProjects", "label": "SAP Projects FTEs", "sub": "Change Delivery Services" },
+      { "key": "nsAMS", "label": "Non-ERP AMS FTEs", "sub": "Core Run Services" },
+      { "key": "nsProjects", "label": "Non-ERP Projects FTEs", "sub": "Change Delivery Services" }
+    ],
+    "capacityChart": { "id": "chart-headcount-capacity", "title": "Workload Capacity Load (Tickets per FTE)", "height": 300 },
+    "capacityNote": "Baseline Target capacity loading is ≤ 35 tickets per FTE. Amber threshold is 35-45. Red represents overloading > 45."
+  },
+  "help": {
+    "sections": [
+      {
+        "title": "Quick Start",
+        "icon": "🚀",
+        "items": [
+          "Open <code>ops_data.json</code> in VS Code or any text editor",
+          "Edit only the <em>values</em> — do NOT rename any keys",
+          "Save the file, then refresh the browser (<strong>F5</strong>)",
+          "<code>ops_data.json</code> = data and KPIs (update every cycle); <code>dashboard_config.json</code> = labels, tabs, and layout (update rarely)"
+        ]
+      },
+      {
+        "title": "Monthly Update Checklist",
+        "icon": "📋",
+        "items": [
+          "<strong>meta</strong> — update <code>period</code> (e.g. \"May 2026 (CW22)\"), <code>lastUpdated</code>, <code>reportDate</code>",
+          "<strong>pulse.keyFlag</strong> — write a 1-2 sentence executive summary for the purple banner",
+          "<strong>global</strong> — update portfolio totals (<code>sapTotal, nsTotal</code>), SLA composites, and deltas",
+          "<strong>modules[]</strong> — for each module: update KPIs (<code>total</code>, <code>inc</code>, <code>sr</code>, <code>mttr</code>, <code>respSla</code>, <code>resolSla</code>, etc.)",
+          "<strong>modules[].mttr</strong> — MTTR is wall-clock time (opened to resolved), includes On Hold periods; not a pure working-hours metric",
+          "<strong>modules[].mom</strong> — shift array left, append this month's volume; keep 6 entries",
+          "<strong>modules[].respSlaMom / resolSlaMom</strong> — same left-shift pattern; keep 6 entries",
+          "<strong>modules[].priorityMeta / ageMeta</strong> — update percentages for distribution charts",
+          "<strong>modules[].notes</strong> — update operational notes (supporting commentary per module)",
+          "<strong>rfac.{moduleId}</strong> — update open counts, aging percentages, emergency changes",
+          "<strong>prb.{moduleId}</strong> — update open counts, months-aging, known errors, oldest days",
+          "<strong>actionItems[] / escalations[]</strong> — add/resolve items, change statuses, update due dates",
+          "<strong>projects[] / continuousImprovement[]</strong> — update status, RAG, milestone dates",
+          "<strong>headcount</strong> — update <code>sapAMS</code>, <code>sapProjects</code>, <code>nsAMS</code>, <code>nsProjects</code> FTE counts"
+        ]
+      },
+      {
+        "title": "Allowed Values",
+        "icon": "✅",
+        "items": [
+          "<strong>Status fields</strong>: <code>\"Open\"</code> | <code>\"In Progress\"</code> | <code>\"Closed\"</code> (actionItems) / <code>\"Resolved\"</code> (escalations)",
+          "<strong>RAG colors</strong>: <code>\"GREEN\"</code> | <code>\"AMBER\"</code> | <code>\"RED\"</code> (case-sensitive)",
+          "<strong>Boolean</strong>: <code>true</code> | <code>false</code>",
+          "<strong>Percentages</strong>: 0–100 (e.g. <code>96.2</code> = 96.2%)",
+          "<strong>Delta direction</strong>: negative = down (improvement), positive = up (deterioration)",
+          "<strong>Domain</strong>: <code>\"SAP\"</code> or <code>\"NonERP\"</code> (per module)",
+          "<strong>Project status</strong>: <code>\"Explore\"</code> | <code>\"Prepare\"</code> | <code>\"Realize\"</code> | <code>\"Deploy\"</code> | <code>\"Closed\"</code>",
+          "<strong>CI status</strong>: <code>\"Planned\"</code> | <code>\"In Progress\"</code> | <code>\"Completed\"</code>"
+        ]
+      },
+      {
+        "title": "Module Data Fields",
+        "icon": "📊",
+        "items": [
+          "Each module object has these key fields:",
+          "<code>id</code> — unique key (e.g. <code>\"crm\"</code>, <code>\"scm\"</code>) — do NOT change",
+          "<code>name</code> — display name (e.g. <code>\"CRM\"</code>, <code>\"SCM\"</code>)",
+          "<code>domain</code> — <code>\"SAP\"</code> or <code>\"NonERP\"</code> determines which tab the module appears under",
+          "<code>total</code> — total tickets received (INC + SR)",
+          "<code>inc</code> / <code>sr</code> — incident vs service request split",
+          "<code>resolved</code> / <code>netFlow</code> — resolved count and net flow (resolved - received)",
+          "<code>respSla</code> / <code>resolSla</code> — response and resolution SLA compliance (%)",
+          "<code>mttr</code> — mean time to resolve (hours)",
+          "<code>reopenRate</code> — percentage of tickets reopened",
+          "<code>firstFixRate</code> — percentage resolved on first touch",
+          "<code>breachCount</code> / <code>nearMissCount</code> — SLA breaches and near-misses",
+          "<code>escalationRate</code> — escalation rate per module",
+          "<code>baseline</code> — baseline volume for \"vs Baseline\" comparison on module KPI strip"
+        ]
+      },
+      {
+        "title": "Module Trend Arrays",
+        "icon": "📈",
+        "items": [
+          "All MoM arrays follow a 6-element left-shift pattern:",
+          "<code>mom</code> — volume trend (6 months, most recent last)",
+          "<code>incMom</code> / <code>srMom</code> — incident and SR split trends",
+          "<code>resolvedMom</code> / <code>netFlowMom</code> — resolution and net flow trends",
+          "<code>backlogMom</code> — open backlog at month-end (6 months)",
+          "<code>respSlaMom</code> / <code>resolSlaMom</code> — SLA % trends (6 months)",
+          "To update: <strong>drop the first element</strong>, append the new month's value at the end",
+          "Example: <code>[6, 8, 7, 9, 11, 10]</code> → remove 6 → append new value → <code>[8, 7, 9, 11, 10, NEW]</code>"
+        ]
+      },
+      {
+        "title": "Distribution Charts (Priority & Age)",
+        "icon": "🎯",
+        "items": [
+          "<code>priority</code> — 4-element array; percentages for P1/P2, P3, P4, Unprioritised (must sum to 100)",
+          "<code>age</code> — 4-element array; percentages for 0-3wk, 3-6wk, 6-10wk, >10wk (must sum to 100)",
+          "<code>priorityMeta</code> — label + color + pct for each priority bucket",
+          "<code>ageMeta</code> — label + color + pct for each age bucket",
+          "Colors: <code>\"red\"</code>, <code>\"amber\"</code>, <code>\"green\"</code>, <code>\"blue\"</code>, <code>\"purple\"</code>, <code>\"muted\"</code>",
+          "Keep <code>pct</code> values in sync between the array and the Meta objects"
+        ]
+      },
+      {
+        "title": "Editing RFaC & PRB Aging",
+        "icon": "📋",
+        "items": [
+          "RFaC data lives in <code>rfac.{moduleId}</code>:",
+          "<code>openCount</code> — number of open Requests for Change",
+          "<code>under8wPct</code> — % of RFCs open less than 8 weeks",
+          "<code>under12wPct</code> — % of RFCs open less than 12 weeks",
+          "<code>emergencyCount</code> — number of emergency changes this period",
+          "<code>cycleTimeAvgDays</code> — average RFC cycle time in days",
+          "<code>slaCompliant</code> — boolean: <code>true</code> / <code>false</code>",
+          "—",
+          "PRB data lives in <code>prb.{moduleId}</code>:",
+          "<code>openCount</code> — number of open Problem Records",
+          "<code>under3mPct</code> — % of PRBs open less than 3 months",
+          "<code>under6mPct</code> — % of PRBs open less than 6 months",
+          "<code>knownErrorCount</code> — number of Known Errors",
+          "<code>oldestDays</code> — age of oldest open PRB in days"
+        ]
+      },
+      {
+        "title": "Editing Action Items & Escalations",
+        "icon": "📝",
+        "items": [
+          "<code>actionItems[]</code> — each item has:",
+          "· <code>action</code> — description (first column, left-aligned)",
+          "· <code>owner</code> — responsible person",
+          "· <code>dueDate</code> — ISO date (e.g. <code>\"2026-06-06\"</code>)",
+          "· <code>status</code> — <code>\"Open\"</code> | <code>\"In Progress\"</code> | <code>\"Closed\"</code>",
+          "· <code>nextSteps</code> — next steps description (last column)",
+          "—",
+          "<code>escalations[]</code> — each item has:",
+          "· <code>issue</code> — escalation title (first column, styled red)",
+          "· <code>responsible</code> — responsible lead",
+          "· <code>dueDate</code> — ISO date",
+           "· <code>status</code> — <code>\"Open\"</code> | <code>\"Resolved\"</code>",
+           "· <code>nextSteps</code> — resolution context / next steps",
+           "—",
+           "<code>appreciations[]</code> — each item has:",
+           "· <code>module</code> — module <code>id</code> (e.g. <code>\"crm\"</code>)",
+           "· <code>note</code> — kudos note text",
+           "—",
+           "<code>serviceOffers[]</code> — each item has:",
+           "· <code>requester</code> — requester / subject line",
+           "· <code>status</code> — <code>\"Proposed\"</code> | <code>\"In Review\"</code> | <code>\"Approved\"</code> | <code>\"In Progress\"</code> | <code>\"Implemented\"</code>",
+           "· <code>reason</code> — scope / reason description",
+           "· <code>nextSteps</code> — next steps"
+        ]
+      },
+      {
+        "title": "Editing Projects & CI",
+        "icon": "🚀",
+        "items": [
+          "<code>projects[]</code> — each project has:",
+          "· <code>name</code> — project name",
+          "· <code>ragOverall</code> — <code>\"GREEN\"</code> | <code>\"AMBER\"</code> | <code>\"RED\"</code>",
+          "· <code>track</code> — program track (e.g. <code>\"Cloud Migration\"</code>)",
+          "· <code>plannedGoLive</code> — go-live date",
+          "· <code>status</code> — <code>\"Explore\"</code> | <code>\"Prepare\"</code> | <code>\"Realize\"</code> | <code>\"Deploy\"</code>",
+          "· <code>currentStatus</code> — narrative status update",
+          "—",
+          "<code>continuousImprovement[]</code> — each CI item has:",
+          "· <code>track</code> — category (e.g. <code>\"Automation\"</code>, <code>\"Process\"</code>)",
+          "· <code>initiative</code> — initiative name (left-aligned)",
+          "· <code>status</code> — <code>\"Planned\"</code> | <code>\"In Progress\"</code> | <code>\"Completed\"</code>",
+          "· <code>effortSaved</code> — estimated/actual savings (styled green)",
+          "· <code>plannedDeploy</code> — deployment date",
+          "· <code>olympusLead</code> — Olympus program lead"
+        ]
+      },
+      {
+        "title": "Updating Charts",
+        "icon": "📊",
+        "items": [
+          "<strong>chart-overview-volume</strong> — updates from <code>global.sapTotal</code>, <code>global.nsTotal</code>, <code>months</code> array",
+          "<strong>chart-overview-backlog</strong> — updates from <code>modules[].backlogMom</code> per domain (aggregated across SAP / NonERP)",
+          "<strong>chart-trend-{module}</strong> — uses <code>modules[].mom</code> and <code>months</code> array",
+          "<strong>chart-priority-{module}</strong> — uses <code>modules[].priorityMeta</code> percentages",
+          "<strong>chart-age-{module}</strong> — uses <code>modules[].ageMeta</code> percentages",
+          "<strong>chart-quality-mttr</strong> — compares <code>modules[].mttr</code> values across all modules",
+          "<strong>chart-quality-reopen</strong> — compares <code>modules[].reopenRate</code> values across all modules",
+          "<strong>chart-headcount-capacity</strong> — uses <code>headcount</code> FTE values and module totals"
+        ]
+      }
+    ]
+  }
+}

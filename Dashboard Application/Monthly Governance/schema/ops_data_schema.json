@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://opsreview.local/schemas/ops_data.json",
+  "title": "OpsReview Dashboard Data Schema",
+  "description": "Schema for the ops_data.json payload consumed by the OpsReview Dashboard",
+  "type": "object",
+  "required": ["schemaVersion", "meta", "global", "months", "monthsFull", "modules"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "enum": [1],
+      "description": "Schema version for migration support. Must be 1."
+    },
+    "meta": {
+      "type": "object",
+      "required": ["title", "period", "reportDate", "lastUpdated"],
+      "properties": {
+        "_schemaVersion": { "type": "integer" },
+        "title": { "type": "string" },
+        "period": { "type": "string" },
+        "portfolioOwner": { "type": "string" },
+        "confidentiality": { "type": "string" },
+        "reportDate": { "type": "string", "format": "date" },
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "pulse": {
+      "type": "object",
+      "properties": {
+        "keyFlag": { "type": "string" },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "global": {
+      "type": "object",
+      "required": ["domains"],
+      "properties": {
+        "sapTotal": { "type": "number" },
+        "sapTotalDelta": { "type": "number" },
+        "sapBacklog": { "type": "number" },
+        "sapBacklogDelta": { "type": "number" },
+        "sapSLAComposite": { "type": "number" },
+        "sapSLADelta": { "type": "number" },
+        "nsTotal": { "type": "number" },
+        "nsTotalDelta": { "type": "number" },
+        "nsBacklog": { "type": "number" },
+        "nsBacklogDelta": { "type": "number" },
+        "nsSLAComposite": { "type": "number" },
+        "nsSLADelta": { "type": "number" },
+        "domains": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "number" },
+              "backlog": { "type": "number" },
+              "slaComposite": { "type": "number" },
+              "priorTotal": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "months": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "monthsFull": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+      "minItems": 1
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "domain", "total"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "domain": { "type": "string", "enum": ["SAP", "NonERP"] },
+          "baseline": { "type": "number" },
+          "fte": { "type": "number" },
+          "total": { "type": "number" },
+          "inc": { "type": "number" },
+          "sr": { "type": "number" },
+          "resolved": { "type": "number" },
+          "netFlow": { "type": "number" },
+          "openCount": { "type": "number" },
+          "respSla": { "type": ["number", "null"] },
+          "resolSla": { "type": ["number", "null"] },
+          "mttr": { "type": ["number", "null"] },
+          "reopenRate": { "type": ["number", "null"] },
+          "firstFixRate": { "type": ["number", "null"] },
+          "breachCount": { "type": "number" },
+          "nearMissCount": { "type": "number" },
+          "escalationRate": { "type": ["number", "null"] },
+          "automation": { "type": "number" },
+          "mom": { "type": "array", "items": { "type": "number" } },
+          "incMom": { "type": "array", "items": { "type": "number" } },
+          "srMom": { "type": "array", "items": { "type": "number" } },
+          "resolvedMom": { "type": "array", "items": { "type": "number" } },
+          "netFlowMom": { "type": "array", "items": { "type": "number" } },
+          "backlogMom": { "type": "array", "items": { "type": "number" } },
+          "respSlaMom": { "type": "array", "items": { "type": "number" } },
+          "resolSlaMom": { "type": "array", "items": { "type": "number" } },
+          "priority": { "type": "array", "items": { "type": "number" } },
+          "age": { "type": "array", "items": { "type": "number" } },
+          "priorityMeta": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "color": { "type": "string" },
+                "pct": { "type": "number" }
+              }
+            }
+          },
+          "ageMeta": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "color": { "type": "string" },
+                "pct": { "type": "number" }
+              }
+            }
+          },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "priorityBuckets": { "type": "array" },
+        "ageBuckets": { "type": "array" },
+        "lookbackMonths": { "type": "integer" },
+        "respSlaTarget": { "type": "number" },
+        "resolSlaTarget": { "type": "number" }
+      }
+    },
+    "rfac": { "type": "object" },
+    "prb": { "type": "object" },
+    "actionItems": { "type": "array" },
+    "escalations": { "type": "array" },
+    "appreciations": { "type": "array" },
+    "serviceOffers": { "type": "array" },
+    "projects": { "type": "array" },
+    "continuousImprovement": { "type": "array" },
+    "headcount": {
+      "type": "object",
+      "properties": {
+        "sapAMS": { "type": "number" },
+        "sapProjects": { "type": "number" },
+        "nsAMS": { "type": "number" },
+        "nsProjects": { "type": "number" }
+      }
+    }
+  }
+}

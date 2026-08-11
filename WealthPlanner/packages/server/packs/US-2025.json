@@ -1,0 +1,116 @@
+{
+  "packId": "US-2025",
+  "displayName": "United States",
+  "currency": "USD",
+  "fiscalYear": { "startMonth": 1, "convention": "CALENDAR" },
+  "locale": "en-US",
+
+  "_provenance": "Federal (national) figures transcribed from IRS Rev. Proc. 2024-40 for Tax Year 2025 (single-filer schedule) and IRS Tax Topic 409 / the standard LTCG rate table. This pack models NATIONAL-LEVEL federal rules only; US state income tax and foreign tax credits are out of scope for v1 (docs/05-jurisdiction-tax-framework.md §5.7). Every value is a direct transcription of a published statutory figure so a reviewer can re-verify against the IRS source without re-deriving anything. Note that the engine's capitalGains.longTerm and incomeTax SLAB blocks model a single marginal rate (a deliberate simplification); the full progressive tables are recorded in the notes below and in the bracket arrays where the schema supports them.",
+
+  "instrumentRules": {
+    "BROKERAGE": {
+      "instrumentType": "MARKET_LINKED_POOLED",
+      "displayLabel": "Taxable Brokerage (Mutual Funds / ETFs)",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "STOCKS": {
+      "instrumentType": "MARKET_LINKED_DIRECT",
+      "displayLabel": "Direct Stocks",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "CRYPTO": {
+      "instrumentType": "DIGITAL_ASSET",
+      "displayLabel": "Cryptocurrency",
+      "assumedAnnualROI": 0.07,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "CAPITAL_GAINS" }
+    },
+    "SAVINGS_BONDS": {
+      "instrumentType": "GOV_SAFE_LOCKED",
+      "displayLabel": "U.S. Savings Bonds",
+      "declaredRate": 0.04,
+      "taxTreatment": { "onContribution": "TAXED", "onGrowth": "DEFERRED", "onExit": "SLAB_RATE" }
+    },
+    "401K": {
+      "instrumentType": "EMPLOYER_DISCRETIONARY_LOCKED",
+      "displayLabel": "401(k) / Traditional IRA",
+      "declaredRate": 0.07,
+      "employerContributionRate": 0.04,
+      "taxTreatment": { "onContribution": "DEDUCTIBLE", "onGrowth": "DEFERRED", "onExit": "SLAB_RATE" }
+    },
+    "CD": {
+      "instrumentType": "FIXED_TERM_DEPOSIT",
+      "displayLabel": "Certificate of Deposit (CD)",
+      "reinvestmentROI": 0.04,
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    },
+    "BANK": {
+      "instrumentType": "LIQUID_CASH",
+      "displayLabel": "Bank / Money Market",
+      "taxTreatment": { "onGrowth": "SLAB_RATE_ANNUAL_ACCRUAL" }
+    }
+  },
+
+  "incomeTax": {
+    "kind": "SLAB",
+    "note": "Federal ordinary-income brackets for 2025 single filers (IRS Rev. Proc. 2024-40), as taxable income: 10% up to $11,925; 12% to $48,475; 22% to $103,350; 24% to $197,300; 32% to $250,525; 35% to $626,350; 37% above. The top bracket's 'upTo' uses a large finite sentinel since the schema requires a number. The engine prices retirement-year drawdown via marginalRateAtRetirement (a single planning assumption), not the full table; the table is recorded here for reference.",
+    "brackets": [
+      { "upTo": 11925, "rate": 0.10 },
+      { "upTo": 48475, "rate": 0.12 },
+      { "upTo": 103350, "rate": 0.22 },
+      { "upTo": 197300, "rate": 0.24 },
+      { "upTo": 250525, "rate": 0.32 },
+      { "upTo": 626350, "rate": 0.35 },
+      { "upTo": 999999999, "rate": 0.37 }
+    ],
+    "marginalRateAtRetirement": 0.22
+  },
+
+  "capitalGains": {
+    "note": "2025 long-term capital gains are taxed at 0%/15%/20% by taxable income (single: 0% up to $48,350, 15% to $533,400, 20% above). The engine models a single marginal LTCG rate; this pack uses 15% as the most common planning assumption, with annualExemption 0 (US has no LTCG annual exemption). Short-term gains (held one year or less) are taxed as ordinary income. A 3.8% Net Investment Income Tax may add on top for high earners but is not modeled at national level in v1.",
+    "MARKET_LINKED_POOLED": {
+      "kind": "LONG_SHORT_SPLIT",
+      "longTerm": { "holdingPeriodDays": 366, "rate": 0.15, "annualExemption": 0 },
+      "shortTerm": { "rate": "SLAB_RATE" }
+    },
+    "MARKET_LINKED_DIRECT": {
+      "kind": "LONG_SHORT_SPLIT",
+      "longTerm": { "holdingPeriodDays": 366, "rate": 0.15, "annualExemption": 0 },
+      "shortTerm": { "rate": "SLAB_RATE" },
+      "lotSelectionDefault": "FIFO"
+    },
+    "DIGITAL_ASSET": {
+      "kind": "LONG_SHORT_SPLIT",
+      "longTerm": { "holdingPeriodDays": 366, "rate": 0.15, "annualExemption": 0 },
+      "shortTerm": { "rate": "SLAB_RATE" },
+      "lotSelectionDefault": "FIFO"
+    }
+  },
+
+  "yieldIncome": {
+    "note": "Qualified dividends are taxed at long-term capital-gains rates (0/15/20%); ordinary dividends and interest are taxed as ordinary income. The engine keeps yield income structurally separate from capital gains; treatments below record the federal default.",
+    "MARKET_LINKED_DIRECT": { "treatment": "CAPITAL_GAINS", "taxedAt": "RECEIPT" },
+    "MARKET_LINKED_POOLED": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" },
+    "DIGITAL_ASSET": { "treatment": "SLAB_RATE", "taxedAt": "RECEIPT" }
+  },
+
+  "withdrawalWaterfall": {
+    "enabledDefault": true,
+    "order": [
+      "LIQUID_CASH",
+      "FIXED_TERM_DEPOSIT",
+      "MARKET_LINKED_POOLED",
+      "MARKET_LINKED_DIRECT",
+      "GOV_SAFE_LOCKED",
+      "EMPLOYER_DISCRETIONARY_LOCKED"
+    ],
+    "lockedSleeveUnlockRule": "IRREVERSIBLE_ON_FIRST_SHORTFALL",
+    "note": "Taxable accounts (cash, CDs, brokerage, direct stocks) are drawn before tax-deferred retirement accounts (401(k)/IRA), which are taxed at ordinary income on withdrawal — mirroring the common tax-efficient US drawdown convention."
+  },
+
+  "statutoryConstants": {
+    "marketCrashFloor": -0.60,
+    "defaultRiskFreeRate": 0.04
+  }
+}

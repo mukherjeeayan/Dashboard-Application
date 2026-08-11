@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>OpsReview Dashboard Editor</title>
+  <meta name="theme-color" content="#0a0e17">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233b82f6'/><text x='16' y='22' text-anchor='middle' font-size='18' font-weight='bold' fill='white'>O</text></svg>">
+  <link rel="stylesheet" href="css/ops_dashboard.css">
+  <script src="js/chart.umd.js"></script>
+  <script src="js/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span>OpsReview Dashboard Editor</span>
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="fbadge" id="badge-config"><div class="dot"></div><span>Config</span></div>
+  <div class="fbadge" id="badge-inc"><div class="dot"></div><span>INC (0)</span></div>
+  <div class="fbadge" id="badge-sr"><div class="dot"></div><span>SR (0)</span></div>
+  <div class="fbadge" id="badge-rfac"><div class="dot"></div><span>RFAC (0)</span></div>
+  <div class="fbadge" id="badge-prb"><div class="dot"></div><span>PRB (0)</span></div>
+  <div class="topbar-spacer"></div>
+  <button class="btn btn-purple btn-sm" onclick="document.getElementById('inp-prev-json').click()" type="button">
+    &#128196; Load Previous JSON
+  </button>
+  <input type="file" id="inp-prev-json" accept=".json" style="display:none" onchange="importPreviousJSON(event)">
+  <button class="btn btn-accent btn-sm" id="btn-top-download" onclick="exportJSONFile()">
+    &#8595; Save JSON
+  </button>
+</div>
+
+<div id="shell">
+  <div id="sidebar" role="tablist" aria-label="Workflow steps">
+    <div class="sidebar-label">Workflow</div>
+    <div class="nav-item active" id="nav-welcome" role="tab" aria-selected="true" aria-controls="panel-welcome" tabindex="0" onclick="switchTab('welcome')">
+      <span class="nav-number">1</span>Welcome
+    </div>
+    <div class="nav-item" id="nav-config" role="tab" aria-selected="false" aria-controls="panel-config" tabindex="-1" onclick="switchTab('config')">
+      <span class="nav-number">2</span>Configuration
+    </div>
+    <div class="nav-item" id="nav-import" role="tab" aria-selected="false" aria-controls="panel-import" tabindex="-1" onclick="switchTab('import')">
+      <span class="nav-number">3</span>Import Data
+    </div>
+    <div class="nav-item" id="nav-preview" role="tab" aria-selected="false" aria-controls="panel-preview" tabindex="-1" onclick="switchTab('preview')">
+      <span class="nav-number">4</span>KPI Preview
+    </div>
+    <div class="nav-item" id="nav-meta" role="tab" aria-selected="false" aria-controls="panel-meta" tabindex="-1" onclick="switchTab('meta')">
+      <span class="nav-number">5</span>Meta &amp; Pulse
+    </div>
+    <div class="nav-item" id="nav-manual" role="tab" aria-selected="false" aria-controls="panel-manual" tabindex="-1" onclick="switchTab('manual')">
+      <span class="nav-number">6</span>Manual Data
+    </div>
+    <div class="nav-item" id="nav-export" role="tab" aria-selected="false" aria-controls="panel-export" tabindex="-1" onclick="switchTab('export')">
+      <span class="nav-number">7</span>Export JSON
+    </div>
+    <div class="sidebar-footer">
+      OpsReview Editor v2.0
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- 1. WELCOME PANEL -->
+    <div class="panel active" id="panel-welcome" role="tabpanel" aria-labelledby="nav-welcome">
+      <div class="hero-section">
+        <div class="hero-icon">&#9889;</div>
+        <div class="hero-title">OpsReview Dashboard Builder</div>
+        <div class="hero-sub">Configure your portfolio parameters, load ServiceNow data exports (XLSX), review calculated KPIs, add manual entries, and generate the JSON payload for the OpsReview Dashboard.</div>
+        <div class="hero-badges">
+          <span class="fbadge ok"><span class="dot"></span>XLSX Data Ingestion</span>
+          <span class="fbadge"><span class="dot"></span>Config-Driven Engine</span>
+          <span class="fbadge"><span class="dot"></span>Offline Ready</span>
+        </div>
+      </div>
+
+      <div class="sect-title">Seven-Step Workflow</div>
+      <div class="step-grid">
+        <div class="step-card">
+          <div class="step-icon">&#9889;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 1</div>
+            <div class="step-title">Configure Parameters</div>
+            <div class="step-desc">Set thresholds, state/priority maps, FTE defaults, and module baselines.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">&#128229;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 3</div>
+            <div class="step-title">Import XLSX Data</div>
+            <div class="step-desc">Upload 4 ServiceNow XLSX exports — Incidents, SRs, RFACs, Problems.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">&#128200;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 4</div>
+            <div class="step-title">Review KPIs</div>
+            <div class="step-desc">Inspect calculated metrics per module, apply manual overrides if needed.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">&#9881;&#65039;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 5</div>
+            <div class="step-title">Configure Metadata</div>
+            <div class="step-desc">Set dashboard title, period, owner, pulse flag, and headcount.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">&#128221;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 6</div>
+            <div class="step-title">Manual Data Entry</div>
+            <div class="step-desc">Add action items, escalations, projects, CI, appreciations, service offers.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">&#128230;</div>
+          <div class="step-body">
+            <div class="step-num">STEP 7</div>
+            <div class="step-title">Export JSON</div>
+            <div class="step-desc">Validate payload, review, and save ops_data.json for the dashboard.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-nav">
+        <button class="btn btn-accent" onclick="switchTab('config')">Begin Configuration &rarr;</button>
+      </div>
+    </div>
+
+    <!-- 2. CONFIGURATION PANEL -->
+    <div class="panel" id="panel-config" role="tabpanel" aria-labelledby="nav-config">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#9881;&#65039;</div>
+        <div class="panel-hdr-text">
+          <h2>Configuration Parameters</h2>
+          <p>Define thresholds, state/priority mappings, valid values, FTE defaults, modules, and baselines. Lock to prevent changes during data entry.</p>
+        </div>
+      </div>
+
+      <div class="cfg-toolbar" id="cfg-toolbar">
+        <span class="cfg-toolbar-label">Config Lock</span>
+        <button class="cfg-lock-btn" id="cfg-lock-btn" onclick="toggleConfigLock()">
+          <span class="lock-icon">&#128274;</span>
+          <span id="cfg-lock-label">Unlocked</span>
+        </button>
+        <div class="cfg-toolbar-spacer"></div>
+        <span class="cfg-toolbar-label" id="cfg-modified-label" style="display:none; color:var(--amber);">&#9888; Modified</span>
+      </div>
+
+      <div id="config-sections">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="cfg-footer">
+        <span class="cfg-footer-label">Config Actions</span>
+        <button class="btn btn-ghost btn-sm" onclick="downloadConfigJSON()">&#8595; Download Config</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('inp-config-upload').click()">&#128229; Upload Config</button>
+        <input type="file" id="inp-config-upload" accept=".json" style="display:none" onchange="uploadConfigJSON(event)">
+        <button class="btn btn-ghost btn-sm" onclick="previewConfigJSON()">&#128065; Preview Config</button>
+        <div class="cfg-footer-spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('welcome')">&larr; Welcome</button>
+        <button class="btn btn-accent btn-sm" onclick="switchTab('import')">Proceed to Import &rarr;</button>
+      </div>
+    </div>
+
+    <!-- 3. IMPORT DATA PANEL -->
+    <div class="panel" id="panel-import" role="tabpanel" aria-labelledby="nav-import">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#128229;</div>
+        <div class="panel-hdr-text">
+          <h2>ServiceNow XLSX Data Ingestion</h2>
+          <p>Upload the four ServiceNow XLSX exports to run the operations calculation pipeline.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">&#128196; Download Templates</div>
+        <div class="template-grid">
+          <button class="template-btn" onclick="downloadTemplate('incidents')">
+            <span class="template-icon">&#128196;</span>
+            <span class="template-info">
+              <div class="template-name">Incidents Template</div>
+              <div class="template-desc">number, opened_at, assignment_group, priority, state, made_sla, resolved_at, sla_due, reopen_count, escalation, rfc, problem_id</div>
+            </span>
+          </button>
+          <button class="template-btn" onclick="downloadTemplate('service_requests')">
+            <span class="template-icon">&#128196;</span>
+            <span class="template-info">
+              <div class="template-name">Service Requests Template</div>
+              <div class="template-desc">number, opened_at, assignment_group, priority, state, made_sla, resolved_at, sla_due, reopen_count</div>
+            </span>
+          </button>
+          <button class="template-btn" onclick="downloadTemplate('rfac')">
+            <span class="template-icon">&#128196;</span>
+            <span class="template-info">
+              <div class="template-name">Change Requests Template</div>
+              <div class="template-desc">number, opened_at, assignment_group, state, type, short_description, priority, risk, impact, backout_plan</div>
+            </span>
+          </button>
+          <button class="template-btn" onclick="downloadTemplate('problems')">
+            <span class="template-icon">&#128196;</span>
+            <span class="template-info">
+              <div class="template-name">Problems Template</div>
+              <div class="template-desc">number, opened_at, assignment_group, state, known_error, short_description, priority, workaround</div>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">&#127915; Incident Export</div>
+          <div class="dropzone" id="dz-inc">
+            <input type="file" accept=".xlsx,.xls" onchange="handleXLSXUpload(event, 'incidents')">
+            <div class="dz-icon">&#128229;</div>
+            <div class="dz-title">Drag &amp; Drop Incidents XLSX</div>
+            <div class="dz-sub">Required: number, opened_at, assignment_group, priority, state</div>
+            <div class="dz-status" id="ds-inc">No file loaded</div>
+          </div>
+          <div id="info-inc" class="input-hint" style="margin-top:8px;"></div>
+          <div id="val-inc"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#128203; Service Request Export</div>
+          <div class="dropzone" id="dz-sr">
+            <input type="file" accept=".xlsx,.xls" onchange="handleXLSXUpload(event, 'service_requests')">
+            <div class="dz-icon">&#128229;</div>
+            <div class="dz-title">Drag &amp; Drop SRs XLSX</div>
+            <div class="dz-sub">Required: number, opened_at, assignment_group, priority, state</div>
+            <div class="dz-status" id="ds-sr">No file loaded</div>
+          </div>
+          <div id="info-sr" class="input-hint" style="margin-top:8px;"></div>
+          <div id="val-sr"></div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <div class="card-title">&#128260; Change Request Snapshot</div>
+          <div class="dropzone" id="dz-rfac">
+            <input type="file" accept=".xlsx,.xls" onchange="handleXLSXUpload(event, 'rfac')">
+            <div class="dz-icon">&#128229;</div>
+            <div class="dz-title">Drag &amp; Drop Open RFAC XLSX</div>
+            <div class="dz-sub">Required: number, opened_at, assignment_group, state</div>
+            <div class="dz-status" id="ds-rfac">No file loaded</div>
+          </div>
+          <div id="info-rfac" class="input-hint" style="margin-top:8px;"></div>
+          <div id="val-rfac"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#128030; Problem Snapshot</div>
+          <div class="dropzone" id="dz-prb">
+            <input type="file" accept=".xlsx,.xls" onchange="handleXLSXUpload(event, 'problems')">
+            <div class="dz-icon">&#128229;</div>
+            <div class="dz-title">Drag &amp; Drop Problems XLSX</div>
+            <div class="dz-sub">Required: number, opened_at, assignment_group, state</div>
+            <div class="dz-status" id="ds-prb">No file loaded</div>
+          </div>
+          <div id="info-prb" class="input-hint" style="margin-top:8px;"></div>
+          <div id="val-prb"></div>
+        </div>
+      </div>
+
+      <div class="import-actions">
+        <span class="import-actions-label">&#9889; Ready to calculate?</span>
+        <div class="import-actions-spacer"></div>
+        <button class="btn btn-accent" id="btn-calculate" onclick="triggerCalculation()">
+          &#9889; Calculate Operations Metrics
+        </button>
+      </div>
+      <div class="tab-nav">
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('config')">&larr; Config</button>
+        <button class="btn btn-accent btn-sm" onclick="switchTab('preview')">Proceed to Preview &rarr;</button>
+      </div>
+    </div>
+
+    <!-- 4. KPI PREVIEW PANEL -->
+    <div class="panel" id="panel-preview" role="tabpanel" aria-labelledby="nav-preview">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#128200;</div>
+        <div class="panel-hdr-text">
+          <h2>Calculated KPI Metrics Preview</h2>
+          <p>Review computed KPIs for the latest reporting month. Provide overrides and operational exception notes.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-title">Select Module to Review</div>
+        <select id="preview-module-selector" onchange="renderModulePreviewDetails()" style="max-width: 300px;"></select>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Calculated KPIs vs Manual Overrides</div>
+          <div id="module-kpis-preview"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Operational Notes &amp; SLA Exceptions</div>
+          <div class="input-hint" style="margin-bottom:10px;">Enter bulleted exception reasons or qualitative operational context. Press enter for new line.</div>
+          <textarea id="module-notes-input" style="height: 250px; font-family:var(--font-mono);" placeholder="- CRM received high volumes due to key campaign deployments.&#10;- Resolved backlog by diverting secondary team resources."></textarea>
+          <div style="margin-top: 10px; display:flex; justify-content:flex-end;">
+            <button class="btn btn-accent btn-sm" onclick="saveModuleNotes()">Save Notes</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-charts-row" id="editor-charts-row" style="display:none;">
+        <div class="grid-3" style="margin-top:20px;">
+          <div class="card">
+            <div class="card-title" style="font-size:12px;">Priority Distribution</div>
+            <div class="chart-wrap" style="height:120px;">
+              <canvas id="editor-chart-priority"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="font-size:12px;">Age Distribution</div>
+            <div class="chart-wrap" style="height:120px;">
+              <canvas id="editor-chart-age"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="font-size:12px;">SLA Compliance</div>
+            <div id="editor-sla-meters" style="padding:8px 0;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-nav">
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('import')">&larr; Import Data</button>
+        <button class="btn btn-accent btn-sm" onclick="switchTab('meta')">Proceed to Meta &rarr;</button>
+        <button class="btn btn-accent btn-sm" onclick="exportJSONFile()">&#8595; Save JSON</button>
+      </div>
+    </div>
+
+    <!-- 5. META & PULSE PANEL -->
+    <div class="panel" id="panel-meta" role="tabpanel" aria-labelledby="nav-meta">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#9881;&#65039;</div>
+        <div class="panel-hdr-text">
+          <h2>Metadata &amp; Pulse Announcement</h2>
+          <p>Configure dashboard title, reporting period, owners, and key portfolio announcement.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Meta Parameters</div>
+          <div class="fg">
+            <label class="fl">Report Title</label>
+            <input type="text" id="meta-title" onchange="updateMetaParam('title', this.value)">
+          </div>
+          <div class="fg">
+            <label class="fl">Reporting Period (Month &amp; CW)</label>
+            <input type="text" id="meta-period" placeholder="e.g. August 2024 (CW35)" onchange="updateMetaParam('period', this.value)">
+          </div>
+          <div class="fg">
+            <label class="fl">Portfolio Owner / Team</label>
+            <input type="text" id="meta-owner" placeholder="e.g. SAP CRM Team" onchange="updateMetaParam('portfolioOwner', this.value)">
+          </div>
+          <div class="fg">
+            <label class="fl">Confidentiality Classification</label>
+            <input type="text" id="meta-confidentiality" onchange="updateMetaParam('confidentiality', this.value)">
+          </div>
+          <div class="fg">
+            <label class="fl">Report Publication Date</label>
+            <input type="date" id="meta-report-date" onchange="onMetaReportDateChange(this.value)">
+          </div>
+          <div class="fg">
+            <label class="fl">Detected Analysis Months</label>
+            <div id="meta-months-display" class="input-hint" style="padding:6px 10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;min-height:20px;">Run calculations to see the auto-detected month range.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pulse Key Flag Announcement</div>
+          <div class="input-hint" style="margin-bottom:15px;">The key message shown in the top highlight banner of the Operations Dashboard.</div>
+          <textarea id="pulse-flag-text" style="height: 150px;" onchange="updatePulseFlag(this.value)" placeholder="e.g. Backlog reduced by 15% overall. SLA compliance sustained above 98%..."></textarea>
+          <div class="sect-title">Operations Staffing / Headcount</div>
+          <div class="grid-2" style="margin-top: 10px;">
+            <div class="fg">
+              <label class="fl">SAP AMS FTEs</label>
+              <input type="number" id="hc-sap-ams" onchange="updateHeadcount('sapAMS', +this.value)">
+            </div>
+            <div class="fg">
+              <label class="fl">SAP Projects FTEs</label>
+              <input type="number" id="hc-sap-proj" onchange="updateHeadcount('sapProjects', +this.value)">
+            </div>
+            <div class="fg">
+              <label class="fl">Non-ERP AMS FTEs</label>
+              <input type="number" id="hc-ns-ams" onchange="updateHeadcount('nsAMS', +this.value)">
+            </div>
+            <div class="fg">
+              <label class="fl">Non-ERP Projects FTEs</label>
+              <input type="number" id="hc-ns-proj" onchange="updateHeadcount('nsProjects', +this.value)">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-nav">
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('preview')">&larr; KPI Preview</button>
+        <button class="btn btn-accent btn-sm" onclick="switchTab('manual')">Manual Data &rarr;</button>
+      </div>
+    </div>
+
+    <!-- 6. MANUAL DATA PANEL -->
+    <div class="panel" id="panel-manual" role="tabpanel" aria-labelledby="nav-manual">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#128221;</div>
+        <div class="panel-hdr-text">
+          <h2>Manual Data Entry</h2>
+          <p>Action items, escalations, appreciations, service offers, projects, and continuous improvement.</p>
+        </div>
+      </div>
+
+      <div class="collapsible-hdr open" onclick="toggleEditorCol(event, 'col-actionitems')">
+        <h4>&#128221; Active Action Items</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body open" id="col-actionitems">
+        <div id="action-items-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewActionItem()">+ Add Action Item</button>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleEditorCol(event, 'col-escalations')">
+        <h4>&#9889; Escalation Items</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body" id="col-escalations">
+        <div id="escalations-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewEscalation()">+ Add Escalation</button>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleEditorCol(event, 'col-appreciations')">
+        <h4>&#10084;&#65039; Appreciations / Kudos</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body" id="col-appreciations">
+        <div id="appreciations-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewAppreciation()">+ Add Appreciation Note</button>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleEditorCol(event, 'col-serviceoffers')">
+        <h4>&#128188; Service Offers &amp; CCRs</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body" id="col-serviceoffers">
+        <div id="serviceoffers-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewServiceOffer()">+ Add Service Offer / CCR</button>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleEditorCol(event, 'col-projectslist')">
+        <h4>&#128640; Active Projects RAG Scorecard</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body" id="col-projectslist">
+        <div id="projects-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewProjectCard()">+ Add Project Card</button>
+      </div>
+
+      <div class="collapsible-hdr" onclick="toggleEditorCol(event, 'col-continuousimp')">
+        <h4>&#128295;&#65039; Continuous Improvement Initiatives</h4>
+        <span class="chev">&#9654;</span>
+      </div>
+      <div class="collapsible-body" id="col-continuousimp">
+        <div id="continuous-imp-container"></div>
+        <button class="btn btn-green btn-sm" onclick="addNewContinuousImprovement()">+ Add Continuous Improvement</button>
+      </div>
+      <div class="tab-nav">
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('meta')">&larr; Meta &amp; Pulse</button>
+        <button class="btn btn-accent btn-sm" onclick="switchTab('export')">Proceed to Export &rarr;</button>
+      </div>
+    </div>
+
+    <!-- 7. EXPORT JSON PANEL -->
+    <div class="panel" id="panel-export" role="tabpanel" aria-labelledby="nav-export">
+      <div class="panel-hdr">
+        <div class="panel-hdr-icon">&#128230;</div>
+        <div class="panel-hdr-text">
+          <h2>Generate Operations Data Store</h2>
+          <p>Validate final payload configuration and export to ops_data.json.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-title">Pre-Flight Configuration Check</div>
+        <div id="preflight-checks-container"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">JSON Payload Preview</div>
+        <div style="position: relative;">
+          <button class="btn btn-ghost btn-sm" style="position: absolute; top: 10px; right: 10px; z-index:1;" onclick="copyJSONToClipboard()">
+            &#128203; Copy JSON
+          </button>
+          <div class="json-preview" id="json-export-preview">
+            Run calculations and check inputs to preview final structure.
+          </div>
+        </div>
+      </div>
+      <div class="tab-nav">
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('manual')">&larr; Manual Data</button>
+        <button class="btn btn-accent btn-sm" onclick="exportJSONFile()">&#8595; Save JSON &amp; Download</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/ops_editor.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    initEditorState();
+    renderConfigSections();
+    updateLockButtonUI();
+    updateConfigBadge();
+    switchTab('welcome');
+    populateModuleSelector();
+    loadMetadataFields();
+    renderManualSections();
+
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undoLast(); }
+    });
+
+    setupEditorDropZones();
+
+    const cfgSections = document.getElementById('config-sections');
+    cfgSections.addEventListener('click', function (e) {
+      var target = e.target;
+      if (target.classList.contains('tag-rem')) {
+        var list = target.closest('.tag-list');
+        var section = list.dataset.tagSection;
+        var key = list.dataset.tagKey;
+        var idx = parseInt(target.dataset.tagIdx, 10);
+        if (!isNaN(idx)) removeTag(section, key, idx);
+      } else if (target.classList.contains('tag-add')) {
+        var list = target.closest('.tag-list');
+        var section = list.dataset.tagSection;
+        var key = list.dataset.tagKey;
+        addTag(section, key);
+      } else if (target.dataset.action === 'add-priority-mapping') { addPriorityMapping(); }
+      else if (target.dataset.action === 'delete-priority-mapping') { deletePriorityMapping(parseInt(target.dataset.idx, 10)); }
+      else if (target.dataset.action === 'add-priority-bucket') { addPriorityBucket(); }
+      else if (target.dataset.action === 'delete-priority-bucket') { deletePriorityBucket(parseInt(target.dataset.idx, 10)); }
+      else if (target.dataset.action === 'add-age-bucket') { addAgeBucket(); }
+      else if (target.dataset.action === 'delete-age-bucket') { deleteAgeBucket(parseInt(target.dataset.idx, 10)); }
+      else if (target.dataset.action === 'add-ticket-prefix') { addTicketPrefix(); }
+      else if (target.dataset.action === 'delete-ticket-prefix') { deleteTicketPrefix(parseInt(target.dataset.idx, 10)); }
+      else if (target.dataset.action === 'add-module-def') { addModuleDef(); }
+      else if (target.dataset.action === 'delete-module-def') { deleteModuleDef(parseInt(target.dataset.idx, 10)); }
+      else if (target.dataset.action === 'add-mapping') { addMapping(); }
+      else if (target.dataset.action === 'delete-mapping') { deleteMapping(target.dataset.mapGroup); }
+    });
+  });
+
+  const TAB_ORDER = ['welcome', 'config', 'import', 'preview', 'meta', 'manual', 'export'];
+
+  function nextTab() {
+    const currentId = document.querySelector('.nav-item.active')?.id?.replace('nav-', '') || 'welcome';
+    const idx = TAB_ORDER.indexOf(currentId);
+    if (idx >= 0 && idx < TAB_ORDER.length - 1) switchTab(TAB_ORDER[idx + 1]);
+  }
+
+  function prevTab() {
+    const currentId = document.querySelector('.nav-item.active')?.id?.replace('nav-', '') || 'welcome';
+    const idx = TAB_ORDER.indexOf(currentId);
+    if (idx >= 0 && idx > 0) switchTab(TAB_ORDER[idx - 1]);
+  }
+
+  function switchTab(tabId) {
+    const targetIdx = TAB_ORDER.indexOf(tabId);
+    if (targetIdx < 0) return;
+
+    const currentId = document.querySelector('.nav-item.active')?.id?.replace('nav-', '') || 'welcome';
+    if (typeof visitSection === 'function' && currentId !== tabId) {
+      visitSection(currentId);
+    }
+
+    if (typeof saveFullState === 'function') saveFullState();
+
+    document.querySelectorAll('#sidebar .nav-item').forEach(el => { el.classList.remove('active'); el.setAttribute('aria-selected', 'false'); el.tabIndex = -1; });
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + tabId);
+    if (navEl) { navEl.classList.add('active'); navEl.setAttribute('aria-selected', 'true'); navEl.tabIndex = 0; }
+    document.getElementById('panel-' + tabId).classList.add('active');
+    if (tabId === 'export') {
+      runPreflightChecks();
+      const finalObj = assembleFinalJSON();
+      if (finalObj) {
+        document.getElementById('json-export-preview').textContent = JSON.stringify(finalObj, null, 2);
+      }
+    }
+  }
+
+  function getForwardBlocker(fromIdx, toIdx) {
+    for (let i = fromIdx + 1; i <= toIdx; i++) {
+      const check = getTabPrerequisite(TAB_ORDER[i]);
+      if (check) return check;
+    }
+    return null;
+  }
+
+  function getTabPrerequisite(tab) {
+    if (tab === 'preview') {
+      const hasCalc = !!(editorState && editorState.calculatedData && editorState.calculatedData.modules);
+      if (!hasCalc) {
+        const hasInc = !!(editorState && editorState.uploadedFiles && editorState.uploadedFiles.incidents);
+        const hasSr = !!(editorState && editorState.uploadedFiles && editorState.uploadedFiles.service_requests);
+        if (!hasInc || !hasSr) {
+          return 'Please upload both Incidents and Service Requests XLSX files (Step 3) or load a previous JSON file before reviewing KPI previews.';
+        }
+      }
+    }
+    if (tab === 'export') {
+      const hasCalc = !!(editorState && editorState.calculatedData && editorState.calculatedData.modules);
+      if (!hasCalc) {
+        return 'Please run the calculation engine first (upload data in Step 3, then click "Calculate Operations Metrics") or load a previous JSON file.';
+      }
+    }
+    return null;
+  }
+
+  function toggleEditorCol(event, colId) {
+    const hdr = event.currentTarget;
+    const body = document.getElementById(colId);
+    hdr.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

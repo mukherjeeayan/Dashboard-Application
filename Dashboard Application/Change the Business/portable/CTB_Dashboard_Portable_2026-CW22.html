@@ -1,0 +1,3150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self';" />
+<title>CTB Portfolio Status Dashboard</title>
+<!-- Fonts: offline-safe system stack — no external CDN calls (security + air-gap compliance) -->
+
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+  --navy-900: #080F1E;
+  --navy-800: #0D1A2E;
+  --navy-700: #112035;
+  --navy-600: #162840;
+  --navy-500: #1D3554;
+  --navy-400: #264669;
+  --navy-300: #3A5F88;
+  --navy-200: #5A82A8;
+  --navy-100: #8AACC8;
+
+  --green-500: #22C55E;
+  --green-400: #4ADE80;
+  --green-900: #052E16;
+  --green-border: rgba(34,197,94,.30);
+
+  --amber-500: #F59E0B;
+  --amber-400: #FBC02D;
+  --amber-900: #451A03;
+  --amber-border: rgba(245,158,11,.30);
+
+  --red-500: #EF4444;
+  --red-400: #F87171;
+  --red-900: #3B0000;
+  --red-800: #7F1D1D;
+  --red-border: rgba(239,68,68,.30);
+
+  --gold-500: #F5C842;
+  --gold-muted: rgba(245,200,66,.08);
+  --gold-border: rgba(245,200,66,.25);
+
+  --blue-400: #60A5FA;
+  --blue-border: rgba(96,165,250,.25);
+  --blue-900: #0D2040;
+
+  --grey-500: #4B5563;
+  --grey-border: rgba(75,85,99,.40);
+
+  --text-primary:   #EFF6FF;
+  --text-secondary: #93B4CF;
+  --text-tertiary:  #4E6E8A;
+
+  --font-sans: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Menlo', 'Monaco', monospace;
+
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+
+  --shadow-panel: 0 4px 24px rgba(0,0,0,.35);
+
+  --green-glow-lg: rgba(34,197,94,.40);
+  --green-glow-md: rgba(34,197,94,.25);
+  --green-glow-sm: rgba(34,197,94,.5);
+  --green-glow-dot: rgba(34,197,94,.6);
+  --amber-glow-lg: rgba(245,158,11,.40);
+  --amber-glow-md: rgba(245,158,11,.25);
+  --amber-glow-sm: rgba(245,158,11,.5);
+  --red-glow-lg:   rgba(239,68,68,.40);
+  --red-glow-md:   rgba(239,68,68,.25);
+  --red-glow-sm:   rgba(239,68,68,.5);
+  --red-pulse-off: rgba(239,68,68,.0);
+  --red-pulse-on:  rgba(239,68,68,.18);
+  --grey-glow-lg:  rgba(75,85,99,.40);
+  --grey-glow-md:  rgba(75,85,99,.25);
+  --grey-glow-sm:  rgba(75,85,99,.5);
+
+  --scrollbar-w: 5px;
+  --panel-pad: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME  (toggled via [data-theme="light"] on <html>)
+═══════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --navy-900: #F0F4F8;
+  --navy-800: #E4EBF3;
+  --navy-700: #FFFFFF;
+  --navy-600: #F3F6FA;
+  --navy-500: #C8D8E8;
+  --navy-400: #A8BDD0;
+  --navy-300: #7094B2;
+  --navy-200: #3A6488;
+  --navy-100: #1D3554;
+
+  --green-900: #DCFCE7;
+  --amber-900: #FEF9C3;
+  --red-900:   #FEE2E2;
+  --red-800:   #FECACA;
+  --blue-900:  #DBEAFE;
+
+  --gold-muted:  rgba(161,107,0,.08);
+  --gold-border: rgba(161,107,0,.30);
+  --gold-500:    #8A6000;
+
+  --text-primary:   #0D1A2E;
+  --text-secondary: #264669;
+  --text-tertiary:  #5A82A8;
+
+  --shadow-panel: 0 2px 10px rgba(0,0,0,.10);
+
+  --green-glow-lg: rgba(34,197,94,.18);
+  --green-glow-md: rgba(34,197,94,.12);
+  --green-glow-sm: rgba(34,197,94,.22);
+  --green-glow-dot: rgba(34,197,94,.35);
+  --amber-glow-lg: rgba(245,158,11,.18);
+  --amber-glow-md: rgba(245,158,11,.12);
+  --amber-glow-sm: rgba(245,158,11,.22);
+  --red-glow-lg:   rgba(239,68,68,.18);
+  --red-glow-md:   rgba(239,68,68,.12);
+  --red-glow-sm:   rgba(239,68,68,.22);
+  --red-pulse-off: rgba(239,68,68,.0);
+  --red-pulse-on:  rgba(239,68,68,.12);
+  --grey-glow-lg:  rgba(75,85,99,.18);
+  --grey-glow-md:  rgba(75,85,99,.12);
+  --grey-glow-sm:  rgba(75,85,99,.22);
+
+  --blue-400: #1D6FAD;
+  --blue-border: rgba(29,111,173,.25);
+  --green-500: #16A34A;
+  --green-400: #15803D;
+  --green-border: rgba(22,163,74,.28);
+  --amber-500: #D97706;
+  --amber-400: #B45309;
+  --amber-border: rgba(217,119,6,.28);
+  --red-500: #DC2626;
+  --red-400: #B91C1C;
+  --red-border: rgba(220,38,38,.28);
+  --grey-500: #6B7280;
+  --grey-border: rgba(107,114,128,.35);
+}
+
+[data-theme="light"] body {
+  background: var(--navy-900);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196,220,240,.6) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 80%,  rgba(180,210,235,.4) 0%, transparent 60%);
+}
+[data-theme="light"] .matrix-table tbody tr:hover { background: rgba(200,220,240,.45); }
+[data-theme="light"] .matrix-table tbody tr { border-bottom-color: rgba(160,188,208,.5); }
+[data-theme="light"] .panel-fade-wrap::after { background: linear-gradient(to bottom, transparent, var(--navy-700)); }
+[data-theme="light"] .help-block code  { background: var(--navy-600); color: var(--green-500); }
+[data-theme="light"] .help-block pre   { background: var(--navy-600); color: var(--green-500); }
+[data-theme="light"] .error-card pre   { background: var(--navy-600); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--navy-400); }
+[data-theme="light"] * { scrollbar-color: var(--navy-400) transparent; }
+[data-theme="light"] .dive-link { background: var(--blue-900); border-color: var(--blue-border); color: var(--blue-400); }
+[data-theme="light"] .dive-link:hover { background: rgba(29,111,173,.15); }
+[data-theme="light"] .milestone-separator::before,
+[data-theme="light"] .milestone-separator::after { background: var(--navy-500); }
+[data-theme="light"] .risk-badge.ESC { background: #FEE2E2; border-color: rgba(220,38,38,.5); color: #B91C1C; }
+[data-theme="light"] .dep-owner-badge.BUSINESS { background: rgba(139,92,246,.10); border-color: rgba(139,92,246,.30); color: #7C3AED; }
+[data-theme="light"] .dep-owner-badge.IT { background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.30); color: #0F766E; }
+[data-theme="light"] .sc-card:hover { border-color: var(--navy-300); }
+
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  min-height: 100vh;
+  background: var(--navy-900);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(22,40,64,.9) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 80%,  rgba(13,32,64,.5) 0%, transparent 60%);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--blue-400); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════════
+   SCROLLBARS (global thin style)
+═══════════════════════════════════════════════════════ */
+::-webkit-scrollbar              { width: var(--scrollbar-w); height: var(--scrollbar-w); }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: var(--navy-400); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--navy-300); }
+* { scrollbar-width: thin; scrollbar-color: var(--navy-400) transparent; }
+
+/* Utility classes to avoid inline styles (CSP compliance) */
+.is-hidden { display: none !important; }
+.is-shown-block { display: block !important; }
+
+/* ═══════════════════════════════════════════════════════
+    ERROR / LOADING STATES
+═══════════════════════════════════════════════════════ */
+#app-shell { display: none; }
+
+#load-screen {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100vh; gap: 16px;
+  font-family: var(--font-mono); color: var(--text-secondary);
+}
+.load-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--navy-500);
+  border-top-color: var(--blue-400);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#error-screen {
+  display: none;
+  max-width: 680px; margin: 60px auto; padding: 0 24px;
+}
+.error-card {
+  background: var(--navy-700);
+  border: 1px solid var(--red-border);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+}
+.error-card h2 {
+  font-size: 15px; font-weight: 700; color: var(--red-400);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.error-card p { color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+.error-card pre {
+  background: var(--navy-900); border: 1px solid var(--navy-400);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--green-500);
+  overflow-x: auto; margin-bottom: 16px;
+}
+.error-card .note {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-tertiary); border-top: 1px solid var(--navy-500);
+  padding-top: 12px; margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PAGE WRAPPER
+═══════════════════════════════════════════════════════ */
+.page {
+  max-width: 1520px;
+  margin: 0 auto;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MASTHEAD
+═══════════════════════════════════════════════════════ */
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 12px;
+  background: var(--navy-700);
+  border: 1px solid var(--navy-500);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+.masthead-brand {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.masthead-title {
+  font-size: 15px; font-weight: 700;
+  letter-spacing: .025em; color: var(--text-primary);
+}
+.masthead-sub {
+  font-family: var(--font-mono); font-size: 9.5px;
+  color: var(--text-tertiary); letter-spacing: .1em; text-transform: uppercase;
+}
+.masthead-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.masthead-pill {
+  font-family: var(--font-mono); font-size: 9.5px;
+  color: var(--text-secondary); letter-spacing: .07em; text-transform: uppercase;
+  border: 1px solid var(--navy-400); border-radius: var(--radius-sm);
+  padding: 4px 12px; background: var(--navy-800);
+}
+.masthead-updated {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-tertiary); letter-spacing: .06em;
+}
+/* Help toggle */
+.help-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--navy-600); border: 1px solid var(--navy-400);
+  color: var(--text-secondary); font-family: var(--font-mono);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.help-btn:hover { background: var(--navy-400); color: var(--text-primary); }
+
+/* ═══════════════════════════════════════════════════════
+   HELP PANEL (collapsible)
+═══════════════════════════════════════════════════════ */
+#help-panel {
+  display: none;
+  background: var(--navy-700);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  animation: slideDown .25s ease;
+}
+#help-panel.open { display: block; }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#help-panel h3 {
+  font-size: 11px; font-weight: 700; font-family: var(--font-mono);
+  color: var(--gold-500); letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.help-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+.help-block h4 {
+  font-size: 9.5px; font-weight: 700; font-family: var(--font-mono);
+  color: var(--text-secondary); letter-spacing: .1em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.help-block p, .help-block li {
+  font-size: 11px; color: var(--text-secondary); line-height: 1.65;
+}
+.help-block ul { padding-left: 0; list-style: none; }
+.help-block li::before { content: "› "; color: var(--text-tertiary); }
+.help-block code {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--green-400); background: var(--navy-900);
+  padding: 1px 5px; border-radius: 3px;
+}
+.help-block pre {
+  background: var(--navy-900); border: 1px solid var(--navy-400);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  font-family: var(--font-mono); font-size: 10px; color: var(--green-400);
+  overflow-x: auto; margin-top: 6px; line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SECTION LABEL
+═══════════════════════════════════════════════════════ */
+.sec-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 4px;
+}
+.sec-badge {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text-tertiary); white-space: nowrap;
+}
+.sec-rule { flex: 1; height: 1px; background: var(--navy-500); }
+
+/* ═══════════════════════════════════════════════════════
+   A — THE PULSE
+═══════════════════════════════════════════════════════ */
+.pulse-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 11px;
+}
+
+/* Global RAG card */
+.global-rag-card {
+  background: var(--navy-700);
+  border: 1px solid var(--navy-500);
+  border-radius: var(--radius-lg);
+  padding: var(--panel-pad) 16px;
+  box-shadow: var(--shadow-panel);
+  display: flex; flex-direction: column; gap: 11px;
+}
+.rag-header {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--text-tertiary);
+}
+.rag-main {
+  display: flex; align-items: center; gap: 12px;
+}
+.rag-orb {
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: box-shadow .3s;
+}
+.rag-orb.GREEN { background: var(--green-500); box-shadow: 0 0 20px var(--green-glow-lg); }
+.rag-orb.AMBER { background: var(--amber-500); box-shadow: 0 0 20px var(--amber-glow-lg); }
+.rag-orb.RED   { background: var(--red-500);   box-shadow: 0 0 20px var(--red-glow-lg); }
+.rag-orb.HOLD  { background: var(--grey-500);  box-shadow: 0 0 20px var(--grey-glow-lg); }
+.rag-value {
+  font-size: 20px; font-weight: 700; line-height: 1;
+}
+.rag-value.GREEN { color: var(--green-500); }
+.rag-value.AMBER { color: var(--amber-500); }
+.rag-value.RED   { color: var(--red-500);   }
+.rag-value.HOLD  { color: var(--grey-500);  }
+.rag-sub { font-size: 10px; color: var(--text-secondary); margin-top: 3px; }
+.rag-counts {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+}
+.count-cell {
+  background: var(--navy-600); border-radius: var(--radius-sm);
+  padding: 5px 4px 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.count-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.count-dot.GREEN { background: var(--green-500); }
+.count-dot.AMBER { background: var(--amber-500); }
+.count-dot.RED   { background: var(--red-500);   }
+.count-dot.HOLD  { background: var(--grey-500);  }
+.count-num {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--text-primary); line-height: 1;
+}
+.count-lbl {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .08em;
+}
+
+/* Scorecard strip */
+.scorecard-panel {
+  background: var(--navy-700);
+  border: 1px solid var(--navy-500);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-panel);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.scorecard-label {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--text-tertiary);
+}
+.scorecard-strip {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.sc-card {
+  flex: 1; min-width: 148px;
+  background: var(--navy-600);
+  border: 1px solid var(--navy-400);
+  border-radius: var(--radius-md);
+  padding: 10px 12px 10px 16px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.sc-card:hover { border-color: var(--navy-300); transform: translateY(-1px); }
+.sc-accent {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 8px 0 0 8px;
+}
+.sc-accent.GREEN { background: var(--green-500); box-shadow: 2px 0 8px var(--green-glow-md); }
+.sc-accent.AMBER { background: var(--amber-500); box-shadow: 2px 0 8px var(--amber-glow-md); }
+.sc-accent.RED   { background: var(--red-500);   box-shadow: 2px 0 8px var(--red-glow-md); }
+.sc-accent.HOLD  { background: var(--grey-500);  box-shadow: 2px 0 8px var(--grey-glow-md); }
+.sc-name  { font-size: 10.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.sc-phase { font-family: var(--font-mono); font-size: 8.5px; color: var(--text-tertiary); margin-bottom: 7px; }
+.sc-dots  { display: flex; gap: 5px; align-items: center; }
+.sc-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sc-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+}
+.sc-dot.GREEN { background: var(--green-500); box-shadow: 0 0 5px var(--green-glow-sm); }
+.sc-dot.AMBER { background: var(--amber-500); box-shadow: 0 0 5px var(--amber-glow-sm); }
+.sc-dot.RED   { background: var(--red-500);   box-shadow: 0 0 5px var(--red-glow-sm); }
+.sc-dot.HOLD  { background: var(--grey-500);  box-shadow: 0 0 5px var(--grey-glow-sm); }
+.sc-dot-lbl {
+  font-family: var(--font-mono); font-size: 6.5px; color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* flag-banner: hidden by default; JS adds .visible to show it */
+.flag-banner { display: none; }
+.flag-banner.visible {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--gold-muted);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-md);
+  padding: 9px var(--panel-pad);
+  font-size: 11.5px; color: var(--gold-500); line-height: 1.5;
+}
+
+/* Named replacements for inline styles (Phase 2) */
+.panel-meta-urgent  { color: var(--red-400); font-weight: 600; }
+.matrix-scroll      { max-height: 272px; overflow-y: auto; }
+.milestones-scroll  { max-height: 220px; overflow-y: auto; }
+.decisions-scroll   { max-height: 220px; overflow-y: auto; }
+.risks-scroll       { max-height: 560px; overflow-y: auto; }
+
+/* Colourblind-safe labels inside dots (Phase 4.3) */
+.rag-dot, .overall-dot, .sc-dot {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.rag-dot::after, .overall-dot::after, .sc-dot::after {
+  content: attr(data-cb);
+  font-family: var(--font-mono); font-weight: 700; line-height: 1;
+  color: rgba(0,0,0,.55); pointer-events: none;
+  position: absolute;
+}
+.rag-dot::after     { font-size: 6px; }
+.overall-dot::after { font-size: 7px; }
+.sc-dot::after      { font-size: 5.5px; }
+
+/* Masthead extras (Phase 3.2 + Phase 4.2) */
+.masthead-owner {
+  font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--text-tertiary); letter-spacing: .08em;
+}
+.masthead-refresh {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--text-tertiary); letter-spacing: .06em;
+  cursor: default;
+}
+.refresh-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--navy-300);
+  flex-shrink: 0;
+}
+.refresh-dot.stale { background: var(--amber-500); }
+
+/* Project complete status (Phase 3.3) */
+.sc-card.status-complete   { opacity: 0.5; }
+.proj-status-badge {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: 7.5px; font-weight: 500;
+  padding: 1px 6px; border-radius: 3px; margin-left: 5px;
+  vertical-align: middle; text-transform: uppercase; letter-spacing: .06em;
+}
+.proj-status-badge.complete { background: var(--green-900); border: 1px solid var(--green-border); color: var(--green-400); }
+.proj-status-badge.hold     { background: var(--navy-600);  border: 1px solid var(--grey-border);  color: var(--text-secondary); }
+.matrix-row-complete td     { opacity: 0.5; }
+
+/* Milestone past/upcoming separator (Phase 4.4) */
+.milestone-separator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px var(--panel-pad);
+  font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .12em;
+}
+.milestone-separator::before,
+.milestone-separator::after {
+  content: ''; flex: 1; height: 1px; background: var(--navy-500);
+}
+
+/* Past milestone dimming (Phase 1) */
+.milestone-item.past { opacity: 0.4; }
+.milestone-item.past .milestone-type { color: var(--text-tertiary) !important; }
+
+.flag-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+.flag-text strong { font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════
+   MAIN LAYOUT GRID
+═══════════════════════════════════════════════════════ */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  grid-template-rows: auto auto;
+  gap: 11px;
+}
+.col-left  { display: flex; flex-direction: column; gap: 11px; }
+.col-right { display: flex; flex-direction: column; gap: 11px; }
+
+/* ═══════════════════════════════════════════════════════
+   PANEL SHELL (shared by all data windows)
+═══════════════════════════════════════════════════════ */
+.panel {
+  background: var(--navy-700);
+  border: 1px solid var(--navy-500);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px var(--panel-pad);
+  background: var(--navy-600);
+  border-bottom: 1px solid var(--navy-500);
+  flex-shrink: 0;
+}
+.panel-head-left {
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-letter {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--navy-400); border: 1px solid var(--navy-300);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  color: var(--text-secondary); flex-shrink: 0;
+}
+.panel-title {
+  font-size: 10.5px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: .02em;
+}
+.panel-meta {
+  font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--text-tertiary); letter-spacing: .08em; text-transform: uppercase;
+}
+
+/* Scrollable body — this is the "slideable window" */
+.panel-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Scroll shadow fade at bottom */
+.panel-fade-wrap {
+  position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-fade-wrap::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, var(--navy-700));
+  pointer-events: none; z-index: 2;
+}
+.panel-scroll-footer {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px var(--panel-pad);
+  background: var(--navy-600);
+  border-top: 1px solid var(--navy-500);
+  font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-tertiary); letter-spacing: .08em; text-transform: uppercase;
+}
+.scroll-arrow { animation: bob .9s ease-in-out infinite; display: inline-block; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(3px); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   B — PROJECT MATRIX TABLE
+═══════════════════════════════════════════════════════ */
+.matrix-table {
+  width: 100%; border-collapse: collapse;
+}
+.matrix-table thead th {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-tertiary);
+  padding: 8px var(--panel-pad); text-align: left;
+  background: var(--navy-600);
+  border-bottom: 1px solid var(--navy-500);
+  position: sticky; top: 0; z-index: 3;
+  white-space: nowrap;
+}
+.matrix-table tbody tr {
+  border-bottom: 1px solid rgba(38,70,105,.5);
+  transition: background .12s;
+}
+.matrix-table tbody tr:last-child { border-bottom: none; }
+.matrix-table tbody tr:hover { background: rgba(29,53,84,.55); }
+.matrix-table tbody td {
+  padding: 9px var(--panel-pad); vertical-align: middle;
+}
+
+.proj-name {
+  font-size: 11.5px; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap;
+}
+.proj-note {
+  font-size: 9.5px; color: var(--text-secondary); margin-top: 2px;
+  max-width: 240px; line-height: 1.4;
+}
+
+.phase-tag {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  padding: 3px 9px; border-radius: var(--radius-sm); text-transform: uppercase;
+  letter-spacing: .06em; white-space: nowrap;
+  background: var(--navy-600); border: 1px solid var(--navy-400);
+  color: var(--navy-100);
+}
+
+.sched-tag {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  padding: 3px 9px; border-radius: var(--radius-sm);
+  white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+}
+.sched-tag.ON-TRACK { background: var(--green-900); border: 1px solid var(--green-border); color: var(--green-400); }
+.sched-tag.AT-RISK  { background: var(--amber-900); border: 1px solid var(--amber-border); color: var(--amber-400); }
+.sched-tag.DELAYED  { background: var(--red-900);   border: 1px solid var(--red-border);   color: var(--red-400); }
+.sched-tag.ON-HOLD  { background: var(--navy-600);  border: 1px solid var(--grey-border);  color: var(--text-secondary); }
+
+.rag-dots-row { display: flex; gap: 6px; align-items: center; }
+.rag-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  position: relative;
+}
+.rag-dot.GREEN { background: var(--green-500); box-shadow: 0 0 5px var(--green-glow-sm); }
+.rag-dot.AMBER { background: var(--amber-500); box-shadow: 0 0 5px var(--amber-glow-sm); }
+.rag-dot.RED   { background: var(--red-500);   box-shadow: 0 0 5px var(--red-glow-sm); }
+.rag-dot.HOLD  { background: var(--grey-500);  box-shadow: 0 0 5px var(--grey-glow-sm); }
+.rag-dot[title] { cursor: default; }
+
+.overall-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+}
+.overall-dot.GREEN { background: var(--green-500); box-shadow: 0 0 8px var(--green-glow-sm); }
+.overall-dot.AMBER { background: var(--amber-500); box-shadow: 0 0 8px var(--amber-glow-sm); }
+.overall-dot.RED   { background: var(--red-500);   box-shadow: 0 0 8px var(--red-glow-sm); }
+.overall-dot.HOLD  { background: var(--grey-500);  box-shadow: 0 0 8px var(--grey-glow-sm); }
+
+.milestone-cell {
+  font-size: 10px; color: var(--text-secondary); max-width: 180px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+.dive-link {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  color: var(--blue-400); text-decoration: none;
+  border: 1px solid var(--blue-border); border-radius: var(--radius-sm);
+  padding: 3px 9px; white-space: nowrap;
+  transition: all .15s; display: inline-block;
+  background: var(--blue-900);
+}
+.dive-link:hover {
+  background: rgba(96,165,250,.12);
+  border-color: rgba(96,165,250,.55);
+  text-decoration: none; color: #93C5FD;
+}
+
+/* ═══════════════════════════════════════════════════════
+   C — RISKS & DEPENDENCIES
+═══════════════════════════════════════════════════════ */
+.risk-item {
+  padding: 12px var(--panel-pad);
+  border-bottom: 1px solid rgba(38,70,105,.45);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.risk-item:last-child { border-bottom: none; }
+
+.risk-badge {
+  font-family: var(--font-mono); font-size: 7.5px; font-weight: 500;
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  text-transform: uppercase; letter-spacing: .1em;
+  white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+}
+.risk-badge.HIGH  { background: var(--red-900);   border: 1px solid var(--red-border);  color: var(--red-400); }
+.risk-badge.MED   { background: var(--amber-900); border: 1px solid var(--amber-border); color: var(--amber-400); }
+.risk-badge.LOW   { background: var(--green-900); border: 1px solid var(--green-border); color: var(--green-400); }
+.risk-badge.DEP   { background: var(--blue-900);  border: 1px solid var(--blue-border);  color: var(--blue-400); }
+.risk-badge.ESC   { background: #300;             border: 1px solid rgba(239,68,68,.5); color: #FF8080; }
+.risk-badge.WATCH { background: rgba(245,200,66,.08); border: 1px solid var(--gold-border); color: var(--gold-500); }
+
+/* DEP owner badge — shown only alongside DEP-level risks */
+.dep-owner-badge {
+  font-family: var(--font-mono); font-size: 7px; font-weight: 600;
+  padding: 2px 7px; border-radius: var(--radius-sm);
+  text-transform: uppercase; letter-spacing: .08em;
+  white-space: nowrap; flex-shrink: 0; margin-top: 3px;
+  display: inline-block;
+}
+.dep-owner-badge.BUSINESS {
+  background: rgba(139,92,246,.15); border: 1px solid rgba(139,92,246,.35); color: #a78bfa;
+}
+.dep-owner-badge.IT {
+  background: rgba(20,184,166,.15); border: 1px solid rgba(20,184,166,.35); color: #2dd4bf;
+}
+.risk-badge-col { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+
+.risk-title { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.risk-desc  { font-size: 10px; color: var(--text-secondary); line-height: 1.5; }
+.risk-tags  { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.risk-tag {
+  font-family: var(--font-mono); font-size: 8px; color: var(--text-tertiary);
+  border: 1px solid var(--navy-400); border-radius: var(--radius-sm); padding: 1px 6px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   D — MILESTONES
+═══════════════════════════════════════════════════════ */
+.milestone-item {
+  padding: 10px var(--panel-pad);
+  border-bottom: 1px solid rgba(38,70,105,.45);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.milestone-item:last-child { border-bottom: none; }
+
+.milestone-date-box {
+  flex-shrink: 0; width: 50px;
+  background: var(--navy-600); border: 1px solid var(--navy-400);
+  border-radius: var(--radius-sm); padding: 5px 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.mdate-day {
+  font-family: var(--font-mono); font-size: 17px; font-weight: 500;
+  color: var(--text-primary); line-height: 1.05;
+}
+.mdate-mon {
+  font-family: var(--font-mono); font-size: 7.5px; color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+
+.milestone-info { flex: 1; }
+.milestone-type {
+  font-family: var(--font-mono); font-size: 8px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .12em; margin-bottom: 3px;
+}
+.milestone-type.REVIEW    { color: var(--amber-400); }
+.milestone-type.GO-NO-GO  { color: var(--red-400);   }
+.milestone-type.MILESTONE { color: var(--blue-400);  }
+.milestone-type.APPROVAL  { color: var(--green-400); }
+.milestone-type.DECISION  { color: var(--gold-500);  }
+.milestone-desc { font-size: 10.5px; color: var(--text-secondary); line-height: 1.45; }
+
+/* ═══════════════════════════════════════════════════════
+   E — EXECUTIVE DECISIONS
+═══════════════════════════════════════════════════════ */
+.decision-item {
+  padding: 12px var(--panel-pad);
+  border-bottom: 1px solid rgba(38,70,105,.45);
+  display: flex; gap: 10px;
+}
+.decision-item:last-child { border-bottom: none; }
+
+.decision-icon { font-size: 18px; flex-shrink: 0; line-height: 1.3; }
+.decision-body { flex: 1; }
+.decision-ask {
+  font-size: 11.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;
+}
+.decision-ctx {
+  font-size: 10px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 7px;
+}
+.decision-due {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  background: var(--red-900); border: 1px solid var(--red-border);
+  color: var(--red-400); border-radius: var(--radius-sm); padding: 3px 9px;
+}
+.decision-due.urgent  { animation: pulse-red 1.8s ease-in-out infinite; }
+.decision-due.overdue {
+  background: var(--red-800); border-color: var(--red-500);
+  color: #FF8080; font-weight: 700; letter-spacing: .04em;
+}
+.decision-project {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  background: var(--blue-900); border: 1px solid var(--blue-border);
+  color: var(--blue-400); border-radius: var(--radius-sm);
+  padding: 3px 9px; margin-left: 6px;
+}
+.decision-footer {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+}
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 var(--red-pulse-off); }
+  50%       { box-shadow: 0 0 0 4px var(--red-pulse-on); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOTTOM ROW (milestones + decisions side by side)
+═══════════════════════════════════════════════════════ */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════════ */
+.fade-up {
+  opacity: 0; transform: translateY(10px);
+  animation: fadeUp .4s ease forwards;
+}
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+.delay-1 { animation-delay: .06s; }
+.delay-2 { animation-delay: .12s; }
+.delay-3 { animation-delay: .18s; }
+.delay-4 { animation-delay: .24s; }
+.delay-5 { animation-delay: .30s; }
+.delay-6 { animation-delay: .36s; }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE TWEAK
+═══════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .col-right { order: 1; }
+}
+@media (max-width: 780px) {
+  .pulse-row  { grid-template-columns: 1fr; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .help-grid  { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   FILTER BAR — instant search + RAG chips
+═══════════════════════════════════════════════════════ */
+.filter-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--navy-700);
+  border: 1px solid var(--navy-500);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+.filter-search-wrap {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--navy-600);
+  border: 1px solid var(--navy-400);
+  border-radius: var(--radius-md);
+  padding: 5px 10px;
+  flex: 1; min-width: 160px; max-width: 300px;
+  transition: border-color .15s;
+}
+.filter-search-wrap:focus-within { border-color: var(--navy-300); }
+.filter-search-icon { font-size: 11px; color: var(--text-tertiary); flex-shrink: 0; }
+.filter-search {
+  background: none; border: none; outline: none;
+  color: var(--text-primary); font-family: var(--font-sans); font-size: 12px;
+  flex: 1; min-width: 0;
+}
+.filter-search::placeholder { color: var(--text-tertiary); }
+.filter-clear {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); font-size: 11px; padding: 0; line-height: 1;
+  display: none;
+  transition: color .15s;
+}
+.filter-clear:hover { color: var(--text-primary); }
+.filter-clear.visible { display: block; }
+.filter-chips { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.filter-chips-label {
+  font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--text-tertiary); letter-spacing: .1em;
+  text-transform: uppercase; white-space: nowrap;
+}
+.filter-chip {
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 500;
+  padding: 4px 11px; border-radius: var(--radius-sm);
+  border: 1px solid var(--navy-400);
+  background: var(--navy-600); color: var(--text-secondary);
+  cursor: pointer; letter-spacing: .06em; text-transform: uppercase;
+  transition: all .15s; white-space: nowrap;
+}
+.filter-chip:hover { border-color: var(--navy-300); color: var(--text-primary); }
+.filter-chip.active { background: var(--navy-400); border-color: var(--navy-300); color: var(--text-primary); }
+.filter-chip.chip-green.active  { background: var(--green-900); border-color: var(--green-border); color: var(--green-400); }
+.filter-chip.chip-amber.active  { background: var(--amber-900); border-color: var(--amber-border); color: var(--amber-400); }
+.filter-chip.chip-red.active    { background: var(--red-900);   border-color: var(--red-border);   color: var(--red-400); }
+.filter-chip.chip-hold.active   { background: var(--navy-500);  border-color: var(--grey-border);  color: var(--text-secondary); }
+.filter-result-count {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-tertiary); letter-spacing: .08em;
+  white-space: nowrap; margin-left: auto;
+}
+.filter-no-results {
+  padding: 20px; text-align: center;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MASTHEAD CONTROLS — theme toggle + export button
+═══════════════════════════════════════════════════════ */
+/* Unified icon button — matches .help-btn geometry */
+.masthead-icon-btn {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--navy-600);
+  border: 1px solid var(--navy-400);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px; line-height: 1;
+  color: var(--text-secondary);
+  transition: background .18s, color .18s, border-color .18s;
+  flex-shrink: 0;
+  padding: 0;
+}
+.masthead-icon-btn:hover {
+  background: var(--navy-400); color: var(--text-primary);
+  border-color: var(--navy-300);
+}
+.masthead-icon-btn:disabled {
+  opacity: .35; cursor: not-allowed;
+}
+.masthead-icon-btn:disabled:hover {
+  background: var(--navy-600); color: var(--text-secondary);
+  border-color: var(--navy-400);
+}
+
+/* Font-size control pair */
+.font-ctrl-group {
+  display: flex; align-items: center; gap: 3px;
+}
+.font-ctrl-group .masthead-icon-btn {
+  font-family: var(--font-sans); font-weight: 600;
+  font-size: 10px; letter-spacing: -.5px;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   PRINT STYLESHEET  — A4 portrait · sections A → B → C → D → E
+   Fix: resets JS-injected zoom/transform inline styles
+       via beforeprint/afterprint in ctb_dashboard.js
+═══════════════════════════════════════════════════════ */
+@media print {
+  @page { size: A4 landscape; margin: 8mm 10mm; }
+
+  /* ── Reset every JS-injected transform so print engine gets a clean root ── */
+  html {
+    zoom: 1 !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    transform-origin: top left !important;
+    width: 100% !important;
+    font-size: 100% !important;
+  }
+
+  /* ── Print colour palette (light, ink-friendly) ── */
+  :root {
+    --navy-900: #FFFFFF;  --navy-800: #F4F7FB;  --navy-700: #FFFFFF;
+    --navy-600: #EDF2F8;  --navy-500: #C9D8E6;  --navy-400: #9EB8CC;
+    --navy-300: #6A91AD;  --navy-200: #3A6488;  --navy-100: #1D3554;
+    --green-900: #DCFCE7; --amber-900: #FEF9C3; --red-900: #FEE2E2;
+    --red-800: #FECACA;   --blue-900: #DBEAFE;
+    --gold-muted: rgba(140,90,0,.07); --gold-border: rgba(161,107,0,.35);
+    --gold-500: #7A5200;
+    --text-primary:   #0B1929;
+    --text-secondary: #234060;
+    --text-tertiary:  #5A7F9A;
+    --shadow-panel: none;
+    --green-glow-lg: rgba(34,197,94,.12);  --green-glow-md: rgba(34,197,94,.08);  --green-glow-sm: rgba(34,197,94,.15);  --green-glow-dot: rgba(34,197,94,.3);
+    --amber-glow-lg: rgba(245,158,11,.12); --amber-glow-md: rgba(245,158,11,.08); --amber-glow-sm: rgba(245,158,11,.15);
+    --red-glow-lg:   rgba(239,68,68,.12);  --red-glow-md:   rgba(239,68,68,.08);  --red-glow-sm:   rgba(239,68,68,.15);
+    --grey-glow-lg:  rgba(75,85,99,.12);   --grey-glow-md:  rgba(75,85,99,.08);   --grey-glow-sm:  rgba(75,85,99,.15);
+    --red-pulse-off: rgba(239,68,68,0);    --red-pulse-on:  rgba(239,68,68,.08);
+    --blue-400: #1D6FAD;  --blue-border: rgba(29,111,173,.22);
+    --green-500: #16A34A; --green-400: #15803D; --green-border: rgba(22,163,74,.25);
+    --amber-500: #D97706; --amber-400: #B45309; --amber-border: rgba(217,119,6,.25);
+    --red-500:   #DC2626; --red-400:   #B91C1C; --red-border:   rgba(220,38,38,.25);
+    --grey-500:  #6B7280; --grey-border: rgba(107,114,128,.30);
+  }
+
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* ── Base ── */
+  body {
+    background: #FFFFFF !important;
+    background-image: none !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    color: #0B1929 !important;
+    margin: 0 !important; padding: 0 !important;
+  }
+
+  /* ── Hide all screen-only chrome ── */
+  #help-panel, #filter-bar, #load-screen, #error-screen,
+  #validation-screen, .help-btn, .masthead-icon-btn,
+  .font-ctrl-group, .masthead-refresh, .dive-link,
+  .panel-scroll-footer, .scroll-arrow, .masthead-owner,
+  .card-strip-wrap { display: none !important; }
+
+  /* ── Page container: flat block ── */
+  .page {
+    display: block !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ════════════════════════════════
+     MASTHEAD
+  ════════════════════════════════ */
+  .masthead {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    padding: 0 0 9px 0 !important;
+    border-bottom: 2.5px solid #1D3554 !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid;
+  }
+  .masthead-brand { display: block !important; }
+  .masthead-right {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 4px !important;
+  }
+  .masthead-title {
+    font-size: 18pt !important;
+    font-weight: 800 !important;
+    color: #0B1929 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -.02em !important;
+  }
+  .masthead-sub {
+    font-size: 10pt !important;
+    color: #5A7F9A !important;
+    margin-top: 3px !important;
+  }
+  .masthead-pill {
+    font-size: 10pt !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    background: #EDF2F8 !important;
+    border: 1px solid #C9D8E6 !important;
+    border-radius: 4px !important;
+    color: #234060 !important;
+    letter-spacing: .04em !important;
+  }
+  .masthead-updated { font-size: 9pt !important; color: #5A7F9A !important; }
+
+  /* ════════════════════════════════
+     A · PULSE ROW
+  ════════════════════════════════ */
+  .pulse-row {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-bottom: 9px !important;
+    page-break-inside: avoid;
+  }
+  .rag-widget {
+    flex-shrink: 0 !important;
+    padding: 9px 14px !important;
+    border: 1px solid #C9D8E6 !important;
+    border-radius: 6px !important;
+    background: #F4F7FB !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+  .rag-orb { width: 50px !important; height: 50px !important; }
+  .rag-value  { font-size: 12pt !important; font-weight: 700 !important; }
+  .rag-sub    { font-size: 8pt !important; text-align: center !important; }
+  .rag-counts { display: flex !important; gap: 12px !important; margin-top: 4px !important; }
+  .count-cell { text-align: center !important; }
+  .count-dot  { width: 9px !important; height: 9px !important; margin: 0 auto 2px !important; }
+  .count-num  { font-size: 12pt !important; font-weight: 700 !important; line-height: 1.1 !important; }
+  .count-lbl  { font-size: 7pt !important; color: #5A7F9A !important; }
+
+  .scorecard-panel {
+    flex: 1 !important;
+    min-width: 0 !important;
+    border: 1px solid #C9D8E6 !important;
+    border-radius: 6px !important;
+    padding: 9px 12px !important;
+    background: #F4F7FB !important;
+  }
+  .scorecard-label {
+    font-size: 7pt !important;
+    font-weight: 700 !important;
+    letter-spacing: .1em !important;
+    text-transform: uppercase !important;
+    color: #5A7F9A !important;
+    margin-bottom: 7px !important;
+  }
+  .scorecard-strip {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 7px !important;
+  }
+  .sc-card {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    width: 130px !important;
+    padding: 7px 9px !important;
+    border: 1px solid #C9D8E6 !important;
+    border-radius: 5px !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    position: relative !important;
+  }
+  .sc-accent {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+    width: 3px !important; height: 100% !important;
+    border-radius: 5px 0 0 5px !important;
+  }
+  .sc-name  { font-size: 8.5pt !important; font-weight: 700 !important; padding-left: 6px !important; line-height: 1.25 !important; }
+  .sc-phase { font-size: 7pt !important; color: #5A7F9A !important; padding-left: 6px !important; margin-top: 2px !important; }
+  .sc-dots  { display: flex !important; gap: 6px !important; margin-top: 6px !important; padding-left: 6px !important; }
+  .sc-dot-wrap { text-align: center !important; }
+  .sc-dot   { width: 9px !important; height: 9px !important; border-radius: 50% !important; }
+  .sc-dot-lbl { font-size: 6pt !important; color: #5A7F9A !important; margin-top: 1px !important; }
+
+  /* ════════════════════════════════
+     FLAG BANNER
+  ════════════════════════════════ */
+  .flag-banner {
+    display: block !important;
+    background: #FFFBEB !important;
+    border: 1px solid #D97706 !important;
+    border-left: 4px solid #D97706 !important;
+    padding: 6px 12px !important;
+    margin-bottom: 9px !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid;
+  }
+  .flag-icon { color: #D97706 !important; font-size: 11pt !important; margin-right: 4px !important; }
+  .flag-text { color: #0B1929 !important; font-size: 9pt !important; line-height: 1.5 !important; }
+
+  /* ════════════════════════════════
+     SECTION BADGES
+  ════════════════════════════════ */
+  .sec-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 5px !important;
+    margin-top: 12px !important;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+  .sec-badge {
+    font-size: 9pt !important;
+    font-weight: 800 !important;
+    letter-spacing: .10em !important;
+    text-transform: uppercase !important;
+    color: #234060 !important;
+    white-space: nowrap !important;
+    background: #EDF2F8 !important;
+    padding: 2px 8px !important;
+    border-radius: 3px !important;
+  }
+  .sec-rule {
+    flex: 1 !important;
+    height: 1px !important;
+    background: #C9D8E6 !important;
+  }
+
+  /* ════════════════════════════════
+     SECTION ORDER: A → B → C → D → E
+     col-left (B, bottom-row [C+D]) renders first as block,
+     then col-right (E) renders below it
+  ════════════════════════════════ */
+  .main-grid {
+    display: block !important;
+    width: 100% !important;
+  }
+  .col-left  { display: block !important; width: 100% !important; }
+  .col-right { display: block !important; width: 100% !important; }
+
+  /* C + D: two-column grid, side by side */
+  .bottom-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    align-items: start !important;
+  }
+  .bottom-row > * { min-width: 0 !important; }
+
+  /* ════════════════════════════════
+     PANEL BASE
+  ════════════════════════════════ */
+  .panel {
+    box-shadow: none !important;
+    border: 1px solid #C9D8E6 !important;
+    border-radius: 6px !important;
+    overflow: visible !important;
+    height: auto !important;
+    margin-bottom: 10px !important;
+    background: #FFFFFF !important;
+    page-break-inside: avoid;
+  }
+  .panel-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 7px 12px !important;
+    border-bottom: 1px solid #C9D8E6 !important;
+    background: #EDF2F8 !important;
+    border-radius: 5px 5px 0 0 !important;
+  }
+  .panel-head-left { display: flex !important; align-items: center !important; gap: 8px !important; }
+  .panel-letter {
+    font-size: 10pt !important; font-weight: 800 !important;
+    color: #234060 !important;
+  }
+  .panel-title  { font-size: 12pt !important; font-weight: 700 !important; color: #0B1929 !important; }
+  .panel-meta   { font-size: 7.5pt !important; color: #5A7F9A !important; font-weight: 600 !important; }
+
+  /* Unlock scrollable panels */
+  .matrix-scroll, .milestones-scroll, .decisions-scroll,
+  .risks-scroll, .panel-scroll {
+    max-height: none !important; height: auto !important; overflow: visible !important;
+  }
+  .panel-fade-wrap {
+    overflow: visible !important; height: auto !important; max-height: none !important;
+  }
+  .panel-fade-wrap::after { display: none !important; }
+
+  /* ════════════════════════════════
+     B · PROJECT MATRIX
+  ════════════════════════════════ */
+  .matrix-table { width: 100% !important; border-collapse: collapse !important; }
+  .matrix-table th {
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    padding: 5px 8px !important;
+    background: #EDF2F8 !important;
+    color: #234060 !important;
+    border-bottom: 1.5px solid #9EB8CC !important;
+    text-align: left !important;
+    letter-spacing: .04em !important;
+  }
+  .matrix-table td {
+    font-size: 11pt !important;
+    padding: 7px 8px !important;
+    vertical-align: top !important;
+    border-bottom: 1px solid #DDE8F0 !important;
+  }
+  .matrix-table tbody tr:hover { background: transparent !important; }
+  #matrix-no-results { display: none !important; }
+
+  .proj-name  { font-size: 11pt !important; font-weight: 700 !important; line-height: 1.25 !important; }
+  .proj-note  { font-size: 9pt !important; color: #5A7F9A !important; margin-top: 2px !important; line-height: 1.4 !important; }
+  .proj-name-cell { min-width: 120px !important; }
+  .phase-tag  { font-size: 7.5pt !important; padding: 2px 6px !important; border-radius: 3px !important; }
+  .sched-tag  { font-size: 7.5pt !important; padding: 2px 6px !important; }
+  .rag-dots-row { display: flex !important; gap: 5px !important; }
+  .rag-dot    { width: 10px !important; height: 10px !important; }
+  .overall-dot { width: 13px !important; height: 13px !important; }
+  .milestone-cell { font-size: 8.5pt !important; }
+
+  /* ════════════════════════════════
+     C · MILESTONES
+  ════════════════════════════════ */
+  .milestone-item {
+    display: flex !important;
+    gap: 10px !important;
+    padding: 6px 12px !important;
+    border-bottom: 1px solid #EDF2F8 !important;
+    page-break-inside: avoid;
+    align-items: flex-start !important;
+  }
+  .milestone-item.past { opacity: .6 !important; }
+  .milestone-date-box {
+    flex-shrink: 0 !important;
+    width: 34px !important;
+    text-align: center !important;
+    padding-top: 1px !important;
+  }
+  .mdate-day { font-size: 13pt !important; font-weight: 800 !important; line-height: 1 !important; color: #1D3554 !important; }
+  .mdate-mon { font-size: 6.5pt !important; font-weight: 600 !important; color: #5A7F9A !important; letter-spacing: .05em !important; }
+  .milestone-info { flex: 1 !important; min-width: 0 !important; }
+  .milestone-type { font-size: 7pt !important; font-weight: 700 !important; letter-spacing: .07em !important; margin-bottom: 2px !important; }
+  .milestone-desc { font-size: 11pt !important; line-height: 1.4 !important; }
+  .milestone-separator {
+    font-size: 7pt !important;
+    font-weight: 700 !important;
+    color: #5A7F9A !important;
+    letter-spacing: .1em !important;
+    text-transform: uppercase !important;
+    padding: 5px 12px 3px !important;
+    display: block !important;
+    border-bottom: 1px solid #EDF2F8 !important;
+  }
+
+  /* ════════════════════════════════
+     D · DECISIONS
+  ════════════════════════════════ */
+  .decision-item {
+    display: flex !important;
+    gap: 8px !important;
+    padding: 7px 12px !important;
+    border-bottom: 1px solid #EDF2F8 !important;
+    page-break-inside: avoid;
+    align-items: flex-start !important;
+  }
+  .decision-icon { font-size: 13pt !important; flex-shrink: 0 !important; line-height: 1 !important; }
+  .decision-body { flex: 1 !important; min-width: 0 !important; }
+  .decision-ask  { font-size: 11pt !important; font-weight: 700 !important; line-height: 1.3 !important; }
+  .decision-ctx  { font-size: 10pt !important; color: #5A7F9A !important; margin-top: 3px !important; line-height: 1.45 !important; }
+  .decision-footer { display: flex !important; align-items: center !important; gap: 8px !important; margin-top: 5px !important; flex-wrap: wrap !important; }
+  .decision-due   { font-size: 8pt !important; font-weight: 600 !important; }
+  .decision-project { font-size: 7.5pt !important; }
+  .panel-meta-urgent { color: var(--red-500) !important; }
+
+  /* ════════════════════════════════
+     E · RISKS & DEPENDENCIES
+  ════════════════════════════════ */
+  .risk-item {
+    display: flex !important;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #EDF2F8 !important;
+    page-break-inside: avoid;
+    align-items: flex-start !important;
+  }
+  .risk-badge-col { flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; gap: 4px !important; align-items: center !important; }
+  .risk-badge { font-size: 7.5pt !important; padding: 2px 7px !important; font-weight: 800 !important; letter-spacing: .06em !important; }
+  .dep-owner-badge { font-size: 7pt !important; padding: 1px 5px !important; }
+  .risk-body  { flex: 1 !important; min-width: 0 !important; }
+  .risk-title { font-size: 11pt !important; font-weight: 700 !important; line-height: 1.3 !important; }
+  .risk-desc  { font-size: 10pt !important; color: #5A7F9A !important; margin-top: 3px !important; line-height: 1.45 !important; }
+  .risk-tags  { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 5px !important; }
+  .risk-tag   { font-size: 7.5pt !important; padding: 1px 6px !important; }
+
+  /* ════════════════════════════════
+     MISC
+  ════════════════════════════════ */
+  ::-webkit-scrollbar { display: none !important; }
+  .proj-status-badge { font-size: 7pt !important; padding: 1px 5px !important; }
+}
+
+</style>
+<script>
+  window.__CTB_DATA__ = {
+  "$schema": "./ctb_data.schema.json",
+  "_instructions": {
+    "howToUpdate": "Edit only this file. The dashboard (public/dashboard.html) reads it automatically on load.",
+    "ragValues": "Use exactly: GREEN | AMBER | RED | HOLD (case-insensitive). Applied to rag.schedule, rag.budget, rag.scope, rag.quality, and rag.overall. GREEN=On Track, AMBER=At Risk, RED=Off Track, HOLD=On Hold. HOLD projects are excluded from the global RAG calculation.",
+    "ragOverallVsScheduleStatus": "These are TWO DIFFERENT fields controlling TWO DIFFERENT columns. rag.overall = the coloured dot in the Overall RAG column; it also drives the global portfolio health indicator and all pulse counts. scheduleStatus = the text pill in the Schedule column (shown alongside scheduleVariance, e.g. '+2d AT RISK'). A project can be AT RISK on schedule yet GREEN overall if budget and scope are healthy — so both fields must be set independently.",
+    "scheduleStatusValues": "Use exactly: ON TRACK | AT RISK | DELAYED | ON HOLD. Controls only the Schedule column pill — does NOT affect global RAG or pulse counts.",
+    "phaseValues": "Use exactly: DISCOVER | PREPARE | EXPLORE | REALIZE | DEPLOY | RUN (case-insensitive)",
+    "subPhaseValues": "DISCOVER: 'Solution exploration' | 'Trial & prototyping' | 'Value & roadmap definition'. PREPARE: 'Project initiation' | 'Team enablement' | 'System provisioning' | 'Scoping & planning'. EXPLORE: 'Fit-to-standard workshops' | 'Fit-gap analysis' | 'Requirements gathering'. REALIZE: 'Solution configuration' | 'Development & extensions' | 'Sprint cycles' | 'Testing (SIT/UAT)' | 'Data migration setup'. DEPLOY: 'Cutover planning' | 'Dress rehearsals' | 'End-user training' | 'Go-live execution'. RUN: 'Hypercare support' | 'System monitoring' | 'Continuous improvement'",
+    "projectStatusNote": "OPTIONAL — do not add this field unless a project is complete. When omitted, the dashboard auto-infers the status: rag.overall=HOLD → shown as On Hold; everything else → active. The only value you ever need to set manually is 'complete', which dims the row and scorecard card to indicate the project has finished.",
+    "milestoneTypeValues": "Use exactly: REVIEW | GO/NO-GO | MILESTONE | APPROVAL | DECISION",
+    "riskLevelValues": "Use exactly: HIGH | MED | LOW | DEP | ESC | WATCH",
+    "decisionProjectId": "Each decision MUST have a projectId matching the id of one of the projects in the projects array. This links the ask to its project and displays a project tag on the dashboard.",
+    "IMPORTANT": "The dashboard AUTO-COMPUTES the global RAG, summary counts, and portfolio health from rag.overall on each project — not from scheduleStatus. You only need to manually set keyFlag in the pulse section, and projectId on each decision."
+  },
+  "meta": {
+    "reportTitle": "SAP CRM · Change-the-Business Portfolio",
+    "period": "May 2026 / CW20",
+    "reportDate": "2026-05-15",
+    "lastUpdated": "2026-05-15T09:00:00",
+    "confidentiality": "IT Leadership · Confidential-Internal review only",
+    "portfolioOwner": "SAP CRM Team"
+  },
+  "pulse": {
+    "keyFlag": "GPIC approval for AssetCare and E-invoicing complete. Kickoff initiated on 21st May 2026"
+  },
+  "projects": [
+    {
+      "id": "einvoicing",
+      "name": "E-Invoicing OFR",
+      "phase": "EXPLORE",
+      "subPhase": "Fit-to-standard workshops",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Kickoff on 21st May 2026",
+      "comment": "GPIC Gate 3 approval complete. Kickoff meeting on 21st May 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/einvoicing",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "mercoline",
+      "name": "OSTE Mercoline OFR",
+      "phase": "EXPLORE",
+      "subPhase": "Fit-gap analysis",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Go Live — 3rd June 2026",
+      "comment": "Business to start testing. Go live planned on 3rd June 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/mercoline",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "assetcare",
+      "name": "Asset Care",
+      "phase": "EXPLORE",
+      "subPhase": "Requirements gathering",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "GREEN",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "GREEN"
+      },
+      "nextMilestone": "Kickoff - 21st May 2026",
+      "comment": "US creation complete. Kickoff planned on 21st May 2026",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/assetcare",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "cdsrepair",
+      "name": "CDS After Repair",
+      "phase": "REALIZE",
+      "subPhase": "Testing (SIT/UAT)",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "AMBER",
+        "budget": "GREEN",
+        "scope": "AMBER",
+        "quality": "GREEN",
+        "overall": "AMBER"
+      },
+      "nextMilestone": "TBD",
+      "comment": "Handed to business for testing. New requirements may be added.",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/cdsrepair",
+      "deepDiveLabel": "Teams"
+    },
+    {
+      "id": "loaner",
+      "name": "Loaner Improvement",
+      "phase": "REALIZE",
+      "subPhase": "Development & extensions",
+      "scheduleVariance": "+0d",
+      "scheduleStatus": "ON TRACK",
+      "rag": {
+        "schedule": "AMBER",
+        "budget": "GREEN",
+        "scope": "GREEN",
+        "quality": "GREEN",
+        "overall": "AMBER"
+      },
+      "nextMilestone": "SIT Start — 15 Jun 2026",
+      "comment": "Fixed budget. Production deployment planned 30 Jun 2026.",
+      "deepDiveUrl": "https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/loaner",
+      "deepDiveLabel": "Teams"
+    }
+  ],
+  "risks": [
+    {
+      "level": "DEP",
+      "title": "Loaner Improvement — CPI & ACE Dev Dependency",
+      "description": "RFAC0225044 Like-for-Like Assignment is blocked on CPI and ACE development completion before SIT/UAT entry gate. Cross-team coordination with two external squads required.",
+      "affectedProjects": [
+        "loaner"
+      ],
+      "depOwner": "BUSINESS"
+    },
+    {
+      "level": "WATCH",
+      "title": "Testing feedback(UAT) from business pending and probable scope addition",
+      "description": "UAT feedback will decide on the go live date of the project and there may be some additional requirement which needs to be confirmed.",
+      "affectedProjects": [
+        "cdsrepair"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "date": "2026-07-10",
+      "type": "MILESTONE",
+      "description": "Development end date for AssetCare project"
+    },
+    {
+      "date": "2026-06-03",
+      "type": "MILESTONE",
+      "description": "Mercoline OFR business go-live"
+    },
+    {
+      "date": "2026-08-07",
+      "type": "MILESTONE",
+      "description": "End of UAT for AssetCare project"
+    },
+    {
+      "date": "2026-09-15",
+      "type": "MILESTONE",
+      "description": "Business go-live for AssetCare project"
+    },
+    {
+      "date": "2026-05-21",
+      "type": "MILESTONE",
+      "description": "Kick-off for AssetCare project"
+    },
+    {
+      "date": "2026-05-21",
+      "type": "MILESTONE",
+      "description": "E-invoicing-OFR project kickoff"
+    },
+    {
+      "date": "2026-09-01",
+      "type": "MILESTONE",
+      "description": "Business go-live for E-invoicing OFR"
+    },
+    {
+      "date": "2026-06-12",
+      "type": "MILESTONE",
+      "description": "Loaner Improvement — 3 RFAC development completion checkpoint."
+    }
+  ],
+  "decisions": [
+    {
+      "icon": "📌",
+      "ask": "Dependency with Infocus CCC Integration project",
+      "context": "Technical dependency with the Infocus CCC Integration project needs to be sorted out from ACE perspective",
+      "dueDate": "2026-05-29",
+      "dueDateLabel": "Due 29 May 2026",
+      "projectId": "loaner"
+    },
+    {
+      "icon": "✅",
+      "ask": "Legal text for Like-to-Like devices required from business for ACE Interact portal",
+      "context": "Business to provide legal text to ACE developers to complete development for US ACE-7093",
+      "dueDate": "2026-05-29",
+      "dueDateLabel": "Due 29 May 2026",
+      "projectId": "loaner"
+    },
+    {
+      "icon": "🔗",
+      "ask": "Confirm CPI & ACE Resource Allocation — Loaner Improvement",
+      "context": "Executive alignment needed to secure cross-team capacity for Loaner Improvement SIT/UAT entry gate in mid-June.",
+      "dueDate": "2026-06-10",
+      "dueDateLabel": "Due 10 Jun 2026",
+      "projectId": "loaner"
+    }
+  ]
+};
+</script>
+</head>
+<body>
+
+<!-- LOADING STATE -->
+<div id="load-screen">
+  <div class="load-spinner"></div>
+  <span>Loading portfolio data…</span>
+</div>
+
+<!-- ERROR STATE -->
+<div id="error-screen">
+  <div class="error-card">
+    <h2>⚠ Cannot Load Data File</h2>
+    <p>
+      Browsers block local file access for security. You need to serve these files
+      over a local web server. Choose <em>any one</em> of the methods below — they're all one-liners:
+    </p>
+
+    <p><strong>Python (built-in, no install needed):</strong></p>
+    <pre>cd /path/to/your/dashboard/folder
+python -m http.server 8080</pre>
+
+    <p><strong>Node.js (npx, no install needed):</strong></p>
+    <pre>cd /path/to/your/dashboard/folder
+npx serve .</pre>
+
+    <p><strong>VS Code:</strong><br />
+    Install the <em>Live Server</em> extension → right-click <code>dashboard.html</code> from the <code>public/</code> folder → <em>Open with Live Server</em>.</p>
+
+    <p>Then open <strong>http://localhost:8080/dashboard.html</strong> (or whatever port is shown).</p>
+    <div class="note" id="error-detail"></div>
+  </div>
+</div>
+
+<!-- VALIDATION SCREEN (shown when data has errors or warnings) -->
+<div id="validation-screen" class="is-hidden" style="padding:40px; max-width:800px; margin:60px auto; font-family:inherit;">
+  <div id="val-wrap"></div>
+</div>
+
+<!-- MAIN APP SHELL (hidden until data loads) -->
+<div id="app-shell">
+<div class="page">
+
+  <!-- ══ MASTHEAD ══ -->
+  <div class="masthead fade-up">
+    <div class="masthead-brand">
+      <div class="masthead-title" id="meta-title">—</div>
+      <div class="masthead-sub" id="meta-sub">—</div>
+    </div>
+    <div class="masthead-right">
+      <div class="masthead-owner" id="meta-owner"></div>
+      <div class="masthead-pill" id="meta-period">—</div>
+      <div class="masthead-updated" id="meta-updated">—</div>
+      <div class="masthead-refresh" id="refresh-indicator" title="Data snapshot — auto-checks every 5 min">
+        <div class="refresh-dot" id="refresh-dot"></div>
+        <span id="refresh-label">LOADED</span>
+      </div>
+      <button class="masthead-icon-btn" id="export-btn" title="Print / Export to PDF" aria-label="Print or export to PDF">⎙</button>
+      <button class="masthead-icon-btn" id="theme-toggle" title="Toggle dark / light theme" aria-label="Toggle dark / light theme"><span id="theme-icon">☀</span></button>
+      <div class="font-ctrl-group" aria-label="Adjust font size">
+        <button class="masthead-icon-btn" id="font-decrease" title="Decrease font size" aria-label="Decrease font size">A−</button>
+        <button class="masthead-icon-btn" id="font-increase" title="Increase font size" aria-label="Increase font size">A+</button>
+      </div>
+      <button class="help-btn" id="help-toggle"
+        aria-label="How to update this dashboard"
+        aria-expanded="false"
+        title="How to update this dashboard">?</button>
+    </div>
+  </div>
+
+  <!-- ══ HELP PANEL (populated at render time from ctb_data.json _instructions) ══ -->
+  <div id="help-panel"></div>
+
+  <!-- ══ A · THE PULSE ══ -->
+  <div class="sec-row fade-up delay-1">
+    <span class="sec-badge">A · The Pulse — Portfolio Delivery Health</span>
+    <span class="sec-rule"></span>
+  </div>
+
+  <div class="pulse-row fade-up delay-1">
+    <div class="global-rag-card">
+      <div class="rag-header">Global Portfolio RAG</div>
+      <div class="rag-main">
+        <div class="rag-orb GREEN" id="rag-orb"></div>
+        <div>
+          <div class="rag-value GREEN" id="rag-value">—</div>
+          <div class="rag-sub" id="rag-sub">—</div>
+        </div>
+      </div>
+      <div class="rag-counts" id="rag-counts"></div>
+    </div>
+
+    <div class="scorecard-panel">
+      <div class="scorecard-label">Individual Project Delivery Scorecards</div>
+      <div class="scorecard-strip" id="scorecard-strip"></div>
+    </div>
+  </div>
+
+  <div class="flag-banner fade-up delay-2" id="flag-banner">
+    <span class="flag-icon">⚑</span>
+    <span class="flag-text"><strong>KEY FLAG:</strong>&nbsp;<span id="flag-text"></span></span>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid fade-up delay-3">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-left">
+
+      <!-- B · PROJECT MATRIX -->
+      <div class="sec-row">
+        <span class="sec-badge">B · Active Project Portfolio — Compare at a Glance</span>
+        <span class="sec-rule"></span>
+      </div>
+
+      <!-- FILTER BAR — search + RAG quick-filter chips -->
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-search-wrap">
+          <span class="filter-search-icon">⌕</span>
+          <input type="text" id="filter-search" class="filter-search"
+            placeholder="Search by name, phase or comment…"
+            autocomplete="off" spellcheck="false"
+            aria-label="Search projects" />
+          <button class="filter-clear" id="filter-clear" title="Clear search" aria-label="Clear search">✕</button>
+        </div>
+        <span class="filter-chips-label">Filter:</span>
+        <div class="filter-chips" id="filter-chips" role="group" aria-label="Filter by RAG status">
+          <button class="filter-chip active" data-rag="ALL"   aria-pressed="true">All</button>
+          <button class="filter-chip chip-green" data-rag="GREEN" aria-pressed="false">● Green</button>
+          <button class="filter-chip chip-amber" data-rag="AMBER" aria-pressed="false">● Amber</button>
+          <button class="filter-chip chip-red"   data-rag="RED"   aria-pressed="false">● Red</button>
+          <button class="filter-chip chip-hold"  data-rag="HOLD"  aria-pressed="false">● Hold</button>
+        </div>
+        <span class="filter-result-count" id="filter-result-count" aria-live="polite"></span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-head-left">
+            <div class="panel-letter">B</div>
+            <div class="panel-title">Project Matrix</div>
+          </div>
+          <div class="panel-meta" id="matrix-count">— workstreams</div>
+        </div>
+        <div class="panel-fade-wrap">
+          <div class="panel-scroll matrix-scroll" id="matrix-scroll">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th>Project / Initiative</th>
+                  <th>Phase</th>
+                  <th>Schedule</th>
+                  <th title="Schedule · Budget · Scope · Quality">SCH · BDG · SCP · QLT</th>
+                  <th>RAG</th>
+                  <th>Next Milestone</th>
+                  <th>Deep Dive</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-body"></tbody>
+            </table>
+            <div class="filter-no-results" id="matrix-no-results">No projects match your filter.</div>
+          </div>
+        </div>
+        <div class="panel-scroll-footer">
+          <span class="scroll-arrow">▾</span> Scroll to see all projects
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="bottom-row">
+
+        <!-- C · MILESTONES (was D — relabelled to match visual reading order) -->
+        <div>
+          <div class="sec-row">
+            <span class="sec-badge">C · Upcoming Milestones</span>
+            <span class="sec-rule"></span>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-head-left">
+                <div class="panel-letter">C</div>
+                <div class="panel-title">Milestones</div>
+              </div>
+              <div class="panel-meta" id="milestone-count">—</div>
+            </div>
+            <div class="panel-fade-wrap">
+              <div class="panel-scroll milestones-scroll">
+                <div id="milestones-body"></div>
+              </div>
+            </div>
+            <div class="panel-scroll-footer">
+              <span class="scroll-arrow">▾</span> Chronological order
+            </div>
+          </div>
+        </div>
+
+        <!-- D · DECISIONS (was E — relabelled to match visual reading order) -->
+        <div>
+          <div class="sec-row">
+            <span class="sec-badge">D · Executive Decisions / C-Suite Asks</span>
+            <span class="sec-rule"></span>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-head-left">
+                <div class="panel-letter">D</div>
+                <div class="panel-title">Decisions Required</div>
+              </div>
+              <div class="panel-meta panel-meta-urgent" id="decisions-action-label"></div>
+            </div>
+            <div class="panel-fade-wrap">
+              <div class="panel-scroll decisions-scroll">
+                <div id="decisions-body"></div>
+              </div>
+            </div>
+            <div class="panel-scroll-footer">
+              <span class="scroll-arrow">▾</span> Scroll for all asks
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /bottom-row -->
+
+    </div><!-- /col-left -->
+
+    <!-- RIGHT COLUMN — E · RISKS (was C — relabelled to match visual reading order) -->
+    <div class="col-right">
+      <div class="sec-row">
+        <span class="sec-badge">E · Cross-Project Risks &amp; Dependencies</span>
+        <span class="sec-rule"></span>
+      </div>
+      <div class="panel" style="flex:1">
+        <div class="panel-head">
+          <div class="panel-head-left">
+            <div class="panel-letter">E</div>
+            <div class="panel-title">Risks &amp; Dependencies</div>
+          </div>
+          <div class="panel-meta" id="risk-count">—</div>
+        </div>
+        <div class="panel-fade-wrap panel-fill">
+          <div class="panel-scroll risks-scroll" id="risk-scroll">
+            <div id="risks-body"></div>
+          </div>
+        </div>
+        <div class="panel-scroll-footer">
+          <span class="scroll-arrow">▾</span> Scroll for all risks
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+</div><!-- /page -->
+</div><!-- /app-shell -->
+
+
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   SHARED UTILITIES — used by CTB and RTB dashboards
+   Single source of truth: edit here, not in individual JS files.
+═══════════════════════════════════════════════════════ */
+
+/* Sanitise text — escapes all 5 HTML special chars incl. " and ' */
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* Allow only http:// and https:// — blocks javascript:, data:, vbscript:, and bare paths */
+function safeUrl(url) {
+  const s = String(url ?? '').trim();
+  return /^https?:\/\//i.test(s) ? s : '#';
+}
+
+/* Days between today (midnight) and an ISO date string */
+function daysUntil(iso) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const due = new Date(iso + 'T00:00:00');
+  return Math.ceil((due - now) / 86400000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+
+/* Normalize and validate RAG values (case-insensitive, HOLD supported) */
+function normalizeRag(val) {
+  if (!val) return 'AMBER';
+  const v = String(val).trim().toUpperCase();
+  const valid = ['GREEN','AMBER','RED','HOLD'];
+  if (valid.includes(v)) return v;
+  console.warn(`⚠ Invalid RAG value: "${val}" — defaulting to AMBER`);
+  return 'AMBER';
+}
+
+/* colourblind letter for a RAG value */
+const cbLabel = { GREEN:'G', AMBER:'A', RED:'R', HOLD:'H' };
+
+/* Resolve projectStatus: explicit field takes priority, else infer from rag.overall */
+function projectStatus(p) {
+  const s = String(p.projectStatus ?? '').toLowerCase();
+  if (['active','hold','complete'].includes(s)) return s;
+  const rag = normalizeRag(p.rag?.overall);
+  if (rag === 'HOLD') return 'hold';
+  return 'active';
+}
+
+/* ═══════════════════════════════════════════════════════
+   COMPUTE PULSE — driven by rag.overall, not scheduleStatus
+═══════════════════════════════════════════════════════ */
+function computePulse(projects) {
+  const ragPriority = { RED:3, AMBER:2, GREEN:1, HOLD:0 };
+  let onTrack=0, atRisk=0, offTrack=0, onHold=0;
+  let worstRag='GREEN', worstPriority=0;
+
+  projects.forEach(p => {
+    const overall = normalizeRag(p.rag?.overall);
+    if      (overall==='GREEN') onTrack++;
+    else if (overall==='AMBER') atRisk++;
+    else if (overall==='RED')   offTrack++;
+    else if (overall==='HOLD')  onHold++;
+
+    if (overall !== 'HOLD') {
+      const pri = ragPriority[overall] ?? 1;
+      if (pri > worstPriority) { worstPriority=pri; worstRag=overall; }
+    }
+  });
+
+  const total       = projects.length;
+  const activeTotal = onTrack + atRisk + offTrack;
+  let summary = '';
+  if (offTrack > 0) {
+    summary = `${offTrack} Project${offTrack!==1?'s':''} Off Track`;
+    if (onHold > 0) summary += ` · ${onHold} On Hold`;
+  } else if (atRisk > 0) {
+    summary = `${onTrack} of ${activeTotal} Active On Track · ${atRisk} At Risk`;
+    if (onHold > 0) summary += ` · ${onHold} On Hold`;
+  } else if (onHold > 0) {
+    summary = `${onTrack} Active On Track · ${onHold} On Hold`;
+  } else {
+    summary = `${total} of ${total} Projects On Track`;
+  }
+
+  return { globalRag:worstRag, ragSummary:summary, counts:{onTrack,atRisk,offTrack,onHold} };
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATE HELPERS
+═══════════════════════════════════════════════════════ */
+function parseDate(iso) {
+  const d   = new Date(iso + 'T00:00:00');
+  const day = d.getDate().toString();
+  const mon = d.toLocaleString('en-GB',{month:'short'}).toUpperCase()
+              + ' ' + String(d.getFullYear()).slice(2);
+  return { day, mon };
+}
+
+function fmtUpdated(iso) {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return 'Invalid date';
+    return 'Updated ' + d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+           + ' · ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  } catch { return 'Invalid date'; }
+}
+
+function fmtRefreshTime() {
+  return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — META  (Phase 3.2: portfolioOwner now rendered)
+═══════════════════════════════════════════════════════ */
+function renderMeta(meta) {
+  $('meta-title').textContent   = meta.reportTitle      ?? 'CTB Portfolio Status';
+  $('meta-sub').textContent     = meta.confidentiality  ?? '';
+  $('meta-period').textContent  = meta.period           ?? '';
+  $('meta-updated').textContent = meta.lastUpdated ? fmtUpdated(meta.lastUpdated) : '';
+  document.title = meta.reportTitle ?? 'CTB Dashboard';
+
+  // Phase 3.2 — render portfolioOwner in masthead
+  const ownerEl = $('meta-owner');
+  if (ownerEl) ownerEl.textContent = meta.portfolioOwner ? `Owner: ${meta.portfolioOwner}` : '';
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — PULSE
+   Phase 1: flag-banner shown via .visible class (no inline style)
+═══════════════════════════════════════════════════════ */
+function renderPulse(pulse) {
+  const rag = (pulse.globalRag ?? 'GREEN').toUpperCase();
+  const orbEl = $('rag-orb');
+  if (!orbEl) return;
+  orbEl.className = 'rag-orb';
+  orbEl.classList.add(rag);
+  const ragValEl = $('rag-value');
+  ragValEl.className = 'rag-value';
+  ragValEl.classList.add(rag);
+  ragValEl.textContent = rag;
+  $('rag-sub').textContent   = pulse.ragSummary ?? '';
+
+  const c = pulse.counts ?? {};
+  const counts = [
+    { dot:'GREEN', num:c.onTrack ??0, lbl:'On Track'  },
+    { dot:'AMBER', num:c.atRisk  ??0, lbl:'At Risk'   },
+    { dot:'RED',   num:c.offTrack??0, lbl:'Off Track' },
+    { dot:'HOLD',  num:c.onHold  ??0, lbl:'On Hold'   },
+  ];
+  $('rag-counts').innerHTML = counts.map(x => `
+    <div class="count-cell">
+      <div class="count-dot ${x.dot}"></div>
+      <div class="count-num">${x.num}</div>
+      <div class="count-lbl">${esc(x.lbl)}</div>
+    </div>`).join('');
+
+  // Phase 2.1 — .visible class toggles the banner; no inline style
+  const banner = $('flag-banner');
+  if (pulse.keyFlag) {
+    banner.classList.add('visible');
+    $('flag-text').textContent = pulse.keyFlag;
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — SCORECARD
+   Phase 3.3: projectStatus field; complete projects dimmed
+   Phase 4.3: colourblind data-cb labels on dots
+═══════════════════════════════════════════════════════ */
+function buildCardHtml(p) {
+  const overall = normalizeRag(p.rag?.overall ?? 'GREEN');
+  const status  = projectStatus(p);
+  const dots = [
+    { lbl:'SCH', val:normalizeRag(p.rag?.schedule) },
+    { lbl:'BDG', val:normalizeRag(p.rag?.budget)   },
+    { lbl:'SCP', val:normalizeRag(p.rag?.scope)     },
+    { lbl:'QLT', val:normalizeRag(p.rag?.quality)   },
+  ];
+  const statusBadge = status !== 'active'
+    ? `<span class="proj-status-badge ${status}">${status.toUpperCase()}</span>` : '';
+  return `
+    <div class="sc-card${status==='complete' ? ' status-complete' : ''}"
+      data-name="${esc(p.name)}"
+      data-rag="${overall}"
+      data-phase="${esc(p.phase ?? '')}">
+      <div class="sc-accent ${overall}"></div>
+      <div class="sc-name">${esc(p.name)}${statusBadge}</div>
+      <div class="sc-phase">${esc(p.phase)}${p.subPhase ? ' · ' + esc(p.subPhase) : ''}</div>
+      <div class="sc-dots">
+        ${dots.map(d => `
+          <div class="sc-dot-wrap" title="${d.lbl}">
+            <div class="sc-dot ${d.val}" data-cb="${cbLabel[d.val]??''}"></div>
+            <div class="sc-dot-lbl">${d.lbl}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderScorecard(projects) {
+  const strip = $('scorecard-strip');
+  if (!strip) return;
+  strip.innerHTML = projects.map(buildCardHtml).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — MATRIX
+   Phase 2.8: workstream count respects hold split
+   Phase 3.1: affectedProjects resolved by id → name
+   Phase 3.3: complete rows dimmed
+   Phase 4.3: colourblind data-cb on rag-dot and overall-dot
+   Phase 2 fix: safeUrl for deepDiveUrl; normalizeRag replaces ragClass
+═══════════════════════════════════════════════════════ */
+function renderMatrix(projects) {
+  const holdCount   = projects.filter(p => normalizeRag(p.rag?.overall)==='HOLD').length;
+  let countLabel    = `${projects.length} WORKSTREAM${projects.length!==1?'S':''}`;
+  if (holdCount > 0) countLabel += ` · ${holdCount} ON HOLD`;
+  const mc = $('matrix-count');
+  if (mc) mc.textContent = countLabel;
+
+  const mb = $('matrix-body');
+  if (mb) mb.innerHTML = projects.map(buildProjectRow).join('');
+}
+
+function statusKey(s) {
+  if (!s) return 'ON-TRACK';
+  const u = s.toUpperCase().replace(/\s+/g,'-');
+  return (u==='ON-HOLD'||u==='HOLD') ? 'ON-HOLD' : u;
+}
+
+function buildProjectRow(p) {
+  const sk      = statusKey(p.scheduleStatus);
+  const overall = normalizeRag(p.rag?.overall ?? 'GREEN');
+  const status  = projectStatus(p);
+  const dots    = ['schedule','budget','scope','quality'].map(k => {
+    const v = normalizeRag(p.rag?.[k] ?? 'GREEN');
+    return `<div class="rag-dot ${v}" title="${k.charAt(0).toUpperCase()+k.slice(1)}" data-cb="${cbLabel[v]??''}"></div>`;
+  }).join('');
+
+  return `<tr class="${status==='complete' ? 'matrix-row-complete' : ''}"
+    data-name="${esc(p.name)}"
+    data-rag="${overall}"
+    data-phase="${esc(p.phase ?? '')}"
+    data-comment="${esc(p.comment ?? '')}">
+    <td class="proj-name-cell">
+      <div class="proj-name">${esc(p.name)}${status!=='active'?`<span class="proj-status-badge ${status}">${status.toUpperCase()}</span>`:''}</div>
+      <div class="proj-note">${esc(p.comment)}</div>
+    </td>
+    <td><span class="phase-tag">${esc(p.phase)}${p.subPhase ? ' · ' + esc(p.subPhase) : ''}</span></td>
+    <td>
+      <span class="sched-tag ${sk}">
+        ${esc(p.scheduleVariance??'')} ${esc(p.scheduleStatus??'')}
+      </span>
+    </td>
+    <td><div class="rag-dots-row">${dots}</div></td>
+    <td><div class="overall-dot ${overall}" data-cb="${cbLabel[overall]??''}"></div></td>
+    <td><span class="milestone-cell" title="${esc(p.nextMilestone)}">${esc(p.nextMilestone)}</span></td>
+    <td><a class="dive-link" href="${safeUrl(p.deepDiveUrl??'#')}" target="_blank" rel="noopener" aria-label="Open deep dive for ${esc(p.name)}">↗ ${esc(p.deepDiveLabel ?? 'Open')}</a></td>
+  </tr>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — RISKS
+   affectedProjects: supports both project id and project name (backward compat)
+   Validator now warns when names are used instead of ids.
+═══════════════════════════════════════════════════════ */
+function buildRiskItemHtml(r, projectsById, projectsByName) {
+  const level = (r.level??'MED').toUpperCase();
+  const affected = (r.affectedProjects??[]).map(ref => {
+    const proj = projectsById[ref] ?? (projectsByName ?? {})[ref] ?? null;
+    const name = proj?.name ?? ref;
+    return `<span class="risk-tag">${esc(name)}</span>`;
+  }).join('');
+  const depOwner = level === 'DEP' && r.depOwner
+    ? String(r.depOwner).toUpperCase()
+    : null;
+  const depOwnerBadge = depOwner
+    ? `<div class="dep-owner-badge ${depOwner}" title="Dependency owned by: ${depOwner}">${depOwner}</div>`
+    : '';
+  return `
+    <div class="risk-item">
+      <div class="risk-badge-col">
+        <div class="risk-badge ${level}">${level}</div>${depOwnerBadge}
+      </div>
+      <div class="risk-body">
+        <div class="risk-title">${esc(r.title)}</div>
+        <div class="risk-desc">${esc(r.description)}</div>
+        ${affected ? `<div class="risk-tags">${affected}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderRisks(risks, projectsById) {
+  const rc = $('risk-count');
+  if (rc) rc.textContent = risks.length + ' ITEM' + (risks.length !== 1 ? 'S' : '');
+  const severityOrder = { HIGH:1, ESC:2, MED:3, DEP:4, WATCH:5, LOW:6 };
+  const sorted = [...risks].sort((a,b) =>
+    (severityOrder[(a.level??'MED').toUpperCase()]??99) -
+    (severityOrder[(b.level??'MED').toUpperCase()]??99));
+
+  const projectsByName = {};
+  Object.values(projectsById).forEach(p => { if (p.name) projectsByName[p.name] = p; });
+
+  const rb = $('risks-body');
+  if (rb) rb.innerHTML = sorted.map(r => buildRiskItemHtml(r, projectsById, projectsByName)).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — MILESTONES
+   Phase 1/4.4: past vs upcoming separator; count header = future only
+═══════════════════════════════════════════════════════ */
+function buildMilestoneItemHtml(m, isPast) {
+  const pd        = parseDate(m.date);
+  const tc        = milestoneTypeClass(m.type);
+  const typeLabel = (isPast ? 'PASSED · ' : '') + esc(m.type ?? '').toUpperCase();
+  return `
+    <div class="milestone-item${isPast ? ' past' : ''}">
+      <div class="milestone-date-box">
+        <div class="mdate-day">${esc(pd.day)}</div>
+        <div class="mdate-mon">${esc(pd.mon)}</div>
+      </div>
+      <div class="milestone-info">
+        <div class="milestone-type ${tc}">${typeLabel}</div>
+        <div class="milestone-desc">${esc(m.description)}</div>
+      </div>
+    </div>`;
+}
+
+function milestoneTypeClass(t) {
+  const map = { 'REVIEW':'REVIEW','GO/NO-GO':'GO-NO-GO','MILESTONE':'MILESTONE',
+                'APPROVAL':'APPROVAL','DECISION':'DECISION' };
+  return map[(t??'').toUpperCase()] ?? 'MILESTONE';
+}
+
+function renderMilestones(milestones) {
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const parsed = milestones.map(m => ({
+    m,
+    dt: m.date ? new Date(m.date + 'T00:00:00') : null
+  })).sort((a, b) => (a.m.date ?? '').localeCompare(b.m.date ?? ''));
+
+  const past     = parsed.filter(x => x.dt && x.dt < today);
+  const upcoming = parsed.filter(x => !x.dt || x.dt >= today);
+
+  const mc = $('milestone-count');
+  if (mc) mc.textContent = upcoming.length + ' UPCOMING';
+
+  const upcomingHtml = upcoming.map(x => buildMilestoneItemHtml(x.m, false)).join('');
+  const pastHtml     = past.map(x => buildMilestoneItemHtml(x.m, true)).join('');
+
+  let html;
+  if (upcoming.length > 0 && past.length > 0) {
+    html = `<div class="milestone-separator">Upcoming</div>${upcomingHtml}`
+         + `<div class="milestone-separator">Past</div>${pastHtml}`;
+  } else if (upcoming.length > 0) {
+    html = upcomingHtml;
+  } else {
+    html = `<div class="milestone-separator">Past</div>${pastHtml}`;
+  }
+
+  const mb = $('milestones-body');
+  if (mb) mb.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — DECISIONS
+   Phase 4.5: sorted by urgency — overdue first, then soonest
+   Phase 1: overdue visual treatment distinct from urgent
+═══════════════════════════════════════════════════════ */
+function renderDecisions(decisions, projectsById) {
+  projectsById = projectsById ?? {};
+  // Sort: overdue (most overdue first) → urgent ≤7d → normal (soonest first) → no date last
+  const sorted = [...decisions].sort((a,b) => {
+    const da = a.dueDate ? daysUntil(a.dueDate) : 9999;
+    const db = b.dueDate ? daysUntil(b.dueDate) : 9999;
+    return da - db;
+  });
+
+  // Update action label: only show when there are decisions, urgent/overdue items get red text
+  const actionLabel = $('decisions-action-label');
+  if (actionLabel) {
+    if (sorted.length === 0) {
+      actionLabel.textContent = '';
+    } else {
+      const hasUrgent = sorted.some(d => {
+        const days = d.dueDate ? daysUntil(d.dueDate) : null;
+        return days !== null && days <= 7;
+      });
+      actionLabel.textContent = hasUrgent ? 'ACTION REQUIRED' : sorted.length + ' ITEM' + (sorted.length !== 1 ? 'S' : '');
+      if (hasUrgent) actionLabel.classList.add('panel-meta-urgent');
+      else           actionLabel.classList.remove('panel-meta-urgent');
+    }
+  }
+
+  const db = $('decisions-body');
+  if (db) db.innerHTML = sorted.map(d => buildDecisionItemHtml(d, projectsById)).join('');
+}
+
+function buildDecisionItemHtml(d, projectsById) {
+  const days      = d.dueDate ? daysUntil(d.dueDate) : null;
+  const isOverdue = days !== null && days < 0;
+  const isUrgent  = days !== null && days >= 0 && days <= 7;
+  const dueClass  = isOverdue ? ' overdue' : (isUrgent ? ' urgent' : '');
+  const dueIcon   = isOverdue ? '⚠' : '⚡';
+  const prefix    = isOverdue ? 'OVERDUE · ' : '';
+  const proj      = d.projectId ? (projectsById[d.projectId] ?? null) : null;
+  const projTag   = proj
+    ? `<span class="decision-project">🗂 ${esc(proj.name)}</span>`
+    : '';
+  return `
+    <div class="decision-item">
+      <div class="decision-icon">${esc(d.icon??'📌')}</div>
+      <div class="decision-body">
+        <div class="decision-ask">${esc(d.ask)}</div>
+        <div class="decision-ctx">${esc(d.context)}</div>
+        <div class="decision-footer">
+          <div class="decision-due${dueClass}">
+            ${dueIcon} ${prefix}${esc(d.dueDateLabel??d.dueDate??'')}
+          </div>${projTag}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATA VALIDATION CONSTANTS — module scope so they are
+   not reallocated on every 60-second refresh cycle
+═══════════════════════════════════════════════════════ */
+const VALID_RAG      = ['GREEN','AMBER','RED','HOLD'];
+const VALID_SCHED    = ['ON TRACK','AT RISK','DELAYED','ON HOLD'];
+const VALID_PROJ_ST  = ['active','hold','complete'];
+const VALID_RISK_LVL = ['HIGH','ESC','MED','DEP','WATCH','LOW'];
+const VALID_MS_TYPE  = ['REVIEW','GO/NO-GO','MILESTONE','APPROVAL','DECISION'];
+const VAL_DATE_RE    = /^\d{4}-\d{2}-\d{2}$/;
+const isValidDate    = s => VAL_DATE_RE.test(s) && !isNaN(new Date(s+'T00:00:00').getTime());
+const VALID_PHASES   = ['DISCOVER','PREPARE','EXPLORE','REALIZE','DEPLOY','RUN'];
+const VALID_SUBPHASES = {
+  DISCOVER: ['Solution exploration','Trial & prototyping','Value & roadmap definition'],
+  PREPARE:  ['Project initiation','Team enablement','System provisioning','Scoping & planning'],
+  EXPLORE:  ['Fit-to-standard workshops','Fit-gap analysis','Requirements gathering'],
+  REALIZE:  ['Solution configuration','Development & extensions','Sprint cycles','Testing (SIT/UAT)','Data migration setup'],
+  DEPLOY:   ['Cutover planning','Dress rehearsals','End-user training','Go-live execution'],
+  RUN:      ['Hypercare support','System monitoring','Continuous improvement'],
+};
+
+/* ═══════════════════════════════════════════════════════
+   DATA VALIDATION ENGINE  (Phase 3.5)
+   Runs after JSON parse, before any rendering.
+   Returns { errors:[], warnings:[] }
+═══════════════════════════════════════════════════════ */
+function validateData(data) {
+  const errors=[], warnings=[];
+  const issue = (type,section,item,msg,fix) =>
+    (type==='error'?errors:warnings).push({type,section,item,msg,fix});
+
+  /* META */
+  const meta = data.meta ?? {};
+  if (!String(meta.reportTitle??'').trim())
+    issue('error','Report Header',null,'The report title is missing.',
+      'Add <code>"reportTitle"</code> in the <code>"meta"</code> section.');
+  if (!String(meta.period??'').trim())
+    issue('warning','Report Header',null,'Reporting period is not set — the header pill will be blank.',
+      'Set <code>"period"</code>, e.g. <code>"period": "May 2026 / CW20"</code>');
+  if (meta.lastUpdated && isNaN(new Date(meta.lastUpdated).getTime()))
+    issue('warning','Report Header',null,`"lastUpdated" value "${meta.lastUpdated}" is not a valid date.`,
+      'Use ISO 8601 format: <code>"lastUpdated": "2026-05-15T09:00:00"</code>');
+
+  /* PROJECTS */
+  const projects = data.projects;
+  if (!Array.isArray(projects)||projects.length===0) {
+    issue('error','Projects',null,'There are no projects — the Projects section is empty.',
+      'Add at least one project object to the <code>"projects"</code> array.');
+  } else {
+    const seenIds = {};
+    projects.forEach((p,i) => {
+      const label = p.name ? `"${p.name}"` : `#${i+1}`;
+      const ctx   = `Project ${label}`;
+      if (p.id) {
+        if (seenIds[p.id]) issue('error','Projects',ctx,
+          `Two projects share the ID: "${p.id}". Every project must have a unique ID.`,
+          `Change one of the duplicate <code>"id"</code> values.`);
+        seenIds[p.id] = true;
+      } else {
+        issue('error','Projects',ctx,'This project is missing a unique ID.',
+          `Add an <code>"id"</code> field, e.g. <code>"id": "einvoicing"</code>`);
+      }
+      if (!String(p.name??'').trim())
+        issue('error','Projects',`Project #${i+1}`,'This project has no name.',
+          `Add a <code>"name"</code> field.`);
+      if (!p.scheduleStatus)
+        issue('warning','Projects',ctx,'Schedule Status is not set — pill will be blank.',
+          `Add <code>"scheduleStatus"</code>. Allowed: <code>ON TRACK · AT RISK · DELAYED · ON HOLD</code>`);
+      else if (!VALID_SCHED.includes(String(p.scheduleStatus).toUpperCase()))
+        issue('error','Projects',ctx,`Schedule Status has unrecognised value: "${p.scheduleStatus}".`,
+          `Use one of: <code>ON TRACK · AT RISK · DELAYED · ON HOLD</code>`);
+      if (p.projectStatus && !VALID_PROJ_ST.includes(String(p.projectStatus).toLowerCase()))
+        issue('warning','Projects',ctx,`projectStatus has unrecognised value: "${p.projectStatus}".`,
+          `Use one of: <code>active · hold · complete</code>`);
+      if (!p.rag?.overall)
+        issue('error','Projects',ctx,'Overall RAG is missing — scorecard and global health indicator will be wrong.',
+          `Add <code>"overall"</code> inside <code>"rag"</code>. Values: <code>GREEN · AMBER · RED · HOLD</code>`);
+      else if (!VALID_RAG.includes(String(p.rag.overall).toUpperCase()))
+        issue('error','Projects',ctx,`Overall RAG has unrecognised value: "${p.rag.overall}".`,
+          `Use: <code>GREEN · AMBER · RED · HOLD</code>`);
+      ['schedule','budget','scope','quality'].forEach(k => {
+        const v=p.rag?.[k];
+        if (!v) issue('warning','Projects',ctx,`${k.charAt(0).toUpperCase()+k.slice(1)} RAG dot is missing — will default to Amber.`,
+          `Add <code>"${k}"</code> inside <code>"rag"</code>. Values: <code>GREEN · AMBER · RED · HOLD</code>`);
+        else if (!VALID_RAG.includes(String(v).toUpperCase()))
+          issue('error','Projects',ctx,`${k} RAG has unrecognised value: "${v}".`,
+            `Use: <code>GREEN · AMBER · RED · HOLD</code>`);
+      });
+      if (p.deepDiveUrl && !/^https?:\/\//i.test(String(p.deepDiveUrl).trim()))
+        issue('warning','Projects',ctx,`M365 link doesn't look like a valid URL.`,
+          `Make sure <code>"deepDiveUrl"</code> starts with <code>https://</code>`);
+
+      // Phase validation
+      if (!p.phase)
+        issue('error','Projects',ctx,'Phase is missing.',
+          `Add <code>"phase"</code>. Allowed: <code>DISCOVER · PREPARE · EXPLORE · REALIZE · DEPLOY · RUN</code>`);
+      else if (!VALID_PHASES.includes(String(p.phase).toUpperCase()))
+        issue('error','Projects',ctx,`Phase has unrecognised value: "${p.phase}".`,
+          `Use one of: <code>DISCOVER · PREPARE · EXPLORE · REALIZE · DEPLOY · RUN</code>`);
+
+      // Sub-phase validation
+      if (!p.subPhase) {
+        issue('warning','Projects',ctx,'Sub-phase is not set — only the phase will be shown.',
+          `Add <code>"subPhase"</code> matching the allowed values for the project's phase.`);
+      } else {
+        const phaseKey = String(p.phase??'').toUpperCase();
+        const allowed  = VALID_SUBPHASES[phaseKey] ?? [];
+        if (allowed.length > 0 && !allowed.includes(p.subPhase))
+          issue('error','Projects',ctx,`Sub-phase "${p.subPhase}" is not valid for phase "${p.phase}".`,
+            `Allowed sub-phases for ${phaseKey}: <code>${allowed.join(' · ')}</code>`);
+      }
+    });
+  }
+
+  /* RISKS */
+  const projectIdSet   = new Set((data.projects??[]).map(p=>p.id).filter(Boolean));
+  const projectNameSet = new Set((data.projects??[]).map(p=>p.name).filter(Boolean));
+  (data.risks??[]).forEach((r,i) => {
+    const ctx = r.title ? `"${r.title}"` : `Risk #${i+1}`;
+    if (!String(r.title??'').trim())
+      issue('error','Risks & Dependencies',`Risk #${i+1}`,'This risk has no title.',
+        'Add a <code>"title"</code> field.');
+    if (!r.level)
+      issue('error','Risks & Dependencies',ctx,'Severity level is missing.',
+        `Add <code>"level"</code>. Values: <code>HIGH · ESC · MED · DEP · WATCH · LOW</code>`);
+    else if (!VALID_RISK_LVL.includes(String(r.level).toUpperCase()))
+      issue('error','Risks & Dependencies',ctx,`Severity has unrecognised value: "${r.level}".`,
+        `Use: <code>HIGH · ESC · MED · DEP · WATCH · LOW</code>`);
+    // depOwner validation — only meaningful when level is DEP
+    if (r.depOwner) {
+      const dov = String(r.depOwner).toUpperCase();
+      if (!['BUSINESS','IT'].includes(dov))
+        issue('error','Risks & Dependencies',ctx,
+          `depOwner has unrecognised value: "${r.depOwner}". Must be BUSINESS or IT.`,
+          `Set <code>"depOwner"</code> to <code>"BUSINESS"</code> or <code>"IT"</code>, or remove it entirely.`);
+      if (String(r.level??'').toUpperCase() !== 'DEP')
+        issue('warning','Risks & Dependencies',ctx,
+          `depOwner is set but this risk's level is not DEP — the owner badge will not be shown.`,
+          `Either change the level to <code>DEP</code> or remove the <code>depOwner</code> field.`);
+    }
+    if (!String(r.description??'').trim())
+      issue('warning','Risks & Dependencies',ctx,'No description — only the title will show.',
+        'Add a <code>"description"</code> field.');
+    // Warn if affectedProjects uses names instead of ids — names break silently on rename
+    (r.affectedProjects??[]).forEach(ref => {
+      if (ref && !projectIdSet.has(ref)) {
+        if (projectNameSet.has(ref)) {
+          issue('warning','Risks & Dependencies',ctx,
+            `affectedProjects uses project name "${ref}" instead of its id. If the project is renamed, this link will break silently.`,
+            `Replace "${ref}" with the project's <code>id</code> value. Project ids: <code>${[...projectIdSet].join(' · ')}</code>`);
+        } else {
+          issue('error','Risks & Dependencies',ctx,
+            `affectedProjects entry "${ref}" does not match any project id or name.`,
+            `Use a project id: <code>${[...projectIdSet].join(' · ')}</code>`);
+        }
+      }
+    });
+  });
+
+  /* MILESTONES */
+  (data.milestones??[]).forEach((m,i) => {
+    const ctx = m.description ? `"${m.description.slice(0,40)}"` : `Milestone #${i+1}`;
+    if (!m.date)
+      issue('error','Milestones',ctx,'No date — this milestone cannot appear on the timeline.',
+        `Add <code>"date"</code> in YYYY-MM-DD format.`);
+    else if (!isValidDate(m.date))
+      issue('error','Milestones',ctx,`Date "${m.date}" is invalid or wrongly formatted.`,
+        `Use YYYY-MM-DD format, e.g. <code>"date": "2026-06-15"</code>`);
+    if (!m.type)
+      issue('warning','Milestones',ctx,'No type — will show as a generic MILESTONE badge.',
+        `Add <code>"type"</code>. Values: <code>MILESTONE · REVIEW · GO/NO-GO · APPROVAL · DECISION</code>`);
+    else if (!VALID_MS_TYPE.includes(String(m.type).toUpperCase()))
+      issue('error','Milestones',ctx,`Type has unrecognised value: "${m.type}".`,
+        `Use: <code>MILESTONE · REVIEW · GO/NO-GO · APPROVAL · DECISION</code>`);
+    if (!String(m.description??'').trim())
+      issue('warning','Milestones',ctx,'No description — timeline entry will be blank.',
+        'Add a <code>"description"</code> field.');
+  });
+
+  /* DECISIONS */
+  const projectIds = [...projectIdSet];
+  (data.decisions??[]).forEach((d,i) => {
+    const ctx = d.ask ? `"${d.ask.slice(0,40)}"` : `Ask #${i+1}`;
+    if (!String(d.ask??'').trim())
+      issue('error','Executive Asks',`Ask #${i+1}`,'This executive ask has no title.',
+        'Add an <code>"ask"</code> field.');
+    if (!String(d.context??'').trim())
+      issue('warning','Executive Asks',ctx,'No context — only the title will show.',
+        'Add a <code>"context"</code> field.');
+    if (d.dueDate && !isValidDate(d.dueDate))
+      issue('error','Executive Asks',ctx,`Due date "${d.dueDate}" is invalid — urgency indicator won't work.`,
+        `Use YYYY-MM-DD format, e.g. <code>"dueDate": "2026-06-15"</code>`);
+    if (!d.projectId)
+      issue('warning','Executive Asks',ctx,'No project linked — this ask will not show a project tag.',
+        `Add <code>"projectId"</code> with one of the project IDs: <code>${projectIds.join(' · ')}</code>`);
+    else if (!projectIds.includes(d.projectId))
+      issue('error','Executive Asks',ctx,`projectId "${d.projectId}" does not match any project.`,
+        `Use one of: <code>${projectIds.join(' · ')}</code>`);
+  });
+
+  return { errors, warnings };
+}
+
+/* ═══════════════════════════════════════════════════════
+   VALIDATION SCREEN RENDERER
+═══════════════════════════════════════════════════════ */
+function showValidationScreen(errors, warnings, proceedCallback) {
+  const hasErrors = errors.length > 0;
+  const all       = [...errors, ...warnings];
+  const sections  = {};
+  all.forEach(i => { if(!sections[i.section]) sections[i.section]=[]; sections[i.section].push(i); });
+
+  const issueCard = i => `
+    <div class="val-issue ${i.type}">
+      <div class="val-issue-icon">${i.type==='error'?'✕':'⚠'}</div>
+      <div class="val-issue-body">
+        <div class="val-issue-meta">
+          <span class="val-issue-section">${esc(i.section)}</span>
+          ${i.item?`<span class="val-issue-item">${esc(i.item)}</span>`:''}
+        </div>
+        <div class="val-issue-msg">${esc(i.msg)}</div>
+        <div class="val-issue-fix">💡 <strong>How to fix:</strong> ${i.fix}</div>
+      </div>
+    </div>`;
+
+  const sectionBlocks = Object.entries(sections).map(([sec,issues])=>`
+    <div>
+      <div class="val-section-heading">${sec} — ${issues.length} issue${issues.length!==1?'s':''}</div>
+      <div class="val-issue-list">${issues.map(issueCard).join('')}</div>
+    </div>`).join('');
+
+  const chips = [
+    errors.length   ? `<span class="val-chip errors">${errors.length} Error${errors.length!==1?'s':''}</span>` : '',
+    warnings.length ? `<span class="val-chip warnings">${warnings.length} Warning${warnings.length!==1?'s':''}</span>` : '',
+  ].join('');
+
+  const intro = hasErrors
+    ? `The dashboard <strong>cannot load</strong> until the errors below are fixed. Open <code>data/ctb_data.json</code> in any text editor, apply the fixes, save, then refresh this page (<strong>F5</strong>).`
+    : `The dashboard can still load, but some information may be incomplete. Review the warnings when you have a moment. Open <code>data/ctb_data.json</code>, apply fixes, save, then refresh (<strong>F5</strong>).`;
+
+  $('val-wrap').innerHTML = `
+    <div class="val-header">
+      <div class="val-title ${hasErrors?'has-errors':'has-warnings-only'}">
+        ${hasErrors?`⚠ ${errors.length} error${errors.length!==1?'s':''} need fixing before the dashboard can load`
+                   :`⚠ Dashboard loaded with ${warnings.length} warning${warnings.length!==1?'s':''}`}
+      </div>
+      <div class="val-chips">${chips}</div>
+    </div>
+    <div class="val-intro">${intro}</div>
+    ${sectionBlocks}
+    <div class="val-actions">
+      ${!hasErrors?`<button class="val-btn primary" id="val-load-anyway">Load Dashboard Anyway →</button>`:''}
+      <button class="val-btn secondary" id="val-reload">↺ Reload After Fixing</button>
+      <span class="val-note">${hasErrors?'All errors must be fixed before the dashboard will display.':'Warnings do not prevent the dashboard from loading. Errors do.'}</span>
+    </div>`;
+
+  $('load-screen').classList.add('is-hidden');
+  $('validation-screen').classList.remove('is-hidden');
+  $('validation-screen').classList.add('is-shown-block');
+
+  const btn = $('val-load-anyway');
+  if (btn) btn.addEventListener('click', () => {
+    $('validation-screen').classList.add('is-hidden');
+    proceedCallback();
+    updateRefreshIndicator(true, null);
+  });
+  const reloadBtn = $('val-reload');
+  if (reloadBtn) reloadBtn.addEventListener('click', () => location.reload());
+}
+
+/* ═══════════════════════════════════════════════════════
+   HELP PANEL — generated at render time from _instructions block
+   Single source of truth: edit allowed values only in ctb_data.json
+═══════════════════════════════════════════════════════ */
+function renderHelpPanel(inst) {
+  const panel = $('help-panel');
+  if (!panel) return;
+  if (!inst) { panel.innerHTML = ''; return; }
+
+  const escH = esc;
+  const subPhaseText = (inst.subPhaseValues ?? '').replace(/\. /g, '.\n');
+
+  panel.innerHTML = `
+    <h3>📋 How to Update This Dashboard</h3>
+    <div class="help-grid">
+
+      <div class="help-block">
+        <h4>Quick Start</h4>
+        <ul>
+          <li>Open <code>public/ctb_editor.html</code> in a browser for a guided form-based editor</li>
+          <li>Or open <code>data/ctb_data.json</code> directly in any text editor and edit values — do NOT change key names</li>
+          <li>Save, then refresh the dashboard (F5)</li>
+          <li>Double-click <code>Launcher.bat</code> to serve locally (requires Python 3)</li>
+          <li>Never touch <code>public/dashboard.html</code></li>
+          <li>Full docs: <code>docs/README.md</code></li>
+        </ul>
+      </div>
+
+      <div class="help-block">
+        <h4>Allowed Values</h4>
+        <ul>
+          <li><strong>RAG</strong>: ${escH(inst.ragValues ?? 'GREEN | AMBER | RED | HOLD')}</li>
+          <li><strong>scheduleStatus</strong>: ${escH(inst.scheduleStatusValues ?? 'ON TRACK | AT RISK | DELAYED | ON HOLD')}</li>
+          <li><strong>Phase</strong>: ${escH(inst.phaseValues ?? 'DISCOVER | PREPARE | EXPLORE | REALIZE | DEPLOY | RUN')}</li>
+          <li><strong>Risk level</strong>: ${escH(inst.riskLevelValues ?? 'HIGH | MED | LOW | DEP | ESC | WATCH')}</li>
+          <li><strong>Milestone type</strong>: ${escH(inst.milestoneTypeValues ?? 'REVIEW | GO/NO-GO | MILESTONE | APPROVAL | DECISION')}</li>
+          <li><strong>decision projectId</strong>: ${escH(inst.decisionProjectId ?? 'Must match an existing project id')}</li>
+        </ul>
+        ${inst.ragOverallVsScheduleStatus ? `
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">${escH(inst.ragOverallVsScheduleStatus)}</p>` : ''}
+        ${inst.projectStatusNote ? `
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">${escH(inst.projectStatusNote)}</p>` : ''}
+      </div>
+
+      <div class="help-block">
+        <h4>Sub-Phases by Phase</h4>
+        <p style="font-size:11px;color:var(--text-secondary);white-space:pre-wrap;">${escH(subPhaseText)}</p>
+      </div>
+
+      <div class="help-block">
+        <h4>Adding a New Project</h4>
+        <p>Append a new object to the <code>projects</code> array:</p>
+        <pre>${escH(`{
+  "id": "myproject",
+  "name": "My New Project",
+  "phase": "EXPLORE",
+  "subPhase": "Fit-gap analysis",
+  "scheduleVariance": "+2d",
+  "scheduleStatus": "AT RISK",
+  "rag": {
+    "schedule": "AMBER",
+    "budget":   "GREEN",
+    "scope":    "GREEN",
+    "quality":  "GREEN",
+    "overall":  "AMBER"
+  },
+  "nextMilestone": "UAT — 1 Jul 2026",
+  "comment": "Short status note.",
+  "deepDiveLabel": "M365"
+}`)}</pre>
+      </div>
+
+      <div class="help-block">
+        <h4>Adding a Risk</h4>
+        <p>Append to the <code>risks</code> array:</p>
+        <pre>${escH(`{
+  "level": "DEP",
+  "depOwner": "BUSINESS",
+  "title": "Risk short title",
+  "description": "Full description.",
+  "affectedProjects": ["project-id"]
+}`)}</pre>
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">Use project <code>id</code> (not name) in <code>affectedProjects</code>.</p>
+      </div>
+
+      <div class="help-block">
+        <h4>Adding a Milestone</h4>
+        <pre>${escH(`{
+  "date": "2026-07-01",
+  "type": "MILESTONE",
+  "description": "Description."
+}`)}</pre>
+      </div>
+
+      <div class="help-block">
+        <h4>Adding an Executive Ask</h4>
+        <pre>${escH(`{
+  "icon": "🔐",
+  "ask": "Short action headline",
+  "context": "Why this matters.",
+  "projectId": "einvoicing",
+  "dueDate": "2026-06-15",
+  "dueDateLabel": "Due 15 Jun 2026"
+}`)}</pre>
+      </div>
+
+    </div>
+    ${inst.IMPORTANT ? `
+    <div class="help-block" style="margin-top:14px;padding:10px 14px;background:var(--gold-muted);border:1px solid var(--gold-border);border-radius:var(--radius-sm);">
+      <p style="font-size:11px;color:var(--gold-500);line-height:1.6;">💡 <strong>Important:</strong> ${escH(inst.IMPORTANT)}</p>
+    </div>` : ''}`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER ALL  (called from loadDashboard and "Load Anyway")
+═══════════════════════════════════════════════════════ */
+function renderAll(data) {
+  const projects = data.projects ?? [];
+
+  // Phase 3.1 — build id-keyed lookup for risk affectedProjects resolution
+  const projectsById = {};
+  projects.forEach(p => { if (p.id) projectsById[p.id] = p; });
+
+  const pulse = {
+    ...computePulse(projects),
+    keyFlag: data.pulse?.keyFlag ?? null
+  };
+
+  renderHelpPanel(data._instructions ?? null);
+  renderMeta(data.meta ?? {});
+  renderPulse(pulse);
+  renderScorecard(projects);
+  renderMatrix(projects);
+  renderRisks(data.risks ?? [], projectsById);
+  renderMilestones(data.milestones ?? []);
+  renderDecisions(data.decisions ?? [], projectsById);
+
+  const ls = $('load-screen');
+  if (ls) { ls.classList.add('is-hidden'); ls.classList.remove('is-shown-block'); }
+  const vs = $('validation-screen');
+  if (vs) { vs.classList.add('is-hidden'); vs.classList.remove('is-shown-block'); }
+  const as = $('app-shell');
+  if (as) { as.classList.remove('is-hidden'); as.classList.add('is-shown-block'); }
+  initFilter();
+  requestAnimationFrame(updateScrollFooters);
+}
+
+/* ═══════════════════════════════════════════════════════
+   REFRESH INDICATOR  (Phase 4.2 + Phase 5.1 auto-refresh)
+═══════════════════════════════════════════════════════ */
+function updateRefreshIndicator(ok, lastUpdated) {
+  const dot   = $('refresh-dot');
+  const label = $('refresh-label');
+  if (!dot || !label) return;
+  if (ok) {
+    dot.className = 'refresh-dot';
+    // Show "DATA AS OF" the meta.lastUpdated date if available, otherwise load time
+    if (lastUpdated) {
+      try {
+        const d = new Date(lastUpdated);
+        if (!isNaN(d.getTime())) {
+          label.textContent = 'DATA AS OF ' + d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+          return;
+        }
+      } catch {}
+    }
+    label.textContent = 'LOADED · ' + fmtRefreshTime();
+  } else {
+    dot.className   = 'refresh-dot stale';
+    label.textContent = 'SERVER UNREACHABLE · reload to retry';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOOTSTRAP  (Phase 5 — port check + auto-refresh)
+═══════════════════════════════════════════════════════ */
+async function loadDashboard() {
+  try {
+    const data = window.__CTB_DATA__;
+
+    const { errors, warnings } = validateData(data);
+
+    if (errors.length > 0) {
+      showValidationScreen(errors, warnings, () => renderAll(data));
+      return;
+    }
+
+    // Warnings alone do not block rendering — load the dashboard directly
+    renderAll(data);
+    updateRefreshIndicator(true, data.meta?.lastUpdated);
+    _lastFingerprint = data.meta?.lastUpdated ?? null;
+
+  } catch(err) {
+    $('load-screen').classList.add('is-hidden');
+    $('error-screen').classList.remove('is-hidden');
+    $('error-screen').classList.add('is-shown-block');
+    $('error-detail').textContent   = 'Error detail: ' + err.message;
+  }
+}
+
+/* Show panel scroll footers only when the scrollable content actually overflows */
+function updateScrollFooters() {
+  // For each scrollable panel, find its sibling footer and toggle visibility
+  ['matrix-scroll','risk-scroll'].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    const footer = el.closest('.panel')?.querySelector('.panel-scroll-footer');
+    if (footer) footer.classList.toggle('is-hidden', !(el.scrollHeight > el.clientHeight + 2));
+  });
+  // milestones and decisions panels
+  document.querySelectorAll('.milestones-scroll, .decisions-scroll').forEach(el => {
+    const footer = el.closest('.panel')?.querySelector('.panel-scroll-footer');
+    if (footer) footer.classList.toggle('is-hidden', !(el.scrollHeight > el.clientHeight + 2));
+  });
+}
+
+
+function captureScrollPositions() {
+  const ids = ['matrix-scroll','risk-scroll'];
+  const state = {};
+  ids.forEach(id => {
+    const el = $(id);
+    if (el) state[id] = { top: el.scrollTop, left: el.scrollLeft };
+  });
+  return state;
+}
+
+/* Restore previously captured scroll positions after a re-render */
+function restoreScrollPositions(state) {
+  Object.entries(state).forEach(([id, pos]) => {
+    const el = $(id);
+    if (el) { el.scrollTop = pos.top; el.scrollLeft = pos.left; }
+  });
+}
+
+/* Module-level fingerprint — avoids polluting window and is cheaper than JSON.stringify.
+   data.meta.lastUpdated is the natural change signal: the editor always bumps it on save. */
+let _lastFingerprint = null;
+async function silentRefresh() {
+  // Only silently refresh when the app shell is visible (not on validation or error screens)
+  if ($('app-shell').style.display === 'none') return;
+  try {
+    const data = window.__CTB_DATA__;
+    const { errors } = validateData(data);
+    if (errors.length === 0) {
+      const fingerprint = data.meta?.lastUpdated ?? null;
+      // Skip full re-render if lastUpdated timestamp is unchanged
+      if (fingerprint === _lastFingerprint) {
+        updateRefreshIndicator(true, data.meta?.lastUpdated);
+        return;
+      }
+      _lastFingerprint = fingerprint;
+      // Preserve help panel open state and scroll positions across the re-render
+      const helpOpen     = $('help-panel').classList.contains('open');
+      const scrollState  = captureScrollPositions();
+      resetFilter();
+      renderAll(data);
+      restoreScrollPositions(scrollState);
+      // Always restore correct button text and ARIA regardless of panel state
+      if (helpOpen) {
+        $('help-panel').classList.add('open');
+        $('help-toggle').textContent = '✕';
+        $('help-toggle').setAttribute('aria-expanded', 'true');
+      } else {
+        $('help-toggle').textContent = '?';
+        $('help-toggle').setAttribute('aria-expanded', 'false');
+      }
+      updateRefreshIndicator(true, data.meta?.lastUpdated);
+    } else {
+      updateRefreshIndicator(false);
+    }
+  } catch {
+    updateRefreshIndicator(false);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME TOGGLE  — dark (default) ↔ light
+═══════════════════════════════════════════════════════ */
+(function initTheme() {
+  // Rehydrate last preference from localStorage so re-opens remember choice
+  const saved = localStorage.getItem('ctb-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+})();
+
+function applyThemeState() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const icon = $('theme-icon');
+  if (icon) icon.textContent = isLight ? '🌙' : '☀';
+}
+
+/* ═══════════════════════════════════════════════════════
+   FONT-SIZE CONTROL  — zoom-based, 7 steps, session-persistent
+═══════════════════════════════════════════════════════ */
+const ZOOM_STEPS = [0.82, 0.88, 0.94, 1.0, 1.07, 1.14, 1.22];
+const ZOOM_DEFAULT = 3;
+let zoomIdx = ZOOM_DEFAULT;
+
+/* Detect zoom support once at startup.
+   'zoom' in html.style is true in Chrome/Edge/Safari and Firefox 126+.
+   Older Firefox ignores zoom on the root element entirely — use transform there.
+   We must pick ONE path: applying both causes double-scaling in zoom-capable browsers. */
+const _supportsZoom = 'zoom' in document.documentElement.style;
+
+function setHtmlScale(factor) {
+  const html = document.documentElement;
+  if (_supportsZoom) {
+    /* Chrome / Edge / Safari / Firefox 126+ — zoom adjusts layout AND visuals cleanly */
+    html.style.zoom            = factor;
+    html.style.transform       = '';
+    html.style.transformOrigin = '';
+    html.style.width           = '';
+  } else {
+    /* Older Firefox — transform-only path with width compensation to prevent overflow */
+    html.style.zoom            = '';
+    html.style.transform       = factor !== 1 ? `scale(${factor})` : '';
+    html.style.transformOrigin = 'top left';
+    html.style.width           = factor !== 1 ? `${100 / factor}%` : '';
+  }
+}
+
+(function restoreZoom() {
+  const saved = parseInt(localStorage.getItem('ctb-zoom') ?? ZOOM_DEFAULT, 10);
+  if (!isNaN(saved) && saved >= 0 && saved < ZOOM_STEPS.length) zoomIdx = saved;
+  setHtmlScale(ZOOM_STEPS[zoomIdx]);
+})();
+
+function applyZoom() {
+  setHtmlScale(ZOOM_STEPS[zoomIdx]);
+  localStorage.setItem('ctb-zoom', zoomIdx);
+  const dec = $('font-decrease');
+  const inc = $('font-increase');
+  if (dec) dec.disabled = zoomIdx === 0;
+  if (inc) inc.disabled = zoomIdx === ZOOM_STEPS.length - 1;
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('ctb-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.setItem('ctb-theme', 'light');
+  }
+  applyThemeState();
+}
+
+/* ═══════════════════════════════════════════════════════
+   INSTANT FILTER  — search text + RAG chip
+═══════════════════════════════════════════════════════ */
+const filterState = { text: '', rag: 'ALL' };
+
+function applyFilter() {
+  const text = filterState.text.toLowerCase().trim();
+  const rag  = filterState.rag;
+
+  // ── Matrix rows ──
+  const rows = document.querySelectorAll('#matrix-body tr[data-name]');
+  let visible = 0;
+  rows.forEach(row => {
+    const textMatch = !text ||
+      (row.dataset.name    ?? '').toLowerCase().includes(text) ||
+      (row.dataset.comment ?? '').toLowerCase().includes(text) ||
+      (row.dataset.phase   ?? '').toLowerCase().includes(text);
+    const ragMatch  = rag === 'ALL' || (row.dataset.rag ?? '') === rag;
+    const show = textMatch && ragMatch;
+    row.classList.toggle('is-hidden', !show);
+    if (show) visible++;
+  });
+
+  // ── Scorecard cards ──
+  document.querySelectorAll('.sc-card[data-name]').forEach(card => {
+    const textMatch = !text ||
+      (card.dataset.name  ?? '').toLowerCase().includes(text) ||
+      (card.dataset.phase ?? '').toLowerCase().includes(text);
+    const ragMatch  = rag === 'ALL' || (card.dataset.rag ?? '') === rag;
+    card.classList.toggle('is-hidden', !(textMatch && ragMatch));
+  });
+
+  // ── Result count + no-results message ──
+  const countEl    = $('filter-result-count');
+  const noResultEl = $('matrix-no-results');
+  const isFiltered = text || rag !== 'ALL';
+
+  if (countEl) {
+    if (isFiltered && rows.length > 0) {
+      countEl.textContent = `${visible} of ${rows.length} shown`;
+    } else {
+      countEl.textContent = '';
+    }
+  }
+  if (noResultEl) {
+    noResultEl.classList.toggle('is-hidden', !(isFiltered && visible === 0));
+  }
+
+  // ── Scroll footer visibility update ──
+  requestAnimationFrame(updateScrollFooters);
+}
+
+let _filterInitialized = false;
+let _filterDebounce = null;
+
+function initFilter() {
+  const bar = $('filter-bar');
+  if (!bar || _filterInitialized) return;
+  _filterInitialized = true;
+  // Use event delegation — register once, survives re-renders
+  bar.addEventListener('input', e => {
+    const input = e.target.closest('#filter-search');
+    if (!input) return;
+    filterState.text = input.value;
+    const clearBtn = $('filter-clear');
+    if (clearBtn) clearBtn.classList.toggle('visible', filterState.text.length > 0);
+    clearTimeout(_filterDebounce);
+    _filterDebounce = setTimeout(applyFilter, 150);
+  });
+  bar.addEventListener('click', e => {
+    const chip = e.target.closest('.filter-chip');
+    if (chip) {
+      bar.querySelectorAll('.filter-chip').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+      filterState.rag = chip.dataset.rag;
+      applyFilter();
+      return;
+    }
+    const clearBtn = e.target.closest('#filter-clear');
+    if (clearBtn) {
+      const input = $('filter-search');
+      if (input) {
+        input.value = '';
+        filterState.text = '';
+        clearBtn.classList.remove('visible');
+        input.focus();
+        applyFilter();
+      }
+    }
+  });
+}
+
+/* Reset filter state when data re-renders (silent refresh) */
+function resetFilter() {
+  filterState.text = '';
+  filterState.rag  = 'ALL';
+  const searchInput = $('filter-search');
+  const clearBtn    = $('filter-clear');
+  if (searchInput) searchInput.value = '';
+  if (clearBtn)    clearBtn.classList.remove('visible');
+  document.querySelectorAll('.filter-chip').forEach((c, i) => {
+    c.classList.toggle('active', i === 0);
+    c.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    /* Apply correct icon/label for whichever theme was rehydrated from session */
+    applyThemeState();
+
+    /* Theme toggle */
+    const themeToggleBtn = $('theme-toggle');
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+
+    /* Export / Print button */
+    const exportBtn = $('export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', () => window.print());
+
+    /* ── Print fix: strip JS-injected zoom/transform BEFORE the print engine
+       measures layout, then restore them AFTER the print dialog closes.
+       Without this, html.style.zoom and html.style.transform (set by
+       setHtmlScale) override the @media print rules and break the layout. ── */
+    window.addEventListener('beforeprint', () => {
+      const html = document.documentElement;
+      html.style.zoom            = '';
+      html.style.transform       = '';
+      html.style.transformOrigin = '';
+      html.style.width           = '';
+    });
+    window.addEventListener('afterprint', () => {
+      applyZoom(); // restore whatever zoom the user had selected
+    });
+
+    /* Font-size controls */
+    applyZoom(); // sync disabled states on load
+    const fontDec = $('font-decrease');
+    const fontInc = $('font-increase');
+    if (fontDec) fontDec.addEventListener('click', () => { if (zoomIdx > 0) { zoomIdx--; applyZoom(); } });
+    if (fontInc) fontInc.addEventListener('click', () => { if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); } });
+
+    /* ARIA on help toggle */
+    const helpToggle = $('help-toggle');
+    const helpPanel  = $('help-panel');
+    helpToggle.addEventListener('click', () => {
+      const isOpen = helpPanel.classList.toggle('open');
+      helpToggle.textContent    = isOpen ? '✕' : '?';
+      helpToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    /* Escape key closes help panel */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && helpPanel.classList.contains('open')) {
+        helpPanel.classList.remove('open');
+        helpToggle.textContent = '?';
+        helpToggle.setAttribute('aria-expanded', 'false');
+        helpToggle.focus();
+      }
+    });
+
+    /* Slash key focuses filter search */
+    document.addEventListener('keydown', e => {
+      if ((e.key === '/' || (e.key === 'f' && (e.ctrlKey || e.metaKey))) &&
+          !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+        e.preventDefault();
+        const fs = $('filter-search');
+        if (fs) fs.focus();
+      }
+    });
+
+    /* Click outside help panel to close */
+    document.addEventListener('click', e => {
+      if (helpPanel.classList.contains('open') &&
+          !helpPanel.contains(e.target) &&
+          e.target !== helpToggle) {
+        helpPanel.classList.remove('open');
+        helpToggle.textContent = '?';
+        helpToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    loadDashboard();
+
+    /* Auto-check every 5 minutes — only re-renders when data has actually changed */
+    /* auto-refresh disabled in portable build */
+  } catch(err) {
+    // Bootstrap failure — show error screen so user is not left with a silent white page
+    const es = $('error-screen');
+    if (es) { es.style.display = 'block'; }
+    const ed = $('error-detail');
+    if (ed) ed.textContent = 'Bootstrap error: ' + err.message;
+    const ls = $('load-screen');
+    if (ls) ls.style.display = 'none';
+  }
+});
+
+</script>
+</body>
+</html>

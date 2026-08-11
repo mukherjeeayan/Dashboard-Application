@@ -1,0 +1,341 @@
+{
+  "general": {
+    "title": "Operations Review",
+    "period": "May 2026 (CW22)",
+    "portfolioOwner": "TCS Operations Team",
+    "confidentiality": "Internal – Restricted",
+    "reportDate": "2026-05-29",
+    "lookbackMonths": 6
+  },
+  "stateMappings": {
+    "resolvedStates": [
+      "Resolved",
+      "Closed",
+      "Completed"
+    ],
+    "openStates": [
+      "New",
+      "In Progress",
+      "On Hold",
+      "Pending"
+    ],
+    "closedStates": [
+      "Closed",
+      "Cancelled",
+      "Resolved",
+      "Completed"
+    ]
+  },
+  "priorityMappings": [
+    {
+      "label": "1 — Critical",
+      "value": 1
+    },
+    {
+      "label": "2 — High",
+      "value": 2
+    },
+    {
+      "label": "3 — Moderate",
+      "value": 3
+    },
+    {
+      "label": "4 — Low",
+      "value": 4
+    }
+  ],
+  "ragThresholds": {
+    "sla": { "green": 98, "amber": 95, "invert": true },
+    "mttr": { "green": 20, "amber": 30 },
+    "reopenRate": { "green": 3, "amber": 5 },
+    "firstFixRate": { "green": 85, "amber": 70, "invert": true },
+    "fteLoad": { "green": 35, "amber": 45 }
+  },
+  "thresholds": {
+    "respSlaTarget": 90,
+    "resolSlaTarget": 90,
+    "mttrTargetHours": 48,
+    "rfacUnder8wPct": 80,
+    "rfacUnder12wPct": 90,
+    "prbUnder3mPct": 80,
+    "prbUnder6mPct": 90,
+    "ageWarningDays": 21,
+    "ageCriticalDays": 42,
+    "rfacUnder8wDays": 56,
+    "rfacUnder12wDays": 84,
+    "prbUnder3mDays": 90,
+    "prbUnder6mDays": 180,
+    "nearMissRatio": 0.9,
+    "escalationThreshold": 1
+  },
+  "validValues": {
+    "priorities": [
+      "1 — Critical",
+      "2 — High",
+      "3 — Moderate",
+      "4 — Low"
+    ],
+    "incidentStates": [
+      "New",
+      "In Progress",
+      "On Hold",
+      "Resolved",
+      "Closed",
+      "Cancelled",
+      "Completed",
+      "Pending"
+    ],
+    "srStates": [
+      "New",
+      "In Progress",
+      "On Hold",
+      "Resolved",
+      "Closed",
+      "Cancelled",
+      "Completed",
+      "Pending"
+    ],
+    "rfacStates": [
+      "New",
+      "Assess",
+      "Authorize",
+      "Scheduled",
+      "Implement",
+      "Review",
+      "Closed",
+      "Cancelled",
+      "Rejected",
+      "Draft"
+    ],
+    "prbStates": [
+      "New",
+      "Assigned",
+      "Known Error",
+      "Resolution",
+      "Resolved",
+      "Closed",
+      "Cancelled"
+    ]
+  },
+  "fteDefaults": {
+    "sapAMS": 15,
+    "sapProjects": 8,
+    "nsAMS": 10,
+    "nsProjects": 4
+  },
+  "modules": [
+    {
+      "id": "crm",
+      "name": "CRM",
+      "domain": "SAP"
+    },
+    {
+      "id": "scm",
+      "name": "SCM",
+      "domain": "SAP"
+    },
+    {
+      "id": "authOekg",
+      "name": "Auth OEKG",
+      "domain": "SAP"
+    },
+    {
+      "id": "authOste",
+      "name": "Auth OSTE",
+      "domain": "SAP"
+    },
+    {
+      "id": "ficoOekg",
+      "name": "FICO OEKG",
+      "domain": "SAP"
+    },
+    {
+      "id": "ficoOste",
+      "name": "FICO OSTE",
+      "domain": "SAP"
+    },
+    {
+      "id": "successFactors",
+      "name": "SuccessFactors",
+      "domain": "SAP"
+    },
+    {
+      "id": "integration",
+      "name": "Integration",
+      "domain": "SAP"
+    },
+    {
+      "id": "mdg",
+      "name": "MDG",
+      "domain": "SAP"
+    },
+    {
+      "id": "bodsBois",
+      "name": "BODS / BOIS",
+      "domain": "SAP"
+    },
+    {
+      "id": "bw",
+      "name": "BW",
+      "domain": "SAP"
+    },
+    {
+      "id": "cognosQlik",
+      "name": "Cognos / Qlik",
+      "domain": "SAP"
+    },
+    {
+      "id": "ace",
+      "name": "ACE",
+      "domain": "NonERP"
+    },
+    {
+      "id": "cpq",
+      "name": "CPQ",
+      "domain": "NonERP"
+    },
+    {
+      "id": "democenter",
+      "name": "Democenter",
+      "domain": "NonERP"
+    },
+    {
+      "id": "corpSol",
+      "name": "Corp Sol",
+      "domain": "NonERP"
+    },
+    {
+      "id": "hr",
+      "name": "HR",
+      "domain": "NonERP"
+    },
+    {
+      "id": "iam",
+      "name": "IAM",
+      "domain": "NonERP"
+    },
+    {
+      "id": "m365",
+      "name": "M365",
+      "domain": "NonERP"
+    },
+    {
+      "id": "serNow",
+      "name": "SerNow",
+      "domain": "NonERP"
+    }
+  ],
+  "mappings": {
+    "APP-CRM-L2-EMEA": "crm",
+    "APP-SCM-L2-EMEA": "scm",
+    "APP-AUTH-OEKG-L2": "authOekg",
+    "APP-AUTH-OSTE-L2": "authOste",
+    "APP-FICO-OEKG-L2": "ficoOekg",
+    "APP-FICO-OSTE-L2": "ficoOste",
+    "APP-SF-EMEA-L2": "successFactors",
+    "APP-INTEG-CPI-L2": "integration",
+    "APP-MDG-L2": "mdg",
+    "APP-BODS-L2": "bodsBois",
+    "APP-BW-L2": "bw",
+    "APP-COGNOS-L2": "cognosQlik",
+    "APP-ACE-L2": "ace",
+    "APP-CPQ-L2": "cpq",
+    "APP-DEMO-L2": "democenter",
+    "APP-CORPSOL-L2": "corpSol",
+    "APP-HR-L2": "hr",
+    "APP-IAM-L2": "iam",
+    "APP-M365-L2": "m365",
+    "APP-SERNOW-L2": "serNow"
+  },
+  "baselines": {
+    "crm": 50,
+    "scm": 50,
+    "authOekg": 50,
+    "authOste": 50,
+    "ficoOekg": 50,
+    "ficoOste": 50,
+    "successFactors": 50,
+    "integration": 50,
+    "mdg": 50,
+    "bodsBois": 50,
+    "bw": 50,
+    "cognosQlik": 50,
+    "ace": 50,
+    "cpq": 50,
+    "democenter": 50,
+    "corpSol": 50,
+    "hr": 50,
+    "iam": 50,
+    "m365": 50,
+    "serNow": 50
+  },
+  "emergencyKeywords": [
+    "emergency"
+  ],
+  "knownErrorValues": [
+    true,
+    "true",
+    "1",
+    "Yes"
+  ],
+  "priorityBuckets": [
+    {
+      "label": "P1/P2",
+      "values": [
+        1,
+        2
+      ],
+      "color": "red"
+    },
+    {
+      "label": "P3",
+      "values": [
+        3
+      ],
+      "color": "amber"
+    },
+    {
+      "label": "P4",
+      "values": [
+        4
+      ],
+      "color": "blue"
+    }
+  ],
+  "ageBuckets": [
+    {
+      "label": "0-3 wk",
+      "maxDays": 21,
+      "color": "green"
+    },
+    {
+      "label": "3-6 wk",
+      "maxDays": 42,
+      "color": "amber"
+    },
+    {
+      "label": "6-10 wk",
+      "maxDays": 70,
+      "color": "purple"
+    },
+    {
+      "label": ">10 wk",
+      "maxDays": null,
+      "color": "red"
+    }
+  ],
+  "ticketTypePrefixes": [
+    {
+      "prefix": "INC",
+      "type": "INC"
+    },
+    {
+      "prefix": "REQ",
+      "type": "SR"
+    },
+    {
+      "prefix": "SR",
+      "type": "SR"
+    }
+  ]
+}

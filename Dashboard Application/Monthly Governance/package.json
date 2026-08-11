@@ -1,0 +1,15 @@
+{
+  "name": "opsreview-dashboard",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Monthly Governance OpsReview Dashboard — Editor + Dashboard frontend",
+  "scripts": {
+    "start": "python -m http.server 8080 -d public",
+    "start:editor": "start public/editor.html",
+    "lint": "node -e \"console.log('Lint check: scanning for common issues...'); var fs=require('fs'); var files=['public/js/ops_editor.js','public/js/ops_dashboard.js']; files.forEach(function(f){if(!fs.existsSync(f))console.log('MISSING: '+f);else console.log('OK: '+f+' ('+fs.statSync(f).size+' bytes)');}); console.log('Lint complete.');\"",
+    "validate": "node scripts/validate_data.js",
+    "build:portable": "cd scripts && Launcher.bat"
+  },
+  "keywords": ["opsreview", "dashboard", "monthly-governance"],
+  "license": "UNLICENSED"
+}

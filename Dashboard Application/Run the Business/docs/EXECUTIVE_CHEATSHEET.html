@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Executive Reference — SAP CRM IT Operations</title>
+<style>
+  /* ── Design tokens ── */
+  :root {
+    --navy:    #0d1b2a;
+    --navy2:   #132234;
+    --navy3:   #1a2f47;
+    --border:  #1e3652;
+    --text:    #d8e8f4;
+    --text2:   #8aaac8;
+    --text3:   #4e6a80;
+    --red:     #e05252;
+    --amber:   #e8a030;
+    --green:   #2db882;
+    --blue:    #3b8fe8;
+    --purple:  #7c5fe0;
+    --muted:   #4e6a80;
+    --mono:    'DM Mono', 'Fira Mono', monospace;
+    --sans:    'DM Sans', system-ui, sans-serif;
+    --radius:  8px;
+    --shadow:  0 2px 12px rgba(0,0,0,.35);
+  }
+  [data-theme="light"] {
+    --navy:   #f0f4f8; --navy2: #e2eaf4; --navy3: #d4e0ee;
+    --border: #b8ccde; --text:  #0d1b2a; --text2: #2a4a6a;
+    --text3:  #5a7a9a;
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: var(--sans);
+    background: var(--navy);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Page header ── */
+  .pg-header {
+    background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .pg-header h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -.01em;
+  }
+  .pg-header p {
+    font-size: .75rem;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .theme-btn {
+    background: var(--navy3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: var(--sans);
+    font-size: .75rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .theme-btn:hover { color: var(--text); }
+
+  /* ── Layout ── */
+  .pg-body { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* ── Section headers ── */
+  .sect-label {
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin: 40px 0 18px;
+  }
+  .sect-label:first-child { margin-top: 0; }
+
+  /* ── Card grid ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card-grid.wide { grid-template-columns: 1fr 1fr; }
+  .card {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .card p, .card li {
+    font-size: .8rem;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* ── RAG indicators ── */
+  .rag-demo {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .rag-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+    color: var(--text2);
+  }
+  .rag-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .rag-dot.red    { background: var(--red);   }
+  .rag-dot.amber  { background: var(--amber); }
+  .rag-dot.green  { background: var(--green); }
+
+  /* ── Status badge ── */
+  .badge {
+    display: inline-block;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge.red    { background: rgba(224,82,82,.2);  color: #f07070; }
+  .badge.amber  { background: rgba(232,160,48,.15); color: var(--amber); }
+  .badge.green  { background: rgba(45,184,130,.15); color: var(--green); }
+  .badge.blue   { background: rgba(59,143,232,.15); color: var(--blue); }
+  .badge.purple { background: rgba(124,95,224,.2);  color: var(--purple); }
+  .badge.muted  { background: rgba(255,255,255,.06); color: var(--muted); }
+
+  /* ── Colour key grid ── */
+  .color-key-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .8rem;
+  }
+  .color-key-row:last-child { border-bottom: none; }
+  .ck-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .ck-name  { color: var(--text);  width: 60px; flex-shrink: 0; font-weight: 500; }
+  .ck-code  { color: var(--text3); font-family: var(--mono); font-size: .72rem; width: 70px; }
+  .ck-desc  { color: var(--text2); }
+
+  /* ── Controls reference table ── */
+  .ctrl-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .ctrl-table th {
+    text-align: left;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ctrl-table td {
+    padding: 9px 12px;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .ctrl-table td:first-child { color: var(--text); font-weight: 500; }
+  .ctrl-table tr:last-child td { border-bottom: none; }
+
+  /* ── Delta arrows ── */
+  .delta-up   { color: var(--red);   font-size: .85rem; }
+  .delta-down { color: var(--green); font-size: .85rem; }
+  .delta-flat { color: var(--muted); font-size: .85rem; }
+
+  /* ── Phase taxonomy ── */
+  .phase-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+    font-size: .8rem;
+  }
+  .phase-row:last-child { border-bottom: none; }
+  .phase-name { color: var(--text); font-weight: 600; }
+  .phase-eng  { color: var(--text2); }
+  .phase-exec { color: var(--blue); }
+
+  /* ── Cascade diagram ── */
+  .cascade {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    font-size: .8rem;
+    color: var(--text2);
+  }
+  .cascade-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: var(--navy3);
+  }
+  .cascade-row .lbl { flex: 1; }
+  .cascade-arrow {
+    text-align: center;
+    color: var(--text3);
+    font-size: .75rem;
+    padding: 2px 0;
+  }
+
+  /* ── Glossary ── */
+  .gloss-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    font-size: .8rem;
+  }
+  .gloss-item:last-child { border-bottom: none; }
+  .gloss-term { color: var(--text); font-weight: 600; font-family: var(--mono); font-size: .75rem; }
+  .gloss-def  { color: var(--text2); line-height: 1.6; }
+
+  /* ── Print ── */
+  @media print {
+    .pg-header { position: relative; }
+    .theme-btn { display: none; }
+    body { background: #fff; color: #000; }
+    .card { break-inside: avoid; border-color: #ccc; }
+  }
+  @media (max-width: 640px) {
+    .card-grid.wide { grid-template-columns: 1fr; }
+    .phase-row { grid-template-columns: 1fr; }
+    .gloss-item { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="pg-header">
+  <div>
+    <h1>SAP CRM · IT Operations Dashboard — Executive Reference</h1>
+    <p>IT Portfolio Management Office &nbsp;·&nbsp; Prepared 28 May 2026</p>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()">Toggle Theme</button>
+</header>
+
+<main class="pg-body">
+
+  <!-- ── Section 1: Reading the Dashboard ─────────────────────────── -->
+  <div class="sect-label">Section 1 — Reading the Dashboard at a Glance</div>
+  <div class="card-grid">
+
+    <div class="card">
+      <h3>RAG Status Indicators</h3>
+      <p>Every ServiceNow card and KPI tile carries a RAG (Red–Amber–Green) dot indicating the operational health of that category. RAG is set by the Data Steward based on actual figures versus the defined thresholds in <code>snow_config.json</code>.</p>
+      <div class="rag-demo" style="margin-top:14px">
+        <div class="rag-item"><div class="rag-dot red"></div><span><strong style="color:#f07070">Red</strong> — Action required. Threshold breached. Leadership intervention may be needed.</span></div>
+        <div class="rag-item"><div class="rag-dot amber"></div><span><strong style="color:var(--amber)">Amber</strong> — At risk. Approaching threshold. Active monitoring required.</span></div>
+        <div class="rag-item"><div class="rag-dot green"></div><span><strong style="color:var(--green)">Green</strong> — On track. Operating within defined parameters.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>KPI Tile — How to Read It</h3>
+      <p>Each KPI tile shows four elements:</p>
+      <ul style="margin-top:8px">
+        <li><strong>Large value</strong> — the current week's count or percentage, coloured by RAG status.</li>
+        <li><strong>Delta arrow</strong> — movement since last week. <span class="delta-up">▲</span> = increase, <span class="delta-down">▼</span> = decrease, <span class="delta-flat">—</span> = flat. For incidents/problems, <span class="delta-up">▲ red</span> is worse. For SLA, <span class="delta-up">▲ green</span> is better.</li>
+        <li><strong>Progress bar</strong> — volume relative to the configured maximum for that category.</li>
+        <li><strong>Label</strong> — the metric name (e.g., "Open Incidents", "SLA Compliance").</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>SLA Compliance — Special Inversion Logic</h3>
+      <p>SLA Compliance uses inverted delta colouring because <em>higher is better</em>:</p>
+      <ul style="margin-top:8px">
+        <li><span class="delta-down">▼ red</span> = SLA dropped week-on-week — bad.</li>
+        <li><span class="delta-up">▲ green</span> = SLA improved week-on-week — good.</li>
+        <li>Target threshold is <strong>90%</strong>. Amber: 85–90%. Red: below 80%.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Status Badge Colours</h3>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--red)"></div>
+        <span class="ck-name">Red</span>
+        <span class="ck-code">--red</span>
+        <span class="ck-desc">Critical / Breached / Escalation required</span>
+      </div>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--amber)"></div>
+        <span class="ck-name">Amber</span>
+        <span class="ck-code">--amber</span>
+        <span class="ck-desc">At risk / Approaching threshold</span>
+      </div>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--green)"></div>
+        <span class="ck-name">Green</span>
+        <span class="ck-code">--green</span>
+        <span class="ck-desc">On track / Within parameters</span>
+      </div>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--blue)"></div>
+        <span class="ck-name">Blue</span>
+        <span class="ck-code">--blue</span>
+        <span class="ck-desc">Informational / Navigation links</span>
+      </div>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--purple)"></div>
+        <span class="ck-name">Purple</span>
+        <span class="ck-code">--purple</span>
+        <span class="ck-desc">Secondary metric / Change pipeline</span>
+      </div>
+      <div class="color-key-row">
+        <div class="ck-swatch" style="background:var(--muted)"></div>
+        <span class="ck-name">Muted</span>
+        <span class="ck-code">--muted</span>
+        <span class="ck-desc">Neutral / No change / Closed items</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Section 2: Dashboard Controls ────────────────────────────── -->
+  <div class="sect-label">Section 2 — Dashboard Controls Reference</div>
+  <div class="card">
+    <table class="ctrl-table">
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>Location</th>
+          <th>Action</th>
+          <th>Persistence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>◐ Theme Toggle</td>
+          <td>Top-right toolbar</td>
+          <td>Switches between dark navy (default) and light mode. Chart colours update automatically.</td>
+          <td>Saved to browser localStorage. Persists across sessions on the same device.</td>
+        </tr>
+        <tr>
+          <td>A− / A+ Zoom</td>
+          <td>Top-right toolbar</td>
+          <td>Reduces or increases all content by 5% per click. Range: 70% to 150%. Useful for presentation on large screens.</td>
+          <td>Saved to browser localStorage. Persists across sessions on the same device.</td>
+        </tr>
+        <tr>
+          <td>⎙ Print</td>
+          <td>Top-right toolbar</td>
+          <td>Temporarily expands all collapsed sections, switches to light mode, and triggers the browser print dialog. Restores state automatically after printing. Optimised for A4/Letter PDF export.</td>
+          <td>No persistence. Restores on afterprint event.</td>
+        </tr>
+        <tr>
+          <td>All items / Critical only</td>
+          <td>Top-right dropdown</td>
+          <td>Filters the intervention and commentary sections to show only items tagged as critical/red severity.</td>
+          <td>Session only. Resets on page refresh.</td>
+        </tr>
+        <tr>
+          <td>? Help Button</td>
+          <td>Top-right corner</td>
+          <td>Opens/closes the inline editor guide panel for the Data Steward. Contains the weekly update checklist and allowed value reference.</td>
+          <td>No persistence.</td>
+        </tr>
+        <tr>
+          <td>▾ Section Headers</td>
+          <td>Each section bar (🔗 📈 📝 📊 ⚡)</td>
+          <td>Click anywhere on a section header to expand or collapse that section. Default open/closed state is set per-section in <code>snow_weekly.json → sections[n].open</code>.</td>
+          <td>No persistence. Resets on page refresh.</td>
+        </tr>
+        <tr>
+          <td>View All [Type] Buttons</td>
+          <td>ServiceNow navigation cards</td>
+          <td>Opens the corresponding ServiceNow filtered list view in a new browser tab. URLs are configured in <code>snow_weekly.json → snow_links.types[n].button.url</code>.</td>
+          <td>Opens external link. No dashboard state change.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Section 3: Engineering Phase Taxonomy ─────────────────────── -->
+  <div class="sect-label">Section 3 — Engineering Phase → Executive Meaning</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:140px 1fr 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);">
+      <div>Technical Term</div>
+      <div>Engineering Definition</div>
+      <div style="color:var(--blue)">Executive Business Meaning</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">P1 Critical</div>
+      <div class="phase-eng">Incident priority 1. System unavailable or major business process impaired. SLA: typically 1-4 hours to resolve.</div>
+      <div class="phase-exec">Full outage or severe disruption. Requires immediate attention. Counts above zero are always flagged.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">P2 High</div>
+      <div class="phase-eng">Significant degradation. Core function impaired but workaround available. SLA: same business day.</div>
+      <div class="phase-exec">Significant but not total disruption. Users impacted but business continues with workarounds.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">SLA Compliance</div>
+      <div class="phase-eng">Percentage of incidents and service requests resolved within their contracted SLA window. Target: ≥ 90%.</div>
+      <div class="phase-exec">Are we keeping our response-time promises? Below 90% means we are missing commitments to the business.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">PRB / Problem</div>
+      <div class="phase-eng">A root-cause investigation record triggered by repeated or high-impact incidents. Tracked until a permanent fix is delivered.</div>
+      <div class="phase-exec">Known repeating issues under active investigation. High counts indicate systemic instability not yet resolved.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">RFAC / Change</div>
+      <div class="phase-eng">Request for Authorised Change. Formal record for planned system modifications requiring CAB approval before implementation.</div>
+      <div class="phase-exec">Planned work that will modify the system. High pipeline counts indicate a busy delivery schedule with associated risk.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">CAB</div>
+      <div class="phase-eng">Change Advisory Board. Governance body that reviews and approves high-risk change requests before they are scheduled.</div>
+      <div class="phase-exec">The approval gate for risky system changes. CAB-pending items are awaiting governance sign-off.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">WoW / 8-Week Trend</div>
+      <div class="phase-eng">Week-on-week comparison across rolling 8-week window. Shows directional movement for volume and SLA metrics.</div>
+      <div class="phase-exec">Are things improving or worsening over time? The trend is more meaningful than any single week's numbers.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">Known Error</div>
+      <div class="phase-eng">A problem record where root cause is identified but a permanent fix has not yet been implemented. Often managed via a workaround.</div>
+      <div class="phase-exec">A documented, accepted risk. We know what is broken and why, but fixing it requires future planned work.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">SR (Service Request)</div>
+      <div class="phase-eng">A formal user request for standard IT service — access provisioning, configuration change, data fix, report generation.</div>
+      <div class="phase-exec">Standard requests from the business. High volumes can indicate growth, self-service gaps, or change activity spikes.</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-name">Intervention Required</div>
+      <div class="phase-eng">Escalation flag raised by the IT Portfolio Management Office when a ticket or pattern cannot be resolved within normal operating parameters.</div>
+      <div class="phase-exec">Leadership attention or decision required. Each item includes a recommended action and the person who raised it.</div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: RAG Cascade Logic ─────────────────────────────── -->
+  <div class="sect-label">Section 4 — RAG Cascade & Escalation Logic</div>
+  <div class="card-grid wide">
+
+    <div class="card">
+      <h3>How RAG Status is Determined</h3>
+      <p>RAG status on each ServiceNow card and KPI tile is set by the Data Steward based on thresholds defined in <code>snow_config.json</code>. The thresholds for the current deployment are:</p>
+      <br>
+      <table class="ctrl-table">
+        <thead><tr><th>Metric</th><th>Green</th><th>Amber</th><th>Red</th></tr></thead>
+        <tbody>
+          <tr><td>SLA Compliance</td><td>≥ 90%</td><td>85–89%</td><td>&lt; 80%</td></tr>
+          <tr><td>PRB SLA (days open)</td><td>&lt; 37 days</td><td>37–44 days</td><td>≥ 45 days</td></tr>
+          <tr><td>PRB SLA Breached Count</td><td>0–1</td><td>2–4</td><td>≥ 5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Cascade Principle — Single Red Propagates Upward</h3>
+      <p>If any one operational dimension breaches its Red threshold, the overall status for the reporting period is considered Red regardless of other dimensions. This is the cascade principle:</p>
+      <br>
+      <div class="cascade">
+        <div class="cascade-row">
+          <span class="badge green">Green</span>
+          <span class="lbl">SLA Compliance: 91% — within target</span>
+        </div>
+        <div class="cascade-row">
+          <span class="badge green">Green</span>
+          <span class="lbl">Incident Volume: 42 — within max</span>
+        </div>
+        <div class="cascade-row">
+          <span class="badge red">Red</span>
+          <span class="lbl">P1 Count: 3 — breached threshold</span>
+        </div>
+        <div class="cascade-arrow">↓ single red dimension cascades</div>
+        <div class="cascade-row" style="border-color:var(--red);background:rgba(224,82,82,.07)">
+          <span class="badge red">Red</span>
+          <span class="lbl" style="color:var(--text)"><strong>Overall Period Status: RED</strong> — leadership action required</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Section 5: Glossary ───────────────────────────────────────── -->
+  <div class="sect-label">Section 5 — Abbreviation &amp; Term Glossary</div>
+  <div class="card">
+    <div class="gloss-item">
+      <div class="gloss-term">RAG</div>
+      <div class="gloss-def">Red / Amber / Green. Standard portfolio status signalling system. Red = act now, Amber = watch closely, Green = on track.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">INC</div>
+      <div class="gloss-def">Incident. An unplanned disruption or degradation of IT service quality. Tracked in ServiceNow with priority, state, and SLA.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">SR</div>
+      <div class="gloss-def">Service Request. A formal, pre-approved request for standard IT service. Distinct from incidents — these are expected demand.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">PRB</div>
+      <div class="gloss-def">Problem record. Root-cause investigation for repeated or high-impact incidents. Remains open until a permanent fix is implemented.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">RFAC</div>
+      <div class="gloss-def">Request for Authorised Change. The formal change management record requiring CAB sign-off for high-risk modifications.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">CAB</div>
+      <div class="gloss-def">Change Advisory Board. Governance body that reviews and approves high-risk changes before implementation.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">SLA</div>
+      <div class="gloss-def">Service Level Agreement. A contractual commitment on response and resolution times. Dashboard target: ≥ 90% compliance.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">WoW</div>
+      <div class="gloss-def">Week-on-Week. Comparison of the current week's figures against the prior week and rolling 8-week trend.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">PI / PO</div>
+      <div class="gloss-def">SAP Process Integration / Process Orchestration. The middleware layer connecting SAP CRM to external systems. Integration incidents often have wide business impact.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">pp</div>
+      <div class="gloss-def">Percentage point. The absolute difference between two percentage values (e.g., SLA moving from 88% to 91% = +3 pp, not +3.4%).</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">CW</div>
+      <div class="gloss-def">Calendar Week. ISO week number (1–53). W22 = the 22nd week of the calendar year. Used for archive naming and portable build filenames.</div>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Portable Build</div>
+      <div class="gloss-def">A self-contained single HTML file produced by the Launcher compiler. Contains all data, styles, and scripts inline. Can be opened in any browser without a server. Distributed to stakeholders who cannot run the live server.</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isLight = html.getAttribute('data-theme') === 'light';
+    html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Dependencies (if npm is used later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Editor state (contains user data)
+*.localstorage
+
+# Portable builds (regeneratable artifacts)
+portable/*.html
+
+# Python cache
+__pycache__/
+*.pyc

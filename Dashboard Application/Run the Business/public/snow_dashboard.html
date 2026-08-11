@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self';">
+<title>SAP CRM · Weekly IT Dashboard</title>
+<link rel="stylesheet" href="css/fonts.css">
+<script src="js/chart.umd.js"></script>
+<link rel="stylesheet" href="css/snow_dashboard.css">
+</head>
+<body>
+<a href="#app" class="skip-link">Skip to main content</a>
+
+<!-- Loading overlay -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <p>Loading dashboard data...</p>
+</div>
+
+<!-- Dashboard shell — 100% populated by JS renderer from JSON -->
+<div class="page" id="app" style="visibility:hidden"></div>
+
+<div id="help-panel">
+  <h3>📋 How to Update This Dashboard — Edit snow_weekly.json Only</h3>
+  <div class="help-grid">
+    <div class="help-block">
+      <h4>Quick Start</h4>
+      <ul>
+        <li>Open <code>snow_weekly.json</code> in VS Code, Notepad++, or any text editor</li>
+        <li>Edit only the <em>values</em> — do NOT rename any keys</li>
+        <li>Save the file, then refresh the browser (<strong>F5</strong>)</li>
+        <li>Never touch <code>snow_dashboard.html</code> — all data lives in the JSON</li>
+        <li>The JSON has an <code>_instructions</code> block at the top with a full checklist</li>
+      </ul>
+    </div>
+    <div class="help-block">
+      <h4>Weekly Update Checklist</h4>
+      <ul>
+        <li><strong>meta</strong> — update <code>week_label</code>, <code>week_range</code>, <code>data_as_of</code></li>
+        <li><strong>kpis</strong> — update <code>value</code>, <code>bar_pct</code>, <code>delta_val</code>, <code>delta_dir</code></li>
+        <li><strong>snow_links</strong> — update <code>stats[]</code> values per card</li>
+        <li><strong>charts</strong> — replace all data arrays with this week's numbers</li>
+        <li><strong>wow_scorecard</strong> — append new week; drop oldest if &gt; 8 weeks</li>
+        <li><strong>intervention</strong> — replace <code>items[]</code> (use <code>[]</code> if none)</li>
+        <li><strong>commentary</strong> — rewrite each column's <code>items[]</code></li>
+      </ul>
+    </div>
+    <div class="help-block">
+      <h4>Allowed Values</h4>
+      <ul>
+        <li><strong>color_key / color</strong>: <code>"red"</code> | <code>"amber"</code> | <code>"green"</code> | <code>"blue"</code> | <code>"purple"</code> | <code>"muted"</code></li>
+        <li><strong>delta_dir</strong>: <code>"up"</code> | <code>"down"</code> | <code>"flat"</code></li>
+        <li><strong>rag</strong>: <code>"red"</code> | <code>"amber"</code> | <code>"green"</code></li>
+        <li><strong>severity</strong>: <code>"red"</code> | <code>"amber"</code></li>
+        <li><strong>delta_unit</strong>: <code>"pp"</code> for percentage-point rows, omit otherwise</li>
+      </ul>
+    </div>
+    <div class="help-block">
+      <h4>Adding a Commentary Bullet</h4>
+      <p>Append to any column's <code>items[]</code>:</p>
+      <pre>{
+  "tag": "RISK",
+  "tag_color": "red",
+  "text": "Plain text. &lt;strong&gt;Bold&lt;/strong&gt; allowed."
+}</pre>
+    </div>
+    <div class="help-block">
+      <h4>Adding an Intervention Item</h4>
+      <p>severity: <code>"red"</code> or <code>"amber"</code>. Append to <code>intervention.items[]</code>.</p>
+      <pre>{
+  "severity": "red",
+  "badge_label": "ESCALATE NOW",
+  "title": "Short headline",
+  "meta": ["INC0012345", "SAP SD"],
+  "body": "Impact description.",
+  "decision": "Action required.",
+  "raised_by": "Name · Role",
+  "avatar": "NR",
+  "age_label": "2d open",
+  "age_color": "red"
+}</pre>
+    </div>
+    <div class="help-block">
+      <h4>Updating Charts</h4>
+      <ul>
+        <li><strong>incident_trend_8w</strong> — shift labels left, append new week</li>
+        <li><strong>incident_by_priority</strong> — update <code>data[]</code> by priority</li>
+        <li><strong>sr_by_category</strong> — update <code>labels[]</code> and <code>data[]</code></li>
+        <li><strong>rfac_pipeline</strong> — update <code>data[]</code> for pipeline stages</li>
+        <li><strong>prb_aging</strong> — replace <code>records[]</code> with open PRBs</li>
+        <li><strong>incidents_by_module</strong> — update <code>data[]</code> per SAP module</li>
+        <li><strong>wow_volume / wow_sla_trend</strong> — append week; drop oldest if &gt; 8</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="ic-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+    <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+    <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+  </symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </symbol>
+  <symbol id="ic-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+  </symbol>
+  <symbol id="ic-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+  </symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </symbol>
+  <symbol id="ic-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </symbol>
+  <symbol id="ic-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </symbol>
+  <symbol id="ic-git-branch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="6" y1="3" x2="6" y2="15"/>
+    <circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+    <path d="M18 9a9 9 0 01-9 9"/>
+  </symbol>
+  <symbol id="ic-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </symbol>
+</svg>
+
+<script src="js/snow_dashboard.js"></script>
+</body>
+</html>

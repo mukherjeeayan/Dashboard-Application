@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTB Portfolio Data Editor</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0e0f13; --bg2:#15171d; --bg3:#1c1f28; --bg4:#232733;
+  --border:#2a2e3d; --border2:#353a4d;
+  --accent:#4f7eff; --accent-dim:#2a4acc; --accent-glow:rgba(79,126,255,0.15);
+  --green:#3dbd7e; --amber:#f5a623; --red:#e84c4c; --hold:#8a8fa8;
+  --text:#e2e5f0; --text2:#8a8fa8; --text3:#5a6075;
+  --mono:'Cascadia Code','Consolas','Menlo','Monaco',monospace; --sans:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  --r:8px; --rl:12px;
+}
+body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; line-height:1.6; min-height:100vh; }
+
+.topbar { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 28px; height:56px; }
+.topbar-left { display:flex; align-items:center; gap:16px; }
+.logo-badge { background:var(--accent); color:#fff; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.08em; padding:3px 10px; border-radius:4px; }
+.topbar-title { font-size:13px; color:var(--text2); }
+.topbar-actions { display:flex; align-items:center; gap:10px; }
+
+.btn { display:inline-flex; align-items:center; gap:7px; padding:7px 16px; border-radius:var(--r); font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--border2); background:var(--bg3); color:var(--text); transition:all .15s; }
+.btn:hover { background:var(--bg4); border-color:var(--accent); color:var(--accent); }
+.btn svg { width:15px; height:15px; flex-shrink:0; }
+.btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-dim); border-color:var(--accent-dim); color:#fff; }
+.btn-success { background:var(--green); border-color:var(--green); color:#fff; }
+.btn-success:hover { opacity:.88; }
+
+.shell { display:flex; height:calc(100vh - 56px); }
+
+.sidebar { width:220px; flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; }
+.sidebar-section { padding:18px 0 6px; }
+.sidebar-label { padding:0 16px 6px; font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 16px; cursor:pointer; color:var(--text2); font-size:13px; border-left:2px solid transparent; transition:all .12s; }
+.nav-item:hover { background:var(--bg3); color:var(--text); }
+.nav-item.active { color:var(--accent); border-left-color:var(--accent); background:var(--accent-glow); }
+.nav-item svg { width:15px; height:15px; flex-shrink:0; }
+.nav-count { margin-left:auto; background:var(--bg4); color:var(--text3); font-size:10px; font-family:var(--mono); padding:1px 7px; border-radius:10px; }
+
+.main { flex:1; overflow-y:auto; }
+.panel { display:none; padding:28px 32px; max-width:920px; }
+.panel.active { display:block; }
+.panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.panel-title { font-size:20px; font-weight:600; }
+.panel-subtitle { color:var(--text2); font-size:12px; margin-top:2px; }
+
+.section-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:16px; overflow:hidden; }
+.section-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg3); }
+.section-card-title { font-size:13px; font-weight:600; color:var(--text2); letter-spacing:.04em; }
+.section-card-body { padding:18px; }
+
+.field-row { display:grid; grid-template-columns:170px 1fr auto; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+.field-row:last-child { border-bottom:none; }
+.field-label { font-size:12px; font-weight:500; color:var(--text3); letter-spacing:.03em; }
+.field-value { font-size:13px; color:var(--text2); font-family:var(--mono); word-break:break-all; }
+
+.fi { width:100%; background:var(--bg); border:1px solid var(--accent); border-radius:var(--r); color:var(--text); font-family:var(--mono); font-size:13px; padding:6px 10px; outline:none; transition:border-color .15s; }
+.fi:focus { box-shadow:0 0 0 3px var(--accent-glow); }
+.fi.ta { resize:vertical; min-height:68px; line-height:1.5; font-family:var(--sans); font-size:13px; }
+select.fi { appearance:none; cursor:pointer; padding-right:30px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238a8fa8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 9px center; }
+input[type=date].fi, input[type=time].fi, input[type=datetime-local].fi { cursor:pointer; }
+input[type=date]::-webkit-calendar-picker-indicator,
+input[type=time]::-webkit-calendar-picker-indicator,
+input[type=datetime-local]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.5); cursor:pointer; }
+
+.field-actions { display:flex; gap:6px; align-items:center; }
+.save-btn { padding:5px 12px; font-size:12px; }
+.cancel-btn { padding:5px 12px; font-size:12px; color:var(--text2); }
+
+.edit-btn { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; border:1px solid transparent; background:transparent; color:var(--text3); cursor:pointer; transition:all .12s; flex-shrink:0; }
+.edit-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-glow); }
+.edit-btn svg { width:13px; height:13px; }
+.del-btn { color:var(--red) !important; }
+.del-btn:hover { border-color:var(--red) !important; background:rgba(232,76,76,.1) !important; }
+
+.rag { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500; font-family:var(--mono); }
+.rag-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.rag-GREEN .rag-dot { background:var(--green); } .rag-GREEN { color:var(--green); }
+.rag-AMBER .rag-dot { background:var(--amber); } .rag-AMBER { color:var(--amber); }
+.rag-RED   .rag-dot { background:var(--red); }   .rag-RED   { color:var(--red); }
+.rag-HOLD  .rag-dot { background:var(--hold); }  .rag-HOLD  { color:var(--hold); }
+
+.project-grid { display:flex; flex-direction:column; gap:16px; }
+.project-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; }
+.project-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:var(--bg3); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+.project-card-header:hover { background:var(--bg4); }
+.project-name { font-size:14px; font-weight:600; }
+.project-meta { display:flex; align-items:center; gap:12px; }
+.phase-pill { font-size:10px; font-weight:600; letter-spacing:.08em; padding:3px 9px; border-radius:4px; background:var(--bg4); color:var(--text2); border:1px solid var(--border2); font-family:var(--mono); }
+.chevron { transition:transform .2s; color:var(--text3); }
+.chevron.open { transform:rotate(180deg); }
+.project-body { padding:18px; }
+
+.rag-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+.rag-cell { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r); padding:10px; text-align:center; }
+.rag-cell-label { font-size:10px; color:var(--text3); margin-bottom:6px; letter-spacing:.05em; }
+.rag-select { width:100%; background:var(--bg); border:1px solid var(--border2); border-radius:6px; color:var(--text); font-family:var(--mono); font-size:11px; padding:4px 6px; outline:none; cursor:pointer; appearance:none; text-align:center; }
+.rag-select:focus { border-color:var(--accent); }
+
+.item-list { display:flex; flex-direction:column; gap:10px; }
+.item-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); padding:14px 18px; }
+.item-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.item-card-actions { display:flex; gap:6px; flex-shrink:0; }
+.item-title { font-size:13px; font-weight:600; margin-bottom:4px; }
+.item-desc { font-size:12px; color:var(--text2); line-height:1.5; }
+
+.level-badge { font-size:10px; font-weight:700; font-family:var(--mono); letter-spacing:.08em; padding:2px 8px; border-radius:4px; flex-shrink:0; }
+.lHIGH  { background:rgba(232,76,76,.15); color:var(--red); border:1px solid rgba(232,76,76,.3); }
+.lMED   { background:rgba(245,166,35,.15); color:var(--amber); border:1px solid rgba(245,166,35,.3); }
+.lLOW   { background:rgba(61,189,126,.15); color:var(--green); border:1px solid rgba(61,189,126,.3); }
+.lWATCH { background:rgba(79,126,255,.15); color:var(--accent); border:1px solid rgba(79,126,255,.3); }
+.lDEP   { background:rgba(138,143,168,.15); color:var(--hold); border:1px solid rgba(138,143,168,.3); }
+.lESC   { background:rgba(232,76,76,.2); color:#ff7777; border:1px solid rgba(232,76,76,.4); }
+
+.ms-type { font-size:10px; font-family:var(--mono); font-weight:600; padding:2px 7px; border-radius:4px; letter-spacing:.05em; background:var(--bg4); color:var(--text2); border:1px solid var(--border2); }
+.ms-date { font-size:12px; font-family:var(--mono); color:var(--accent); }
+.due-badge { font-size:11px; font-family:var(--mono); color:var(--amber); background:rgba(245,166,35,.12); border:1px solid rgba(245,166,35,.25); padding:2px 8px; border-radius:4px; }
+.tag-pill { display:inline-block; font-size:10px; font-family:var(--mono); font-weight:500; padding:1px 8px; border-radius:4px; background:var(--bg4); color:var(--text3); border:1px solid var(--border); margin-right:4px; }
+.decision-icon { font-size:18px; flex-shrink:0; }
+
+.pulse-box { background:linear-gradient(135deg,rgba(79,126,255,.1),rgba(79,126,255,.04)); border:1px solid rgba(79,126,255,.25); border-radius:var(--rl); padding:16px 20px; margin-bottom:20px; }
+.pulse-label { font-size:10px; font-weight:600; letter-spacing:.12em; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+.pulse-text { font-size:13px; color:var(--text); line-height:1.6; }
+
+.fg { margin-bottom:0; }
+.fg-label { font-size:11px; color:var(--text3); font-weight:500; letter-spacing:.04em; margin-bottom:5px; }
+.fg-grid { display:grid; gap:10px; margin-bottom:10px; }
+.hint { font-size:10px; color:var(--text3); margin-top:3px; }
+.sep { height:1px; background:var(--border); margin:14px 0; }
+
+.modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.72); align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--bg2); border:1px solid var(--border2); border-radius:14px; width:min(840px,94vw); max-height:88vh; display:flex; flex-direction:column; overflow:hidden; }
+.modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-size:14px; font-weight:600; }
+.modal-body { flex:1; overflow-y:auto; }
+.modal-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+.json-preview { font-family:var(--mono); font-size:12px; line-height:1.7; padding:20px; color:#c9d1d9; white-space:pre; overflow-x:auto; }
+.json-key { color:#79b8ff; } .json-str { color:#9ecbff; } .json-num { color:#f8c555; } .json-bool { color:#f97583; }
+.close-btn { background:transparent; border:none; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; padding:4px; border-radius:6px; }
+.close-btn:hover { color:var(--text); } .close-btn svg { width:16px; height:16px; }
+
+.toast { position:fixed; bottom:24px; right:24px; z-index:300; background:var(--bg3); border:1px solid var(--green); border-radius:var(--r); padding:12px 18px; font-size:13px; color:var(--green); display:flex; align-items:center; gap:8px; transform:translateY(80px); opacity:0; transition:all .25s; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast svg { width:15px; height:15px; }
+
+.proj-checks { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.proj-check-label { display:flex; align-items:center; gap:6px; font-size:12px; font-family:var(--mono); color:var(--text2); cursor:pointer; background:var(--bg3); border:1px solid var(--border2); border-radius:6px; padding:4px 10px; transition:all .12s; }
+.proj-check-label:hover { border-color:var(--accent); color:var(--accent); }
+.proj-check-label input { accent-color:var(--accent); cursor:pointer; }
+
+.fg-grid-2col { grid-template-columns: 140px 1fr; }
+.fg-grid-3col { grid-template-columns: 140px 1fr 1fr; }
+.fg-mb { margin-bottom: 10px; }
+.fg-mb-lg { margin-bottom: 12px; }
+.item-flex1 { flex: 1; }
+.item-badge-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.item-desc-mt { margin-top:4px; }
+.item-tags-mt { margin-top:8px; }
+.ms-header-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.ms-fmt-date   { font-size:11px; color:var(--text3); }
+.decision-display-wrap { flex:1; }
+.decision-badge-row    { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.decision-ctx-mt       { margin-top:4px; }
+
+.fi-icon { font-size:18px; letter-spacing:4px; }
+.auto-label-hint { color:var(--accent); font-size:10px; }
+
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:10px; }
+
+.seed-warning { display:flex; align-items:center; gap:12px; background:rgba(245,158,11,.08); border-bottom:1px solid rgba(245,158,11,.30); padding:9px 24px; font-size:12px; color:#d97706; line-height:1.5; }
+.seed-warning strong { font-weight:600; }
+.seed-warning-dismiss { margin-left:auto; background:transparent; border:1px solid rgba(245,158,11,.40); color:#d97706; border-radius:var(--r); padding:3px 10px; font-size:11px; cursor:pointer; flex-shrink:0; font-family:var(--sans); }
+.seed-warning-dismiss:hover { background:rgba(245,158,11,.15); }
+
+.help-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:16px; overflow:hidden; }
+.help-card-heading { font-size:13px; font-weight:600; color:var(--text); padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg3); letter-spacing:.02em; }
+.help-card-body { padding:16px 18px; font-size:13px; color:var(--text2); line-height:1.6; }
+.help-card-body p { margin-bottom:10px; }
+.help-card-body p:last-child { margin-bottom:0; }
+.help-steps { padding-left:20px; margin:10px 0 14px; }
+.help-steps li { margin-bottom:8px; color:var(--text2); }
+.help-steps li strong { color:var(--text); }
+.help-steps li code { font-family:var(--mono); font-size:12px; color:var(--accent); background:var(--bg); padding:1px 6px; border-radius:4px; }
+.help-tip { background:rgba(79,126,255,.08); border:1px solid rgba(79,126,255,.2); border-radius:var(--r); padding:10px 14px; font-size:12px; color:var(--accent); line-height:1.5; margin-top:10px; }
+.help-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+@media (min-width:600px) { .help-grid { grid-template-columns:1fr 1fr; } }
+.help-grid-2col { grid-template-columns:1fr; }
+@media (min-width:600px) { .help-grid-2col { grid-template-columns:1fr 1fr; } }
+.help-grid-item { display:flex; align-items:center; gap:10px; background:var(--bg3); border-radius:var(--r); padding:12px 14px; }
+.help-grid-icon { display:flex; align-items:center; justify-content:center; width:32px; height:32px; flex-shrink:0; background:var(--bg4); border-radius:6px; color:var(--accent); }
+.help-grid-item strong { color:var(--text); }
+.help-list { padding-left:18px; margin:8px 0 0; }
+.help-list li { margin-bottom:6px; color:var(--text2); }
+.help-list li code { font-family:var(--mono); font-size:12px; color:var(--accent); }
+.help-btn-demo { display:inline-flex; align-items:center; gap:5px; padding:2px 10px; border-radius:var(--r); font-size:12px; font-weight:500; background:var(--accent); color:#fff; opacity:.85; }
+.help-del-demo { color:var(--red); font-weight:600; }
+.help-io-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:var(--r); font-size:12px; font-weight:500; background:var(--bg3); color:var(--text); border:1px solid var(--border2); flex-shrink:0; }
+.help-card-body kbd { font-family:var(--mono); font-size:12px; background:var(--bg4); border:1px solid var(--border2); border-radius:4px; padding:1px 6px; color:var(--text); }
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="logo-badge">CTB</span>
+    <span class="topbar-title" id="hdr-title">SAP CRM · Change-the-Business Portfolio</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" id="btn-import">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Import JSON
+    </button>
+    <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" />
+    <button class="btn" id="btn-preview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview JSON
+    </button>
+    <button class="btn btn-success" id="btn-download">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download JSON
+    </button>
+  </div>
+</header>
+
+<div class="seed-warning" id="seed-warning-bar">
+  ⚠ <strong>You are editing example / seed data.</strong>&nbsp; Import your current <code>data/ctb_data.json</code> first to avoid overwriting live data.
+  <button class="seed-warning-dismiss" id="btn-dismiss-seed">Dismiss</button>
+</div>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="nav-item active" id="nav-help" data-panel="help">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Welcome
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Configuration</div>
+      <div class="nav-item" id="nav-meta" data-panel="meta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Meta
+      </div>
+      <div class="nav-item" id="nav-pulse" data-panel="pulse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Pulse
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Portfolio</div>
+      <div class="nav-item" id="nav-projects" data-panel="projects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Projects
+        <span class="nav-count" id="cnt-projects">0</span>
+      </div>
+      <div class="nav-item" id="nav-milestones" data-panel="milestones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Milestones
+        <span class="nav-count" id="cnt-milestones">0</span>
+      </div>
+      <div class="nav-item" id="nav-risks" data-panel="risks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Risks
+        <span class="nav-count" id="cnt-risks">0</span>
+      </div>
+      <div class="nav-item" id="nav-decisions" data-panel="decisions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Decisions
+        <span class="nav-count" id="cnt-decisions">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="panel active" id="panel-help">
+      <div class="panel-header">
+        <div><div class="panel-title">How to Use the Editor</div><div class="panel-subtitle">Everything you need to know to manage your Change-the-Business Portfolio data.</div></div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-heading">Getting Started</div>
+        <div class="help-card-body">
+          <p>The editor lets you modify the portfolio data that powers the CTB dashboard. All changes are made in memory — nothing is saved until you download the updated JSON file.</p>
+          <ol class="help-steps">
+            <li><strong>Import</strong> your current <code>data/ctb_data.json</code> via the topbar button (or start from the example seed data).</li>
+            <li><strong>Edit</strong> fields using the pencil icons in each panel.</li>
+            <li><strong>Download</strong> the updated JSON and replace <code>public/data/ctb_data.json</code> in your project.</li>
+          </ol>
+          <div class="help-tip">Always import your live data first — the seed data is just a template. Look for the amber warning bar at the top.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-heading">Panels Overview</div>
+        <div class="help-card-body">
+          <div class="help-grid">
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              </div>
+              <div><strong>Meta</strong> — Report title, period, date, confidentiality, and owner info.</div>
+            </div>
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div><strong>Pulse</strong> — The key flag statement shown at the top of the dashboard.</div>
+            </div>
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <div><strong>Projects</strong> — Add, edit, delete projects. Set RAG status, phase, sub-phase, schedule, and notes.</div>
+            </div>
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div><strong>Milestones</strong> — Key dates with types (Milestone, Review, Approval, etc.).</div>
+            </div>
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div><strong>Risks</strong> — Track risks, watchpoints, and dependency owners. Link them to affected projects.</div>
+            </div>
+            <div class="help-grid-item">
+              <div class="help-grid-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div><strong>Decisions</strong> — Outstanding asks with due dates, project links, and context.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-heading">Editing Fields</div>
+        <div class="help-card-body">
+          <p>Each field has an <strong>edit button</strong> (pencil icon). Click it to switch to edit mode, make your changes, then click the checkmark to save or the X to cancel. Keyboard users can press <kbd>Enter</kbd> to confirm and <kbd>Escape</kbd> to cancel (in most text fields).</p>
+          <ul class="help-list">
+            <li>Text fields — freeform input with character limits.</li>
+            <li>Dropdowns — Phase, Sub-Phase, RAG values, Schedule Status, Risk Level, and more.</li>
+            <li>Dates — Use the browser's date picker; stored as <code>YYYY-MM-DD</code>.</li>
+            <li>Date+Time — Used for <em>Last Updated</em>; stored as <code>YYYY-MM-DDTHH:MM:SS</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-heading">Adding &amp; Removing Items</div>
+        <div class="help-card-body">
+          <p>Use the <span class="help-btn-demo">+ Add</span> button at the top-right of each portfolio panel (Projects, Milestones, Risks, Decisions) to create a new item. New items are added to the end of the list and opened for editing immediately.</p>
+          <p>To remove an item, click the <span class="help-del-demo">delete icon</span> (trash can) on any item card. A confirmation dialog will appear before deletion.</p>
+          <div class="help-tip">Deleting a project will also remove any decisions linked to that project to keep data consistent.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-heading">Import &amp; Export</div>
+        <div class="help-card-body">
+          <div class="help-grid help-grid-2col">
+            <div class="help-grid-item" style="align-items:flex-start">
+              <span class="help-io-btn">Import JSON</span>
+              <span style="color:var(--text2);font-size:13px">Load an existing <code>ctb_data.json</code> file. Validates the structure and shows a summary before importing. Replaces all current data.</span>
+            </div>
+            <div class="help-grid-item" style="align-items:flex-start">
+              <span class="help-io-btn" style="background:var(--green);color:#fff;">Download JSON</span>
+              <span style="color:var(--text2);font-size:13px">Save your edited data as a timestamped <code>.json</code> file. Replace <code>public/data/ctb_data.json</code> in your project to update the dashboard.</span>
+            </div>
+            <div class="help-grid-item" style="align-items:flex-start">
+              <span class="help-io-btn">Preview JSON</span>
+              <span style="color:var(--text2);font-size:13px">Inspect the full JSON output in a syntax-highlighted modal before downloading.</span>
+            </div>
+            <div class="help-grid-item" style="align-items:flex-start">
+              <span class="help-io-btn" style="background:var(--bg4);color:var(--text);border:1px solid var(--border2);">Dismiss Seed Warning</span>
+              <span style="color:var(--text2);font-size:13px">If you're intentionally starting from seed data, you can dismiss the amber warning bar.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:24px 0 12px;color:var(--text3);font-size:11px">
+        CTB Portfolio Editor — Built with vanilla HTML, CSS &amp; JS. No dependencies.
+      </div>
+    </div>
+
+    <div class="panel" id="panel-meta">
+      <div class="panel-header">
+        <div><div class="panel-title">Report Metadata</div><div class="panel-subtitle">Click the pencil icon to edit. Dates open a calendar, time opens a clock.</div></div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-header"><span class="section-card-title">Report Information</span></div>
+        <div class="section-card-body" id="meta-fields"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-pulse">
+      <div class="panel-header">
+        <div><div class="panel-title">Pulse / Key Flag</div><div class="panel-subtitle">The headline update shown at the top of the dashboard.</div></div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-header"><span class="section-card-title">Key Flag Statement</span></div>
+        <div class="section-card-body" id="pulse-fields"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-projects">
+      <div class="panel-header">
+        <div><div class="panel-title">Projects</div><div class="panel-subtitle">Expand a project to edit. Phase / Sub-Phase / Schedule Status are constrained dropdowns.</div></div>
+        <button class="btn" id="btn-add-project">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Project
+        </button>
+      </div>
+      <div class="project-grid" id="projects-list"></div>
+    </div>
+
+    <div class="panel" id="panel-milestones">
+      <div class="panel-header">
+        <div><div class="panel-title">Milestones</div><div class="panel-subtitle">Type is a dropdown. Date uses the calendar picker — stored as YYYY-MM-DD.</div></div>
+        <button class="btn" id="btn-add-milestone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Milestone
+        </button>
+      </div>
+      <div class="item-list" id="milestones-list"></div>
+    </div>
+
+    <div class="panel" id="panel-risks">
+      <div class="panel-header">
+        <div><div class="panel-title">Risks &amp; Watchpoints</div><div class="panel-subtitle">Level is a dropdown. Affected Projects use checkboxes.</div></div>
+        <button class="btn" id="btn-add-risk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Risk
+        </button>
+      </div>
+      <div class="item-list" id="risks-list"></div>
+    </div>
+
+    <div class="panel" id="panel-decisions">
+      <div class="panel-header">
+        <div><div class="panel-title">Decisions &amp; Asks</div><div class="panel-subtitle">Date picker stores YYYY-MM-DD; Due Date Label is auto-generated. Linked Project is a dropdown.</div></div>
+        <button class="btn" id="btn-add-decision">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Decision
+        </button>
+      </div>
+      <div class="item-list" id="decisions-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">JSON Preview — data/ctb_data.json</span>
+      <button class="close-btn" id="btn-close-preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body"><div class="json-preview" id="json-out"></div></div>
+    <div class="modal-footer">
+      <button class="btn" id="btn-modal-close">Close</button>
+      <button class="btn btn-success" id="btn-modal-download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg">Saved</span>
+</div>
+
+<script src="js/utils.js"></script>
+<script>
+// ── SEED DATA ────────────────────────────────────────────
+const INSTRUCTIONS = {"howToUpdate":"Edit only this file. The dashboard (public/dashboard.html) reads it automatically on load.","ragValues":"Use exactly: GREEN | AMBER | RED | HOLD (case-insensitive). Applied to rag.schedule, rag.budget, rag.scope, rag.quality, and rag.overall. GREEN=On Track, AMBER=At Risk, RED=Off Track, HOLD=On Hold. HOLD projects are excluded from the global RAG calculation.","ragOverallVsScheduleStatus":"These are TWO DIFFERENT fields controlling TWO DIFFERENT columns. rag.overall = the coloured dot in the Overall RAG column; it also drives the global portfolio health indicator and all pulse counts. scheduleStatus = the text pill in the Schedule column (shown alongside scheduleVariance, e.g. '+2d AT RISK'). A project can be AT RISK on schedule yet GREEN overall if budget and scope are healthy — so both fields must be set independently.","scheduleStatusValues":"Use exactly: ON TRACK | AT RISK | DELAYED | ON HOLD. Controls only the Schedule column pill — does NOT affect global RAG or pulse counts.","phaseValues":"Use exactly: DISCOVER | PREPARE | EXPLORE | REALIZE | DEPLOY | RUN (case-insensitive)","subPhaseValues":"DISCOVER: 'Solution exploration' | 'Trial & prototyping' | 'Value & roadmap definition'. PREPARE: 'Project initiation' | 'Team enablement' | 'System provisioning' | 'Scoping & planning'. EXPLORE: 'Fit-to-standard workshops' | 'Fit-gap analysis' | 'Requirements gathering'. REALIZE: 'Solution configuration' | 'Development & extensions' | 'Sprint cycles' | 'Testing (SIT/UAT)' | 'Data migration setup'. DEPLOY: 'Cutover planning' | 'Dress rehearsals' | 'End-user training' | 'Go-live execution'. RUN: 'Hypercare support' | 'System monitoring' | 'Continuous improvement'","projectStatusNote":"OPTIONAL — do not add this field unless a project is complete. When omitted, the dashboard auto-infers the status: rag.overall=HOLD → shown as On Hold; everything else → active. The only value you ever need to set manually is 'complete', which dims the row and scorecard card to indicate the project has finished.","milestoneTypeValues":"Use exactly: REVIEW | GO/NO-GO | MILESTONE | APPROVAL | DECISION","riskLevelValues":"Use exactly: HIGH | MED | LOW | DEP | ESC | WATCH","decisionProjectId":"Each decision MUST have a projectId matching the id of one of the projects in the projects array. This links the ask to its project and displays a project tag on the dashboard.","IMPORTANT":"The dashboard AUTO-COMPUTES the global RAG, summary counts, and portfolio health from rag.overall on each project — not from scheduleStatus. You only need to manually set keyFlag in the pulse section, and projectId on each decision."};
+
+let data = JSON.parse(JSON.stringify({
+  meta:{
+    reportTitle:"SAP CRM \u00b7 Change-the-Business Portfolio",
+    period:"May 2026 / CW20",
+    reportDate:"2026-05-15",
+    lastUpdated:"2026-05-15T09:00:00",
+    confidentiality:"IT Leadership \u00b7 Confidential-Internal review only",
+    portfolioOwner:"SAP CRM Team"
+  },
+  pulse:{keyFlag:"GPIC approval for AssetCare and E-invoicing complete. Kickoff initiated on 21st May 2026"},
+  projects:[
+    {id:"einvoicing",name:"E-Invoicing OFR",phase:"EXPLORE",subPhase:"Fit-to-standard workshops",scheduleVariance:"+0d",scheduleStatus:"ON TRACK",rag:{schedule:"GREEN",budget:"GREEN",scope:"GREEN",quality:"GREEN",overall:"GREEN"},nextMilestone:"Kickoff on 21st May 2026",comment:"GPIC Gate 3 approval complete. Kickoff meeting on 21st May 2026",deepDiveUrl:"https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/einvoicing",deepDiveLabel:"Teams"},
+    {id:"mercoline",name:"OSTE Mercoline OFR",phase:"EXPLORE",subPhase:"Fit-gap analysis",scheduleVariance:"+0d",scheduleStatus:"ON TRACK",rag:{schedule:"GREEN",budget:"GREEN",scope:"GREEN",quality:"GREEN",overall:"GREEN"},nextMilestone:"Go Live \u2014 3rd June 2026",comment:"Business to start testing. Go live planned on 3rd June 2026",deepDiveUrl:"https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/mercoline",deepDiveLabel:"Teams"},
+    {id:"assetcare",name:"Asset Care",phase:"EXPLORE",subPhase:"Requirements gathering",scheduleVariance:"+0d",scheduleStatus:"ON TRACK",rag:{schedule:"GREEN",budget:"GREEN",scope:"GREEN",quality:"GREEN",overall:"GREEN"},nextMilestone:"Kickoff - 21st May 2026",comment:"US creation complete. Kickoff planned on 21st May 2026",deepDiveUrl:"https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/assetcare",deepDiveLabel:"Teams"},
+    {id:"cdsrepair",name:"CDS After Repair",phase:"REALIZE",subPhase:"Testing (SIT/UAT)",scheduleVariance:"+0d",scheduleStatus:"ON TRACK",rag:{schedule:"AMBER",budget:"GREEN",scope:"AMBER",quality:"GREEN",overall:"AMBER"},nextMilestone:"TBD",comment:"Handed to business for testing. New requirements may be added.",deepDiveUrl:"https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/cdsrepair",deepDiveLabel:"Teams"},
+    {id:"loaner",name:"Loaner Improvement",phase:"REALIZE",subPhase:"Development & extensions",scheduleVariance:"+0d",scheduleStatus:"ON TRACK",rag:{schedule:"AMBER",budget:"GREEN",scope:"GREEN",quality:"GREEN",overall:"AMBER"},nextMilestone:"SIT Start \u2014 15 Jun 2026",comment:"Fixed budget. Production deployment planned 30 Jun 2026.",deepDiveUrl:"https://teams.microsoft.com/l/entity/99e46335-5250-4a68-8499-3e4f55e6f3f6/loaner",deepDiveLabel:"Teams"}
+  ],
+  risks:[
+    {level:"WATCH",title:"Loaner Improvement \u2014 CPI & ACE Dev Dependency",description:"RFAC0225044 Like-for-Like Assignment is blocked on CPI and ACE development completion before SIT/UAT entry gate. Cross-team coordination with two external squads required.",affectedProjects:["loaner"]},
+    {level:"WATCH",title:"Testing feedback(UAT) from business pending and probable scope addition",description:"UAT feedback will decide on the go live date of the project and there may be some additional requirement which needs to be confirmed.",affectedProjects:["cdsrepair"]}
+  ],
+  milestones:[
+    {date:"2026-07-10",type:"MILESTONE",description:"Development end date for AssetCare project"},
+    {date:"2026-06-03",type:"MILESTONE",description:"Mercoline OFR business go-live"},
+    {date:"2026-08-07",type:"MILESTONE",description:"End of UAT for AssetCare project"},
+    {date:"2026-09-15",type:"MILESTONE",description:"Business go-live for AssetCare project"},
+    {date:"2026-05-21",type:"MILESTONE",description:"Kick-off for AssetCare project"},
+    {date:"2026-05-21",type:"MILESTONE",description:"E-invoicing-OFR project kickoff"},
+    {date:"2026-09-01",type:"MILESTONE",description:"Business go-live for E-invoicing OFR"},
+    {date:"2026-06-12",type:"MILESTONE",description:"Loaner Improvement \u2014 3 RFAC development completion checkpoint."}
+  ],
+  decisions:[
+    {icon:"\uD83D\uDCCC",ask:"Dependency with Infocus CCC Integration project",context:"Technical dependency with the Infocus CCC Integration project needs to be sorted out from ACE perspective",dueDate:"2026-05-29",dueDateLabel:"Due 29 May 2026",projectId:"loaner"},
+    {icon:"\u2705",ask:"Legal text for Like-to-Like devices required from business for ACE Interact portal",context:"Business to provide legal text to ACE developers to complete development for US ACE-7093",dueDate:"2026-05-29",dueDateLabel:"Due 29 May 2026",projectId:"loaner"},
+    {icon:"\uD83D\uDD17",ask:"Confirm CPI & ACE Resource Allocation \u2014 Loaner Improvement",context:"Executive alignment needed to secure cross-team capacity for Loaner Improvement SIT/UAT entry gate in mid-June.",dueDate:"2026-06-10",dueDateLabel:"Due 10 Jun 2026",projectId:"loaner"}
+  ]
+}));
+
+// ── CONSTANTS ────────────────────────────────────────────
+const RAG_VALUES      = ['GREEN','AMBER','RED','HOLD'];
+const PHASES          = ['DISCOVER','PREPARE','EXPLORE','REALIZE','DEPLOY','RUN'];
+const SCHED_STATUS    = ['ON TRACK','AT RISK','DELAYED','ON HOLD'];
+const MS_TYPES        = ['REVIEW','GO/NO-GO','MILESTONE','APPROVAL','DECISION'];
+const RISK_LEVELS     = ['HIGH','MED','LOW','DEP','ESC','WATCH'];
+const DECISION_ICONS  = ['📌','✅','🔗','⚠️','🔄','💡','🎯','🚦','❗','📋'];
+const RAG_DIMS        = ['schedule','budget','scope','quality','overall'];
+
+// ── AUTO-PERIOD DEFAULT ──────────────────────────────────
+// Returns the ISO 8601 week number for a given date.
+// The Thursday rule: shift to the nearest Thursday, then compute the week
+// of that Thursday's year — this correctly handles year-boundary edge cases
+// (e.g. 2025-01-01 is ISO week 1 of 2025, not week 53 of 2024).
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Shift to the nearest Thursday (ISO weeks start on Monday; Thursday is pivot)
+  const dayNum = d.getUTCDay() || 7; // Sunday(0) → 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  // yearStart is Jan 1 of the *adjusted Thursday's* year — not the original date's year
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function defaultPeriod() {
+  const now = new Date();
+  const monthName = now.toLocaleString('en-GB',{month:'long'});
+  const year = now.getFullYear();
+  const cw = getISOWeek(now);
+  return `${monthName} ${year} / CW${cw}`;
+}
+// defaultPeriod() is only called via the explicit ↺ reset button in the Meta panel.
+// No auto-mutation on load — that would silently overwrite real data whose period
+// happens to match the seed string (a valid value for a CW20 report).
+
+// ── SEED WARNING BANNER ──────────────────────────────────
+function dismissSeedWarning() {
+  const bar = document.getElementById('seed-warning-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+// ── IMPORT JSON ──────────────────────────────────────────
+function triggerImport() {
+  document.getElementById('import-file-input').value = '';
+  document.getElementById('import-file-input').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      // Validate basic structure
+      const required = ['meta','pulse','projects'];
+      const missing = required.filter(k => !(k in imported));
+      if (missing.length) {
+        alert('Invalid JSON: missing required keys: ' + missing.join(', '));
+        return;
+      }
+      if (!confirm(`Import "${file.name}"?\n\nThis will REPLACE all current data with the imported file.\n\nProjects: ${(imported.projects||[]).length}\nMilestones: ${(imported.milestones||[]).length}\nRisks: ${(imported.risks||[]).length}\nDecisions: ${(imported.decisions||[]).length}\n\nContinue?`)) return;
+
+      // Merge imported data (preserve any missing arrays)
+      data._instructions = imported._instructions ?? data._instructions;
+      data.meta       = imported.meta       ?? data.meta;
+      data.pulse      = imported.pulse      ?? data.pulse;
+      data.projects   = imported.projects   || [];
+      data.milestones = imported.milestones || [];
+      data.risks      = imported.risks      || [];
+      data.decisions  = imported.decisions  || [];
+
+      // Re-render everything
+      renderMeta(); renderPulse(); renderProjects();
+      renderMilestones(); renderRisks(); renderDecisions();
+
+      // Hide the seed-data warning — user is now working with real data
+      dismissSeedWarning();
+
+      toast('Imported: ' + file.name);
+    } catch(err) {
+      alert('Failed to parse JSON file:\n' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+const SUBPHASE_MAP = {
+  DISCOVER: ['Solution exploration','Trial & prototyping','Value & roadmap definition'],
+  PREPARE:  ['Project initiation','Team enablement','System provisioning','Scoping & planning'],
+  EXPLORE:  ['Fit-to-standard workshops','Fit-gap analysis','Requirements gathering'],
+  REALIZE:  ['Solution configuration','Development & extensions','Sprint cycles','Testing (SIT/UAT)','Data migration setup'],
+  DEPLOY:   ['Cutover planning','Dress rehearsals','End-user training','Go-live execution'],
+  RUN:      ['Hypercare support','System monitoring','Continuous improvement']
+};
+
+// ── SVG ICONS ────────────────────────────────────────────
+const I_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+const I_DEL  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+const I_OK   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`;
+const I_X    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+// ── UTILS ────────────────────────────────────────────────
+const escAttr = s => String(s??'').replace(/"/g,'&quot;');
+
+function fmtDate(d) {
+  if (!d) return '';
+  const s = String(d).trim();
+  // Surface the most common wrong format (DD-MM-YYYY) visibly so it is caught
+  // before the JSON is downloaded and hits the dashboard validator.
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) return '\u26a0 Wrong format: use YYYY-MM-DD';
+  try {
+    const dt = new Date(s.split('T')[0] + 'T00:00:00');
+    if (isNaN(dt.getTime())) return `\u26a0 Invalid date: ${s}`;
+    return dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return `\u26a0 Invalid date: ${s}`; }
+}
+
+function autoDueDateLabel(d) {
+  return d ? 'Due ' + fmtDate(d) : '';
+}
+
+function mkSel(id, opts, cur) {
+  return `<select class="fi" id="${id}">${opts.map(o=>`<option value="${esc(o)}"${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+
+function mkSubPhaseSel(id, phase, cur) {
+  const opts = SUBPHASE_MAP[phase]||[];
+  const val  = opts.includes(cur) ? cur : (opts[0]||'');
+  return mkSel(id, opts, val);
+}
+
+function ragBadge(v) {
+  return `<span class="rag rag-${v}"><span class="rag-dot"></span>${v}</span>`;
+}
+
+// ── NAV ─────────────────────────────────────────────────
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+
+// ── TOAST ────────────────────────────────────────────────
+let _tt;
+function toast(msg){
+  clearTimeout(_tt);
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast').classList.add('show');
+  _tt=setTimeout(()=>document.getElementById('toast').classList.remove('show'),2200);
+}
+
+// ════════════════════════════════════════════════════════
+//  META
+// ════════════════════════════════════════════════════════
+const META_DEFS = [
+  {key:'reportTitle',   label:'Report Title',       type:'text'},
+  {key:'period',        label:'Period',              type:'text'},
+  {key:'reportDate',    label:'Report Date',         type:'date'},
+  {key:'lastUpdated',   label:'Last Updated',        type:'datetime-local'},
+  {key:'confidentiality',label:'Confidentiality',   type:'text'},
+  {key:'portfolioOwner', label:'Portfolio Owner',    type:'text'},
+];
+
+function renderMeta() {
+  document.getElementById('meta-fields').innerHTML = META_DEFS.map(f=>{
+    const raw = data.meta[f.key]||'';
+    let disp = raw;
+    if (f.type==='date') disp = fmtDate(raw) + (raw ? '  ('+raw+')' : '');
+    if (f.type==='datetime-local') {
+      if (!raw) { disp = ''; }
+      else if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        // proper ISO string
+        const timePart = raw.includes('T') ? '  ' + raw.split('T')[1].slice(0,5) : '';
+        disp = fmtDate(raw) + timePart + '  (' + raw + ')';
+      } else {
+        disp = raw; // already a display string or unknown format — show as-is
+      }
+    }
+    const resetBtn = f.key === 'period'
+      ? `<button class="edit-btn" data-action="reset-period" title="Reset to current week" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg></button>`
+      : '';
+    return `<div class="field-row" id="mr-${f.key}">
+      <span class="field-label">${f.label}</span>
+      <span class="field-value" id="mv-${f.key}">${esc(disp)}</span>
+      <div style="display:flex;gap:4px;align-items:center" class="field-actions-wrap">${resetBtn}<button class="edit-btn" data-action="edit-meta" data-key="${f.key}" title="Edit">${I_EDIT}</button></div>
+    </div>`;
+  }).join('');
+  document.getElementById('hdr-title').textContent = data.meta.reportTitle;
+}
+
+function resetPeriod() {
+  data.meta.period = defaultPeriod();
+  renderMeta();
+  toast('Period reset to ' + data.meta.period);
+}
+
+function editMeta(key) {
+  const f   = META_DEFS.find(x=>x.key===key);
+  const raw = data.meta[key]||'';
+  let inp;
+  if (f.type==='date') {
+    inp = `<input class="fi" type="date" id="mi-${key}" value="${escAttr(raw)}" />
+           <div class="hint">Stored as YYYY-MM-DD</div>`;
+  } else if (f.type==='datetime-local') {
+    const dtv = raw.length>16 ? raw.slice(0,16) : raw;
+    inp = `<input class="fi" type="datetime-local" id="mi-${key}" value="${escAttr(dtv)}" />
+           <div class="hint">Stored as YYYY-MM-DDTHH:MM:SS</div>`;
+  } else {
+    inp = `<input class="fi" type="text" id="mi-${key}" value="${escAttr(raw)}" />`;
+  }
+  document.getElementById('mv-'+key).outerHTML = `<div id="mv-${key}">${inp}</div>`;
+  document.getElementById('mr-'+key).querySelector('.field-actions-wrap').outerHTML = `
+    <div class="field-actions field-actions-wrap">
+      <button class="btn btn-primary save-btn" data-action="save-meta" data-key="${key}">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="cancel-meta">${I_X}</button>
+    </div>`;
+  const el = document.getElementById('mi-'+key);
+  if (el) el.focus();
+}
+
+function saveMeta(key) {
+  const f   = META_DEFS.find(x=>x.key===key);
+  let val   = document.getElementById('mi-'+key).value.trim();
+  if (f.type==='datetime-local' && val && val.length===16) val+=':00';
+  data.meta[key] = val;
+  toast('Saved — '+f.label);
+  renderMeta();
+}
+
+// ════════════════════════════════════════════════════════
+//  PULSE
+// ════════════════════════════════════════════════════════
+function renderPulse() {
+  document.getElementById('pulse-fields').innerHTML = `
+    <div class="pulse-box">
+      <div class="pulse-label">Current Key Flag</div>
+      <div class="pulse-text">${esc(data.pulse.keyFlag)}</div>
+    </div>
+    <div class="field-row" id="pulse-row">
+      <span class="field-label">Key Flag</span>
+      <span class="field-value" id="pulse-val">${esc(data.pulse.keyFlag)}</span>
+      <button class="edit-btn" data-action="edit-pulse">${I_EDIT}</button>
+    </div>`;
+}
+function editPulse() {
+  document.getElementById('pulse-val').outerHTML =
+    `<textarea class="fi ta" id="pulse-inp" rows="3">${esc(data.pulse.keyFlag)}</textarea>`;
+  document.getElementById('pulse-row').querySelector('.edit-btn').outerHTML = `
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-pulse">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="cancel-pulse">${I_X}</button>
+    </div>`;
+  document.getElementById('pulse-inp').focus();
+}
+function savePulse() {
+  data.pulse.keyFlag = document.getElementById('pulse-inp').value.trim();
+  toast('Pulse saved');
+  renderPulse();
+}
+
+// ════════════════════════════════════════════════════════
+//  PROJECTS
+// ════════════════════════════════════════════════════════
+const PROJ_TEXT = [
+  {key:'id',              label:'Project ID',        mono:true},
+  {key:'name',            label:'Display Name',      mono:false},
+  {key:'scheduleVariance',label:'Schedule Variance', mono:true,  hint:'+0d / +5d / -2d'},
+  {key:'nextMilestone',   label:'Next Milestone',    mono:false},
+  {key:'comment',         label:'Comment',           mono:false, ta:true},
+  {key:'deepDiveUrl',     label:'Deep Dive URL',     mono:true},
+];
+
+function renderProjects() {
+  document.getElementById('cnt-projects').textContent = data.projects.length;
+  document.getElementById('projects-list').innerHTML = data.projects.map((p,pi)=>`
+    <div class="project-card" id="pc-${pi}">
+      <div class="project-card-header" data-action="toggle-proj" data-pi="${pi}">
+        <div>
+          <div class="project-name">${esc(p.name)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${esc(p.id)}</div>
+        </div>
+        <div class="project-meta">
+          <span class="phase-pill" id="pp-${pi}">${esc(p.phase)}</span>
+          <span id="prag-${pi}">${ragBadge(p.rag.overall)}</span>
+          <button class="edit-btn del-btn" data-action="delete-project" data-pi="${pi}" title="Delete project" style="margin-left:4px">${I_DEL}</button>
+          <svg class="chevron" id="chv-${pi}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="project-body" id="pb-${pi}" style="display:none">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.1em;margin-bottom:8px">RAG STATUS</div>
+        <div class="rag-grid">
+          ${RAG_DIMS.map(dim=>`
+          <div class="rag-cell">
+            <div class="rag-cell-label">${dim.toUpperCase()}</div>
+            <select class="rag-select" data-action="update-rag" data-pi="${pi}" data-dim="${dim}">
+              ${RAG_VALUES.map(r=>`<option value="${r}"${r===p.rag[dim]?' selected':''}>${r}</option>`).join('')}
+            </select>
+          </div>`).join('')}
+        </div>
+        <div class="sep"></div>
+        <!-- PHASE -->
+        <div class="field-row" id="ppr-${pi}-phase">
+          <span class="field-label">Phase</span>
+          <span class="field-value" id="ppv-${pi}-phase">${esc(p.phase)}</span>
+          <button class="edit-btn" data-action="edit-proj-phase" data-pi="${pi}">${I_EDIT}</button>
+        </div>
+        <!-- SUB-PHASE -->
+        <div class="field-row" id="ppr-${pi}-subPhase">
+          <span class="field-label">Sub-Phase</span>
+          <span class="field-value" id="ppv-${pi}-subPhase">${esc(p.subPhase)}</span>
+          <button class="edit-btn" data-action="edit-proj-subphase" data-pi="${pi}">${I_EDIT}</button>
+        </div>
+        <!-- SCHEDULE STATUS -->
+        <div class="field-row" id="ppr-${pi}-scheduleStatus">
+          <span class="field-label">Schedule Status</span>
+          <span class="field-value" id="ppv-${pi}-scheduleStatus">${esc(p.scheduleStatus)}</span>
+          <button class="edit-btn" data-action="edit-proj-sel" data-pi="${pi}" data-key="scheduleStatus">${I_EDIT}</button>
+        </div>
+        <!-- TEXT FIELDS -->
+        ${PROJ_TEXT.map(f=>`
+        <div class="field-row" id="ppr-${pi}-${f.key}">
+          <span class="field-label">${f.label}${f.hint?`<div class="hint">${f.hint}</div>`:''}</span>
+          <span class="field-value" style="${f.mono?'font-family:var(--mono);word-break:break-all':''}" id="ppv-${pi}-${f.key}">${esc(p[f.key]||'')}</span>
+          <button class="edit-btn" data-action="edit-proj-text" data-pi="${pi}" data-key="${f.key}">${I_EDIT}</button>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleProj(pi) {
+  const b=document.getElementById('pb-'+pi), c=document.getElementById('chv-'+pi);
+  const o=b.style.display!=='none';
+  b.style.display=o?'none':'block';
+  c.classList.toggle('open',!o);
+}
+
+function _reopen(pi) {
+  const wasOpen = document.getElementById('pb-'+pi).style.display!=='none';
+  renderProjects();
+  if (wasOpen) {
+    document.getElementById('pb-'+pi).style.display='block';
+    document.getElementById('chv-'+pi).classList.add('open');
+  }
+}
+
+function updateRag(pi,dim,val) {
+  data.projects[pi].rag[dim]=val;
+  if (dim==='overall') document.getElementById('prag-'+pi).innerHTML=ragBadge(val);
+  toast(`RAG ${dim.toUpperCase()} → ${val}`);
+}
+
+function editProjPhase(pi) {
+  const p=data.projects[pi];
+  document.getElementById(`ppv-${pi}-phase`).outerHTML =
+    `<div id="ppv-${pi}-phase"><select class="fi" id="ppi-${pi}-phase" data-action="refresh-sub-opts" data-pi="${pi}">${PHASES.map(o=>`<option value="${esc(o)}"${o===p.phase?' selected':''}>${esc(o)}</option>`).join('')}</select> </div>`;
+  document.getElementById(`ppr-${pi}-phase`).querySelector('.edit-btn').outerHTML=`
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-proj-phase" data-pi="${pi}">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="reopen" data-pi="${pi}">${I_X}</button>
+    </div>`;
+}
+function refreshSubOpts(pi) {
+  const phase=document.getElementById(`ppi-${pi}-phase`).value;
+  const opts=SUBPHASE_MAP[phase]||[];
+  const s=document.getElementById(`ppi-${pi}-subPhase`);
+  if (s) s.innerHTML=opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+}
+function saveProjPhase(pi) {
+  const phase=document.getElementById(`ppi-${pi}-phase`).value;
+  data.projects[pi].phase=phase;
+  const opts=SUBPHASE_MAP[phase]||[];
+  if (opts.length && !opts.includes(data.projects[pi].subPhase)) data.projects[pi].subPhase=opts[0];
+  toast('Phase → '+phase);
+  document.getElementById('pp-'+pi).textContent=phase;
+  _reopen(pi);
+}
+
+function editProjSubPhase(pi) {
+  const p=data.projects[pi];
+  document.getElementById(`ppv-${pi}-subPhase`).outerHTML =
+    `<div id="ppv-${pi}-subPhase">${mkSubPhaseSel(`ppi-${pi}-subPhase`, p.phase, p.subPhase)}</div>`;
+  document.getElementById(`ppr-${pi}-subPhase`).querySelector('.edit-btn').outerHTML=`
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-proj-subphase" data-pi="${pi}">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="reopen" data-pi="${pi}">${I_X}</button>
+    </div>`;
+}
+function saveProjSubPhase(pi) {
+  data.projects[pi].subPhase=document.getElementById(`ppi-${pi}-subPhase`).value;
+  toast('Sub-Phase saved'); _reopen(pi);
+}
+
+function editProjSel(pi,key) {
+  const opts = key==='scheduleStatus' ? SCHED_STATUS : [];
+  const cur  = data.projects[pi][key]||opts[0];
+  document.getElementById(`ppv-${pi}-${key}`).outerHTML =
+    `<div id="ppv-${pi}-${key}">${mkSel(`ppi-${pi}-${key}`, opts, cur)}</div>`;
+  document.getElementById(`ppr-${pi}-${key}`).querySelector('.edit-btn').outerHTML=`
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-proj-sel" data-pi="${pi}" data-key="${key}">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="reopen" data-pi="${pi}">${I_X}</button>
+    </div>`;
+}
+function saveProjSel(pi,key) {
+  data.projects[pi][key]=document.getElementById(`ppi-${pi}-${key}`).value;
+  toast('Saved — '+key); _reopen(pi);
+}
+
+function editProjText(pi,key) {
+  const f=PROJ_TEXT.find(x=>x.key===key);
+  const cur=data.projects[pi][key]||'';
+  const inp = f.ta
+    ? `<textarea class="fi ta" id="ppi-${pi}-${key}" rows="3" maxlength="1000">${esc(cur)}</textarea>`
+    : `<input class="fi" type="text" id="ppi-${pi}-${key}" value="${escAttr(cur)}" maxlength="${key==='deepDiveUrl'?2000:200}" />`;
+  document.getElementById(`ppv-${pi}-${key}`).outerHTML=`<div id="ppv-${pi}-${key}">${inp}</div>`;
+  document.getElementById(`ppr-${pi}-${key}`).querySelector('.edit-btn').outerHTML=`
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-proj-text" data-pi="${pi}" data-key="${key}">${I_OK}</button>
+      <button class="btn cancel-btn" data-action="reopen" data-pi="${pi}">${I_X}</button>
+    </div>`;
+  const el=document.getElementById(`ppi-${pi}-${key}`);
+  if (el) el.focus();
+}
+function saveProjText(pi,key) {
+  data.projects[pi][key]=document.getElementById(`ppi-${pi}-${key}`).value.trim();
+  toast('Saved — '+key); _reopen(pi);
+}
+
+function addProject() {
+  const newProj = {
+    id: 'project-' + Date.now(),
+    name: 'New Project',
+    phase: 'DISCOVER',
+    subPhase: 'Solution exploration',
+    scheduleVariance: '+0d',
+    scheduleStatus: 'ON TRACK',
+    rag: {schedule:'GREEN',budget:'GREEN',scope:'GREEN',quality:'GREEN',overall:'GREEN'},
+    nextMilestone: '',
+    comment: '',
+    deepDiveUrl: ''
+  };
+  data.projects.push(newProj);
+  renderProjects();
+  const pi = data.projects.length - 1;
+  // Auto-expand and focus
+  document.getElementById('pb-'+pi).style.display = 'block';
+  document.getElementById('chv-'+pi).classList.add('open');
+  toast('New project added — edit the fields below');
+}
+
+function deleteProject(pi) {
+  if (!confirm(`Delete project "${data.projects[pi].name}"?\nThis cannot be undone.`)) return;
+  const id = data.projects[pi].id;
+  data.projects.splice(pi, 1);
+  // Remove decisions linked to the deleted project rather than rebinding to another project
+  // (rebinding to an arbitrary project creates silent data integrity issues in the dashboard).
+  const removed = data.decisions.filter(d => d.projectId === id).length;
+  data.decisions = data.decisions.filter(d => d.projectId !== id);
+  renderProjects();
+  renderDecisions();
+  toast('Project deleted' + (removed > 0 ? ` · ${removed} linked decision${removed !== 1 ? 's' : ''} also removed` : ''));
+}
+
+// ════════════════════════════════════════════════════════
+//  MILESTONES
+// ════════════════════════════════════════════════════════
+function renderMilestones() {
+  document.getElementById('cnt-milestones').textContent=data.milestones.length;
+  const el=document.getElementById('milestones-list');
+  if (!data.milestones.length){el.innerHTML='<div style="color:var(--text3);padding:24px;text-align:center;font-size:13px">No milestones yet.</div>';return;}
+  el.innerHTML=data.milestones.map((m,i)=>`
+    <div class="item-card" id="msc-${i}">
+      <div id="msv-${i}">
+        <div class="item-card-header">
+          <div>
+            <div class="ms-header-row">
+              <span class="ms-type">${esc(m.type)}</span>
+              <span class="ms-date">${esc(m.date)}</span>
+              <span class="ms-fmt-date">${fmtDate(m.date)}</span>
+            </div>
+            <div class="item-title">${esc(m.description)}</div>
+          </div>
+          <div class="item-card-actions">
+            <button class="edit-btn" data-action="edit-milestone" data-i="${i}">${I_EDIT}</button>
+            <button class="edit-btn del-btn" data-action="del-milestone" data-i="${i}">${I_DEL}</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editMilestone(i) {
+  const m=data.milestones[i];
+  document.getElementById('msv-'+i).innerHTML=`
+    <div class="fg-grid fg-grid-2col fg-mb">
+      <div class="fg">
+        <div class="fg-label">Date</div>
+        <input class="fi" type="date" id="msd-${i}" value="${escAttr(m.date)}" />
+        <div class="hint">Stored as YYYY-MM-DD</div>
+      </div>
+      <div class="fg">
+        <div class="fg-label">Type</div>
+        ${mkSel('mst-'+i, MS_TYPES, m.type)}
+      </div>
+    </div>
+    <div class="fg fg-mb-lg">
+      <div class="fg-label">Description</div>
+      <input class="fi" type="text" id="msde-${i}" value="${escAttr(m.description)}" maxlength="300" />
+    </div>
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-milestone" data-i="${i}">${I_OK} Save</button>
+      <button class="btn cancel-btn" data-action="cancel-milestone">${I_X} Cancel</button>
+    </div>`;
+}
+
+function saveMilestone(i) {
+  data.milestones[i].date        = document.getElementById('msd-'+i).value.trim();
+  data.milestones[i].type        = document.getElementById('mst-'+i).value;
+  data.milestones[i].description = document.getElementById('msde-'+i).value.trim();
+  toast('Milestone saved'); renderMilestones();
+}
+function delMilestone(i){if(!confirm('Delete this milestone?'))return;data.milestones.splice(i,1);renderMilestones();toast('Deleted');}
+function addMilestone(){data.milestones.push({date:'',type:'MILESTONE',description:''});renderMilestones();editMilestone(data.milestones.length-1);}
+
+// ════════════════════════════════════════════════════════
+//  RISKS
+// ════════════════════════════════════════════════════════
+function renderRisks() {
+  document.getElementById('cnt-risks').textContent=data.risks.length;
+  const el=document.getElementById('risks-list');
+  if (!data.risks.length){el.innerHTML='<div style="color:var(--text3);padding:24px;text-align:center;font-size:13px">No risks recorded.</div>';return;}
+  const projById={};data.projects.forEach(p=>{if(p.id)projById[p.id]=p.name;});
+  el.innerHTML=data.risks.map((r,i)=>`
+    <div class="item-card" id="rkc-${i}">
+      <div id="rkv-${i}">
+        <div class="item-card-header">
+          <div class="item-flex1">
+            <div class="item-badge-row">
+              <span class="level-badge l${r.level}">${r.level}</span>
+              ${r.level==='DEP' && r.depOwner ? `<span class="level-badge" style="background:${r.depOwner==='BUSINESS'?'rgba(139,92,246,.15)':'rgba(20,184,166,.15)'};color:${r.depOwner==='BUSINESS'?'#a78bfa':'#2dd4bf'};border:1px solid ${r.depOwner==='BUSINESS'?'rgba(139,92,246,.35)':'rgba(20,184,166,.35)'}">⬡ ${r.depOwner}</span>` : ''}
+            </div>
+            <div class="item-title">${esc(r.title)}</div>
+            <div class="item-desc item-desc-mt">${esc(r.description)}</div>
+            <div class="item-tags-mt">${(r.affectedProjects||[]).map(ap=>{const apName=projById[ap]||ap;return `<span class="tag-pill">${esc(apName)}</span>`}).join('')}</div>
+          </div>
+          <div class="item-card-actions">
+            <button class="edit-btn" data-action="edit-risk" data-i="${i}">${I_EDIT}</button>
+            <button class="edit-btn del-btn" data-action="del-risk" data-i="${i}">${I_DEL}</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editRisk(i) {
+  const r=data.risks[i];
+  const projOpts=data.projects.map(p=>({id:p.id,name:p.name}));
+  const curDepOwner = r.depOwner ? String(r.depOwner).toUpperCase() : 'BUSINESS';
+  document.getElementById('rkv-'+i).innerHTML=`
+    <div class="fg-grid fg-grid-2col fg-mb">
+      <div class="fg">
+        <div class="fg-label">Risk Level</div>
+        <select class="fi" id="rkl-${i}" data-action="risk-level-change" data-i="${i}">
+          ${RISK_LEVELS.map(lv=>`<option value="${esc(lv)}"${lv===r.level?' selected':''}>${esc(lv)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg">
+        <div class="fg-label">Title</div>
+        <input class="fi" type="text" id="rkt-${i}" value="${escAttr(r.title)}" maxlength="200" />
+      </div>
+    </div>
+    <div class="fg fg-mb" id="dep-owner-row-${i}" style="display:${r.level==='DEP'?'block':'none'};background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase;">⬡ Dependency Owner</div>
+      <div class="fg-grid fg-grid-2col">
+        <div>
+          <div class="fg-label">Who needs to act?</div>
+          <select class="fi" id="rko-${i}">
+            <option value="BUSINESS"${curDepOwner==='BUSINESS'?' selected':''}>BUSINESS — Chase the business team</option>
+            <option value="IT"${curDepOwner==='IT'?' selected':''}>IT — Chase the IT / tech team</option>
+          </select>
+        </div>
+        <div style="align-self:end">
+          <div class="hint" style="margin-top:0">Shown as a coloured owner badge on the dashboard alongside the DEP badge — purple for BUSINESS, teal for IT.</div>
+        </div>
+      </div>
+    </div>
+    <div class="fg fg-mb">
+      <div class="fg-label">Description</div>
+      <textarea class="fi ta" id="rkd-${i}" rows="3" maxlength="1000">${esc(r.description)}</textarea>
+    </div>
+    <div class="fg fg-mb-lg">
+      <div class="fg-label">Affected Projects</div>
+      <div class="proj-checks">
+        ${projOpts.map(({id,name})=>`<label class="proj-check-label">
+          <input type="checkbox" value="${escAttr(id)}" ${(r.affectedProjects||[]).includes(id)?'checked':''} />
+          <span>${esc(name)}</span></label>`).join('')}
+      </div>
+    </div>
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-risk" data-i="${i}">${I_OK} Save</button>
+      <button class="btn cancel-btn" data-action="cancel-risk">${I_X} Cancel</button>
+    </div>`;
+}
+
+function saveRisk(i) {
+  const level = document.getElementById('rkl-'+i).value;
+  data.risks[i].level            = level;
+  data.risks[i].title            = document.getElementById('rkt-'+i).value.trim();
+  data.risks[i].description      = document.getElementById('rkd-'+i).value.trim();
+  data.risks[i].affectedProjects = [...document.querySelectorAll(`#rkv-${i} .proj-checks input[type=checkbox]:checked`)].map(c=>c.value);
+  // depOwner: only save when level is DEP; clear it for all other levels
+  if (level === 'DEP') {
+    const ownerEl = document.getElementById('rko-'+i);
+    data.risks[i].depOwner = ownerEl ? ownerEl.value : 'BUSINESS';
+  } else {
+    delete data.risks[i].depOwner;
+  }
+  toast('Risk saved'); renderRisks();
+}
+function delRisk(i){if(!confirm('Delete this risk?'))return;data.risks.splice(i,1);renderRisks();toast('Deleted');}
+function addRisk(){data.risks.push({level:'WATCH',title:'',description:'',affectedProjects:[]});renderRisks();editRisk(data.risks.length-1);}
+
+// ════════════════════════════════════════════════════════
+//  DECISIONS
+// ════════════════════════════════════════════════════════
+function renderDecisions() {
+  document.getElementById('cnt-decisions').textContent=data.decisions.length;
+  const el=document.getElementById('decisions-list');
+  if (!data.decisions.length){el.innerHTML='<div style="color:var(--text3);padding:24px;text-align:center;font-size:13px">No decisions recorded.</div>';return;}
+  el.innerHTML=data.decisions.map((d,i)=>`
+    <div class="item-card" id="dcc-${i}">
+      <div id="dcv-${i}">
+        <div class="item-card-header">
+          <div class="decision-display-wrap">
+            <div class="decision-badge-row">
+              <span class="decision-icon">${d.icon||'📌'}</span>
+              <span class="due-badge">${esc(d.dueDateLabel||d.dueDate)}</span>
+              <span class="tag-pill">${esc(d.projectId)}</span>
+            </div>
+            <div class="item-title">${esc(d.ask)}</div>
+            <div class="item-desc decision-ctx-mt">${esc(d.context)}</div>
+          </div>
+          <div class="item-card-actions">
+            <button class="edit-btn" data-action="edit-decision" data-i="${i}">${I_EDIT}</button>
+            <button class="edit-btn del-btn" data-action="del-decision" data-i="${i}">${I_DEL}</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editDecision(i) {
+  const d=data.decisions[i];
+  const projOpts=data.projects.map(p=>`<option value="${escAttr(p.id)}"${p.id===d.projectId?' selected':''}>${esc(p.name)} (${esc(p.id)})</option>`).join('');
+  const iconOpts=DECISION_ICONS.map(ic=>`<option value="${ic}"${ic===d.icon?' selected':''}>${ic}</option>`).join('');
+  document.getElementById('dcv-'+i).innerHTML=`
+    <div class="fg-grid fg-grid-3col fg-mb">
+      <div class="fg">
+        <div class="fg-label">Icon</div>
+        <select class="fi fi-icon" id="dci-${i}">${iconOpts}</select>
+      </div>
+      <div class="fg">
+        <div class="fg-label">Due Date</div>
+        <input class="fi" type="date" id="dcd-${i}" value="${escAttr(d.dueDate||'')}"
+          data-action="decision-date-input" data-i="${i}" />
+        <div class="hint">Stored as YYYY-MM-DD</div>
+      </div>
+      <div class="fg">
+        <div class="fg-label">Due Date Label <span class="auto-label-hint">auto-fills</span></div>
+        <input class="fi" type="text" id="dcl-${i}" value="${escAttr(d.dueDateLabel||'')}"
+          data-action="decision-label-input" maxlength="50" />
+      </div>
+    </div>
+    <div class="fg fg-mb">
+      <div class="fg-label">Ask / Action Required</div>
+      <input class="fi" type="text" id="dca-${i}" value="${escAttr(d.ask)}" maxlength="300" />
+    </div>
+    <div class="fg fg-mb">
+      <div class="fg-label">Context / Detail</div>
+      <textarea class="fi ta" id="dcx-${i}" rows="3" maxlength="1000">${esc(d.context)}</textarea>
+    </div>
+    <div class="fg fg-mb-lg">
+      <div class="fg-label">Linked Project</div>
+      <select class="fi" id="dcp-${i}">${projOpts}</select>
+    </div>
+    <div class="field-actions">
+      <button class="btn btn-primary save-btn" data-action="save-decision" data-i="${i}">${I_OK} Save</button>
+      <button class="btn cancel-btn" data-action="cancel-decision">${I_X} Cancel</button>
+    </div>`;
+}
+
+function saveDecision(i) {
+  const rawDate = document.getElementById('dcd-'+i).value.trim();
+  const lblEl   = document.getElementById('dcl-'+i);
+  const label   = lblEl.value.trim() || autoDueDateLabel(rawDate);
+  data.decisions[i].icon         = document.getElementById('dci-'+i).value;
+  data.decisions[i].ask          = document.getElementById('dca-'+i).value.trim();
+  data.decisions[i].context      = document.getElementById('dcx-'+i).value.trim();
+  data.decisions[i].dueDate      = rawDate;
+  data.decisions[i].dueDateLabel = label;
+  data.decisions[i].projectId    = document.getElementById('dcp-'+i).value;
+  toast('Decision saved'); renderDecisions();
+}
+function delDecision(i){if(!confirm('Delete this decision?'))return;data.decisions.splice(i,1);renderDecisions();toast('Deleted');}
+function addDecision(){data.decisions.push({icon:'📌',ask:'',context:'',dueDate:'',dueDateLabel:'',projectId:data.projects[0]?.id||''});renderDecisions();editDecision(data.decisions.length-1);}
+
+// ════════════════════════════════════════════════════════
+//  JSON BUILD / PREVIEW / DOWNLOAD
+// ════════════════════════════════════════════════════════
+function buildJSON() {
+  // Use _instructions from the last imported data if available;
+  // fall back to the embedded constant only for fresh/seed sessions.
+  const instructions = data._instructions ?? INSTRUCTIONS;
+  return JSON.stringify(
+    { _instructions:instructions, meta:data.meta, pulse:data.pulse,
+      projects:data.projects, risks:data.risks, milestones:data.milestones,
+      decisions:data.decisions },
+    null, 2
+  );
+}
+
+// JSON syntax highlighter — tokenises character-by-character so keywords
+// inside strings (e.g. "true", "null") are never falsely highlighted.
+function hlJSON(str) {
+  // First HTML-escape the raw string so we're working with safe text
+  const safe = str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+
+  // Tokenise with a single pass regex: string | number | bool/null | punctuation
+  return safe.replace(
+    /("(?:\\.|[^"\\])*"(?:\s*:)?|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}[\],:])/g,
+    m => {
+      if (m.startsWith('"')) {
+        return m.endsWith(':')
+          ? `<span class="json-key">${m}</span>`
+          : `<span class="json-str">${m}</span>`;
+      }
+      if (m === 'true' || m === 'false' || m === 'null')
+        return `<span class="json-bool">${m}</span>`;
+      if (/^-?\d/.test(m))
+        return `<span class="json-num">${m}</span>`;
+      return m; // punctuation — no span
+    }
+  );
+}
+
+function openPreview(){document.getElementById('json-out').innerHTML=hlJSON(buildJSON());document.getElementById('preview-modal').classList.add('open');}
+function closePreview(){document.getElementById('preview-modal').classList.remove('open');}
+function downloadJSON(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const stamp = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())
+              +'_'+pad(now.getHours())+pad(now.getMinutes());
+  const filename = 'ctb_data_draft_'+stamp+'.json';
+  const b=new Blob([buildJSON()],{type:'application/json'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a'); a.href=u; a.download=filename; a.click();
+  URL.revokeObjectURL(u);
+  toast('Downloaded: '+filename+' — review before replacing live data/ctb_data.json');
+}
+
+// ── EVENT DELEGATION — handles data-action clicks, changes, inputs ──
+(function initDelegation() {
+  const shell = document.querySelector('.shell');
+  if (!shell || shell.dataset._del) return;
+  shell.dataset._del = '1';
+
+  shell.addEventListener('click', e => {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const a = t.dataset.action, pi = t.dataset.pi, i = t.dataset.i, key = t.dataset.key;
+    switch (a) {
+      case 'reset-period':     resetPeriod(); break;
+      case 'edit-meta':        editMeta(key); break;
+      case 'save-meta':        saveMeta(key); break;
+      case 'cancel-meta':      renderMeta(); break;
+      case 'edit-pulse':       editPulse(); break;
+      case 'save-pulse':       savePulse(); break;
+      case 'cancel-pulse':     renderPulse(); break;
+      case 'toggle-proj':      e.stopPropagation(); toggleProj(+pi); break;
+      case 'delete-project':   e.stopPropagation(); deleteProject(+pi); break;
+      case 'edit-proj-phase':  editProjPhase(+pi); break;
+      case 'save-proj-phase':  saveProjPhase(+pi); break;
+      case 'edit-proj-subphase': editProjSubPhase(+pi); break;
+      case 'save-proj-subphase': saveProjSubPhase(+pi); break;
+      case 'edit-proj-sel':    editProjSel(+pi, key); break;
+      case 'save-proj-sel':    saveProjSel(+pi, key); break;
+      case 'edit-proj-text':   editProjText(+pi, key); break;
+      case 'save-proj-text':   saveProjText(+pi, key); break;
+      case 'reopen':           _reopen(+pi); break;
+      case 'edit-milestone':   editMilestone(+i); break;
+      case 'del-milestone':    delMilestone(+i); break;
+      case 'save-milestone':   saveMilestone(+i); break;
+      case 'cancel-milestone': renderMilestones(); break;
+      case 'edit-risk':        editRisk(+i); break;
+      case 'del-risk':         delRisk(+i); break;
+      case 'save-risk':        saveRisk(+i); break;
+      case 'cancel-risk':      renderRisks(); break;
+      case 'edit-decision':    editDecision(+i); break;
+      case 'del-decision':     delDecision(+i); break;
+      case 'save-decision':    saveDecision(+i); break;
+      case 'cancel-decision':  renderDecisions(); break;
+    }
+  });
+
+  shell.addEventListener('change', e => {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const a = t.dataset.action, pi = t.dataset.pi, dim = t.dataset.dim, i = t.dataset.i;
+    if (a === 'update-rag')        updateRag(+pi, dim, t.value);
+    else if (a === 'refresh-sub-opts') refreshSubOpts(+pi);
+    else if (a === 'risk-level-change') {
+      const row = document.getElementById('dep-owner-row-' + i);
+      if (row) row.style.display = t.value === 'DEP' ? 'block' : 'none';
+    }
+  });
+
+  shell.addEventListener('input', e => {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const a = t.dataset.action, i = t.dataset.i;
+    if (a === 'decision-date-input') {
+      const v = document.getElementById('dcd-' + i).value;
+      const l = document.getElementById('dcl-' + i);
+      if (l && !l.dataset.manual) l.value = autoDueDateLabel(v);
+    } else if (a === 'decision-label-input') {
+      t.dataset.manual = '1';
+    }
+  });
+})();
+
+// ── EVENT BINDING (static elements) ──
+document.addEventListener('DOMContentLoaded',function(){
+  // Topbar actions
+  document.getElementById('btn-import').addEventListener('click', triggerImport);
+  document.getElementById('import-file-input').addEventListener('change', handleImport);
+  document.getElementById('btn-preview').addEventListener('click', openPreview);
+  document.getElementById('btn-download').addEventListener('click', downloadJSON);
+  // Seed warning dismiss
+  document.getElementById('btn-dismiss-seed').addEventListener('click', dismissSeedWarning);
+  // Nav — delegation via data-panel
+  document.querySelectorAll('.nav-item[data-panel]').forEach(el => {
+    el.addEventListener('click', function(){ showPanel(this.dataset.panel); });
+  });
+  // Add buttons
+  document.getElementById('btn-add-project'  ).addEventListener('click', addProject);
+  document.getElementById('btn-add-milestone').addEventListener('click', addMilestone);
+  document.getElementById('btn-add-risk'     ).addEventListener('click', addRisk);
+  document.getElementById('btn-add-decision' ).addEventListener('click', addDecision);
+  // Modal
+  document.getElementById('btn-close-preview').addEventListener('click', closePreview);
+  document.getElementById('btn-modal-close'  ).addEventListener('click', closePreview);
+  document.getElementById('btn-modal-download').addEventListener('click', downloadJSON);
+  document.getElementById('preview-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closePreview();
+  });
+});
+
+// ── INIT ─────────────────────────────────────────────────
+renderMeta(); renderPulse(); renderProjects(); renderMilestones(); renderRisks(); renderDecisions();
+
+</script>
+</body>
+</html>

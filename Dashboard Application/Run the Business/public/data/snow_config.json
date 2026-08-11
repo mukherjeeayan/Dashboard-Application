@@ -1,0 +1,156 @@
+{
+  "_schema_version": "3.0.0",
+  "meta": {
+    "portfolio": "Client IT Portfolio",
+    "prepared_by": "IT Portfolio Management Office",
+    "instance_timezone": "UTC"
+  },
+  "week_number": 22,
+  "year": 2026,
+  "thresholds": {
+    "sla_target_pct": 90,
+    "prb_sla_days": 45,
+    "prb_amber_days": 8,
+    "rag_sla_amber": 85,
+    "rag_sla_red": 80,
+    "rag_prb_breach_amber": 2,
+    "rag_prb_breach_red": 5
+  },
+  "bar_maxes": {
+    "incidents": 50,
+    "service_requests": 100,
+    "rfac": 20,
+    "problems": 10
+  },
+  "state_maps": {
+    "incidents": {
+      "closed": "Closed,Resolved,Cancelled"
+    },
+    "service_requests": {
+      "closed": "Closed Complete,Closed Incomplete,Cancelled",
+      "pending": "Pending Approval,Pending Change,Pending Vendor",
+      "in_progress": "Work in Progress,In Progress",
+      "on_hold": "On Hold"
+    },
+    "rfac": {
+      "assess": "Assess,Authorize",
+      "approved": "Approved",
+      "scheduled": "Scheduled",
+      "implement": "Implement",
+      "review": "Review",
+      "cab_pending": "CAB Required,Pending CAB",
+      "draft": "Draft",
+      "rejected": "Cancelled,Rejected"
+    },
+    "problems": {
+      "in_progress": "In Progress,Root Cause Analysis,RCA",
+      "known_error": "Known Error",
+      "investigating": "New,Open",
+      "pending_change": "Pending Change"
+    }
+  },
+    "stats_display": {
+      "incidents": [
+        {"key":"openCount","label":"Open","rag":true},
+        {"key":"p1","label":"P1","color":"red","zero_color":"green"},
+        {"key":"p2","label":"P2","color":"amber","zero_color":"green"},
+        {"key":"slaPct","label":"SLA","suffix":"%","fallback":"—","rag":true}
+      ],
+      "service_requests": [
+        {"key":"openCount","label":"Open","rag":true},
+        {"key":"pending","label":"Pending","color":"amber","zero_color":"green"},
+        {"key":"inProg","label":"In Progress","color":"green"},
+        {"key":"onHold","label":"On Hold","color":"muted"},
+        {"key":"slaPct","label":"SLA","suffix":"%","fallback":"—","rag":true}
+      ],
+      "problems": [
+        {"key":"total","label":"Open","rag":true},
+        {"key":"inProgress","label":"Root Cause","color":"red","zero_color":"green"},
+        {"key":"knownError","label":"Known Error","color":"amber","zero_color":"green"},
+        {"key":"investigating","label":"Investigating","color":"red"},
+        {"key":"pendingChange","label":"Pending Change","color":"muted"},
+        {"key":"slaPct","label":"SLA","suffix":"%","fallback":"—","rag":true}
+      ],
+      "rfac": [
+        {"key":"total","label":"Active","rag":true},
+        {"key":"assess","label":"Assess","color":"amber"},
+        {"key":"approved","label":"Approved","color":"green"},
+        {"key":"scheduled","label":"Scheduled","color":"blue"},
+        {"key":"implement","label":"Implement","color":"purple"},
+        {"key":"review","label":"Review","color":"amber"},
+        {"key":"cabPending","label":"CAB Pending","color":"amber","zero_color":"green"},
+        {"key":"draft","label":"Draft","color":"muted"},
+        {"key":"rejected","label":"Rejected","color":"red","zero_color":"muted"}
+      ]
+    },
+    "chart_display": {
+      "rfac_pipeline": [
+        {"key":"assess","label":"Assess","color_key":"amber"},
+        {"key":"approved","label":"Approved","color_key":"green"},
+        {"key":"scheduled","label":"Scheduled","color_key":"blue"},
+        {"key":"implement","label":"Implement","color_key":"purple"},
+        {"key":"review","label":"Review","color_key":"amber"},
+        {"key":"cabPending","label":"Pending CAB","color_key":"amber"},
+        {"key":"draft","label":"Draft","color_key":"muted"},
+        {"key":"rejected","label":"Rejected","color_key":"red"}
+      ]
+    },
+    "priority_maps": {
+    "p1": "1 - Critical,1-Critical,Critical,P1",
+    "p2": "2 - High,2-High,High,P2",
+    "p3": "3 - Medium,3-Medium,Medium,P3",
+    "p4": "4 - Low,4-Low,Low,P4"
+  },
+  "category_maps": {
+    "sr_subcategories": {
+      "Access Management,Access Provisioning,User Access": "Access Mgmt",
+      "Configuration,Config Change,Config": "Config Chg",
+      "Data Fix,Data Correction,Data": "Data Fix",
+      "Report,Reporting,Analytics,Report Request": "Report Req",
+      "User Maintenance,User Admin,User Management": "User Maint",
+      "Interface,Integration,Middleware": "Interface"
+    },
+    "inc_modules": {
+      "CRM Integration,PI,PI/PO,Interface,Integration": "Integration/PI",
+      "Sales Order,Order Management,Sales": "Sales Order",
+      "Pricing,IPC,Pricing/IPC": "Pricing/IPC",
+      "Basis,Infrastructure,BASIS": "Basis",
+      "CRM WebUI,WebUI,UI": "CRM WebUI",
+      "Billing,Invoice,Billing Document": "Billing",
+      "Business Partner,BP,BP Data": "BP Data"
+    }
+  },
+  "snow_urls": {
+    "incidents": "https://your-instance.service-now.com/incident_list.do?sysparm_query=state!=6",
+    "service_requests": "https://your-instance.service-now.com/sc_req_item_list.do?sysparm_query=state!=3",
+    "problems": "https://your-instance.service-now.com/problem_list.do?sysparm_query=state!=4",
+    "rfac": "https://your-instance.service-now.com/change_request_list.do?sysparm_query=state!=3"
+  },
+  "valid_values": {
+    "incidents": {
+      "Priority": "1 - Critical,2 - High,3 - Medium,4 - Low",
+      "State": "New,In Progress,On Hold,Resolved,Closed,Cancelled",
+      "Subcategory": "",
+      "Assignment Group": "",
+      "SLA Breached": "true,false,True,False,Yes,No,TRUE,FALSE"
+    },
+    "service_requests": {
+      "State": "Closed Complete,Closed Incomplete,Cancelled,Pending Approval,Pending Change,Pending Vendor,Work in Progress,In Progress",
+      "Subcategory": "",
+      "Assignment Group": "",
+      "SLA Breached": "true,false,True,False,Yes,No,TRUE,FALSE"
+    },
+    "rfac": {
+      "State": "New,Assess,Authorize,Scheduled,Implement,Review,Closed,Cancelled,Draft,Approved,CAB Required,Pending CAB,Rejected",
+      "CAB Status": "Not Required,Requested,Approved,Rejected,Pending",
+      "Assignment Group": ""
+    },
+    "problems": {
+      "Priority": "1 - Critical,2 - High,3 - Medium,4 - Low",
+      "State": "New,Open,In Progress,Root Cause Analysis,RCA,Known Error,Pending Change,Closed,Resolved,Cancelled",
+      "Subcategory": "",
+      "Assignment Group": ""
+    }
+  },
+  "_generated_at": "2026-05-28T00:55:50.060Z"
+}

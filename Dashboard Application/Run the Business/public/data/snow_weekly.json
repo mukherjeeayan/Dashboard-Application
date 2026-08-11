@@ -1,0 +1,1018 @@
+{
+  "$schema": "snow_weekly.schema.json",
+  "_instructions": {
+    "_title": "HOW TO UPDATE THIS DASHBOARD EACH WEEK",
+    "_rule": "Edit ONLY this file. Never touch snow_dashboard.html.",
+    "steps": [
+      "1. Export Incidents, Service Requests, Problems and Changes from ServiceNow as CSV/Excel.",
+      "2. Update 'meta' — change week_label, week_range, data_as_of, source_file.",
+      "3. Update 'kpis' — set value, bar_pct, delta_val, delta_dir for each KPI tile.",
+      "4. Update 'snow_links' — update stats[] values and button.url for each card.",
+      "5. Update 'charts' — replace all data arrays with this week's numbers.",
+      "6. Update 'wow_scorecard' — append new week column, drop oldest if > 8 weeks.",
+      "7. Update 'intervention' — replace items[] with this week's escalation items (can be empty []).",
+      "8. Update 'commentary' — rewrite each column's items[] with this week's narrative.",
+      "9. Save the file as snow_weekly.json. Run Launcher.bat and choose option 1 or 2."
+    ],
+    "_colour_keys": "Allowed color_key values: red | amber | green | blue | purple | muted",
+    "_delta_dir": "delta_dir values: 'up' | 'down' | 'flat'  (for KPIs: up=red/bad except SLA where up=green/good)",
+    "_rag_values": "rag values: 'red' | 'amber' | 'green'"
+  },
+  "_schema_version": "1.0.0",
+  "sections_comment": "Controls every section header label, icon, badge and which section is open on load.",
+  "sections": {
+    "snow": {
+      "icon": "🔗",
+      "title": "ServiceNow — Live Data Navigation",
+      "badge": "opens ServiceNow in browser",
+      "badge_color": "blue",
+      "open": false
+    },
+    "charts": {
+      "icon": "📈",
+      "title": "Current Week — Charts & Analysis",
+      "badge": null,
+      "badge_color": "green",
+      "open": true
+    },
+    "commentary": {
+      "icon": "📝",
+      "title": "Weekly Commentary & Key Observations",
+      "badge": "authored by IT Portfolio Management Office",
+      "badge_color": "amber",
+      "open": false
+    },
+    "wow": {
+      "icon": "📊",
+      "title": "8-Week Week-on-Week Comparison",
+      "badge": "W15 → W22",
+      "badge_color": "blue",
+      "open": false
+    },
+    "intervention": {
+      "icon": "⚡",
+      "title": "IT Leadership Intervention Required",
+      "badge": "open",
+      "badge_color": "red",
+      "open": false
+    }
+  },
+  "footer": {
+    "auto_generated_label": "Auto-generated",
+    "rag_legend": [
+      {
+        "color": "red",
+        "label": "Action required"
+      },
+      {
+        "color": "amber",
+        "label": "At risk"
+      },
+      {
+        "color": "green",
+        "label": "On track"
+      }
+    ]
+  },
+  "meta": {
+    "data_as_of_label": "Data as of",
+    "dashboard_title": "Client IT Portfolio — Weekly IT Operations Dashboard",
+    "portfolio": "Client IT Portfolio",
+    "prepared_by": "IT Portfolio Management Office",
+    "week_label": "W22",
+    "week_range": "25 May – 31 May 2026",
+    "data_as_of": "28 May 2026, 01:02 UTC",
+    "source_file": "snow_weekly.json",
+    "template_file": "snow_dashboard.html"
+  },
+  "kpis": [
+    {
+      "id": "incidents",
+      "label": "Open Incidents",
+      "value": "118",
+      "color": "green",
+      "bar_pct": 100,
+      "delta_val": 14,
+      "delta_dir": "up",
+      "delta_label": "vs W21",
+      "invert_delta": false
+    },
+    {
+      "id": "service_requests",
+      "label": "Service Requests",
+      "value": "241",
+      "color": "green",
+      "bar_pct": 100,
+      "delta_val": 28,
+      "delta_dir": "up",
+      "delta_label": "vs W21",
+      "invert_delta": false
+    },
+    {
+      "id": "rfac",
+      "label": "RFAC / Changes",
+      "value": "95",
+      "color": "amber",
+      "bar_pct": 100,
+      "delta_val": 3,
+      "delta_dir": "down",
+      "delta_label": "vs W21",
+      "invert_delta": false
+    },
+    {
+      "id": "problems",
+      "label": "Problems (PRB)",
+      "value": "62",
+      "color": "green",
+      "bar_pct": 100,
+      "delta_val": 5,
+      "delta_dir": "up",
+      "delta_label": "vs W21",
+      "invert_delta": false
+    },
+    {
+      "id": "p1_critical",
+      "label": "P1 / Critical",
+      "value": "8",
+      "color": "red",
+      "bar_pct": 100,
+      "delta_val": 0,
+      "delta_dir": "flat",
+      "delta_label": "vs W21",
+      "invert_delta": false
+    },
+    {
+      "id": "sla",
+      "label": "SLA Compliance",
+      "value": "85%",
+      "color": "green",
+      "bar_pct": 85,
+      "delta_val": 5,
+      "delta_dir": "down",
+      "delta_label": "pp vs W21",
+      "invert_delta": true,
+      "_note": "invert_delta=true: delta_dir=down means SLA went UP (improved), renderer colours down as green/good."
+    }
+  ],
+  "snow_links": {
+    "_comment": "Each type block drives one ServiceNow navigation card with a single static URL.",
+    "types": [
+      {
+        "id": "incidents",
+        "label": "Incidents",
+        "pill": "INC",
+        "pill_color": "red",
+        "rag": "green",
+        "trend_label": "▲14 vs W21",
+        "trend_color": "green",
+        "stats": [
+          {
+            "label": "Open",
+            "value": "118",
+            "color": "green"
+          },
+          {
+            "label": "P1",
+            "value": "8",
+            "color": "red"
+          },
+          {
+            "label": "P2",
+            "value": "17",
+            "color": "amber"
+          },
+          {
+            "label": "SLA",
+            "value": "85%",
+            "color": "green"
+          }
+        ],
+        "button": {
+          "label": "View All Incidents",
+          "color": "red",
+          "icon": "list",
+          "url": "https://your-instance.service-now.com/incident_list.do?sysparm_query=state!=6"
+        }
+      },
+      {
+        "id": "service_requests",
+        "label": "Service Requests",
+        "pill": "SR",
+        "pill_color": "blue",
+        "rag": "green",
+        "trend_label": "▲28 vs W21",
+        "trend_color": "green",
+        "stats": [
+          {
+            "label": "Open",
+            "value": "241",
+            "color": "green"
+          },
+          {
+            "label": "Pending",
+            "value": "118",
+            "color": "amber"
+          },
+          {
+            "label": "In Progress",
+            "value": "107",
+            "color": "green"
+          },
+          {
+            "label": "On Hold",
+            "value": "16",
+            "color": "muted"
+          },
+          {
+            "label": "SLA",
+            "value": "91%",
+            "color": "green"
+          }
+        ],
+        "button": {
+          "label": "View All SRs",
+          "color": "green",
+          "icon": "file-text",
+          "url": "https://your-instance.service-now.com/sc_req_item_list.do?sysparm_query=state!=3"
+        }
+      },
+      {
+        "id": "problems",
+        "label": "Problems",
+        "pill": "PRB",
+        "pill_color": "purple",
+        "rag": "green",
+        "trend_label": "— manual",
+        "trend_color": "muted",
+        "stats": [
+          {
+            "label": "Open",
+            "value": "62",
+            "color": "green"
+          },
+          {
+            "label": "Investigating",
+            "value": "15",
+            "color": "red"
+          },
+          {
+            "label": "Root Cause",
+            "value": "23",
+            "color": "red"
+          },
+          {
+            "label": "Known Error",
+            "value": "12",
+            "color": "amber"
+          },
+          {
+            "label": "Pending Change",
+            "value": "12",
+            "color": "muted"
+          },
+          {
+            "label": "SLA",
+            "value": "100%",
+            "color": "green"
+          }
+        ],
+        "button": {
+          "label": "View All Problems",
+          "color": "purple",
+          "icon": "search",
+          "url": "https://your-instance.service-now.com/problem_list.do?sysparm_query=state!=4"
+        }
+      },
+      {
+        "id": "rfac",
+        "label": "Changes / RFAC",
+        "pill": "RFAC",
+        "pill_color": "amber",
+        "rag": "amber",
+        "trend_label": "— stable",
+        "trend_color": "flat",
+        "stats": [
+          {
+            "label": "Active",
+            "value": "95",
+            "color": "amber"
+          },
+          {
+            "label": "Assess",
+            "value": "12",
+            "color": "amber"
+          },
+          {
+            "label": "Approved",
+            "value": "7",
+            "color": "green"
+          },
+          {
+            "label": "Scheduled",
+            "value": "10",
+            "color": "blue"
+          },
+          {
+            "label": "Implement",
+            "value": "6",
+            "color": "purple"
+          },
+          {
+            "label": "Review",
+            "value": "5",
+            "color": "amber"
+          },
+          {
+            "label": "CAB Pending",
+            "value": "25",
+            "color": "amber"
+          },
+          {
+            "label": "Draft",
+            "value": "23",
+            "color": "muted"
+          },
+          {
+            "label": "Rejected",
+            "value": "7",
+            "color": "red"
+          }
+        ],
+        "button": {
+          "label": "View All Changes",
+          "color": "amber",
+          "icon": "git-branch",
+          "url": "https://your-instance.service-now.com/change_request_list.do?sysparm_query=state!=3"
+        }
+      }
+    ]
+  },
+  "charts": {
+    "incident_trend_8w": {
+      "title": "Incident volume — 8-week trend",
+      "subtitle": "by priority",
+      "labels": [
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21",
+        "W22"
+      ],
+      "datasets": [
+        {
+          "label": "P1 Critical",
+          "data": [
+            3,
+            4,
+            5,
+            5,
+            5,
+            6,
+            7,
+            8
+          ],
+          "color_key": "red",
+          "fill": true
+        },
+        {
+          "label": "P2 High",
+          "data": [
+            3,
+            4,
+            5,
+            6,
+            8,
+            11,
+            15,
+            17
+          ],
+          "color_key": "amber",
+          "fill": false
+        },
+        {
+          "label": "P3 + P4",
+          "data": [
+            13,
+            27,
+            43,
+            52,
+            64,
+            71,
+            82,
+            93
+          ],
+          "color_key": "blue",
+          "fill": true
+        }
+      ]
+    },
+    "incident_by_priority": {
+      "title": "Incidents by priority",
+      "subtitle": "W22 distribution",
+      "type": "doughnut",
+      "segments": [
+        {
+          "label": "P1 Critical",
+          "value": 8,
+          "color_key": "red"
+        },
+        {
+          "label": "P2 High",
+          "value": 17,
+          "color_key": "amber"
+        },
+        {
+          "label": "P3 Medium",
+          "value": 59,
+          "color_key": "blue"
+        },
+        {
+          "label": "P4 Low",
+          "value": 34,
+          "color_key": "green"
+        }
+      ]
+    },
+    "sr_by_category": {
+      "title": "Service requests by category",
+      "subtitle": "W22",
+      "type": "bar",
+      "labels": [
+        "Report Req",
+        "Access Mgmt",
+        "User Maint",
+        "Data Fix",
+        "Config Chg",
+        "Interface"
+      ],
+      "data": [
+        47,
+        45,
+        42,
+        37,
+        35,
+        35
+      ],
+      "color_key": "blue"
+    },
+    "rfac_pipeline": {
+      "title": "RFAC / change pipeline",
+      "subtitle": "W22 status split — all active",
+      "type": "doughnut",
+      "segments": [
+        {
+          "label": "Assess",
+          "value": 12,
+          "color_key": "amber"
+        },
+        {
+          "label": "Approved",
+          "value": 7,
+          "color_key": "green"
+        },
+        {
+          "label": "Scheduled",
+          "value": 10,
+          "color_key": "blue"
+        },
+        {
+          "label": "Implement",
+          "value": 6,
+          "color_key": "purple"
+        },
+        {
+          "label": "Review",
+          "value": 5,
+          "color_key": "amber"
+        },
+        {
+          "label": "Pending CAB",
+          "value": 25,
+          "color_key": "amber"
+        },
+        {
+          "label": "Draft",
+          "value": 23,
+          "color_key": "muted"
+        },
+        {
+          "label": "Rejected",
+          "value": 7,
+          "color_key": "red"
+        }
+      ]
+    },
+    "prb_aging": {
+      "title": "PRB aging — days open",
+      "subtitle": "active records",
+      "type": "bar_horizontal",
+      "axis_label": "Days open",
+      "legend": [
+        {
+          "color_key": "red",
+          "label": "Critical (> 45 days)"
+        },
+        {
+          "color_key": "amber",
+          "label": "At risk (8 – 45 days)"
+        },
+        {
+          "color_key": "green",
+          "label": "Recent (< 8 days)"
+        }
+      ],
+      "records": [
+        {
+          "id": "PRB0000007",
+          "days": 55,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000003",
+          "days": 54,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000002",
+          "days": 53,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000004",
+          "days": 53,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000005",
+          "days": 53,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000001",
+          "days": 52,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000006",
+          "days": 50,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000009",
+          "days": 50,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000008",
+          "days": 49,
+          "color_key": "red"
+        },
+        {
+          "id": "PRB0000012",
+          "days": 48,
+          "color_key": "red"
+        }
+      ]
+    },
+    "sla_by_type": {
+      "title": "SLA compliance by type",
+      "target_pct": 90,
+      "meters": [
+        {
+          "label": "Incidents",
+          "pct": 85,
+          "color_key": "green"
+        },
+        {
+          "label": "Svc Requests",
+          "pct": 91,
+          "color_key": "green"
+        },
+        {
+          "label": "P1 Response",
+          "pct": 100,
+          "color_key": "green"
+        },
+        {
+          "label": "PRB Resolution",
+          "pct": 100,
+          "color_key": "green"
+        }
+      ],
+      "callout": "Target: 90% for all types.",
+      "target_label": "target:"
+    },
+    "incidents_by_module": {
+      "title": "Incidents by SAP CRM module",
+      "subtitle": "W22 · volume by functional area",
+      "type": "bar",
+      "labels": [
+        "Integration/PI",
+        "Billing",
+        "BP Data",
+        "Basis",
+        "CRM WebUI",
+        "Sales Order",
+        "Pricing/IPC"
+      ],
+      "data": [
+        23,
+        22,
+        19,
+        16,
+        16,
+        12,
+        10
+      ],
+      "color_key": "purple"
+    },
+    "wow_volume": {
+      "title": "Incident & Problem volume — 8-week",
+      "subtitle": "grouped bar",
+      "labels": [
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21",
+        "W22"
+      ],
+      "current_week_index": 7,
+      "datasets": [
+        {
+          "label": "Incidents",
+          "data": [
+            19,
+            35,
+            53,
+            63,
+            77,
+            88,
+            104,
+            118
+          ],
+          "color_key": "blue"
+        },
+        {
+          "label": "Problems",
+          "data": [
+            9,
+            16,
+            25,
+            33,
+            41,
+            48,
+            56,
+            61
+          ],
+          "color_key": "purple"
+        }
+      ]
+    },
+    "wow_sla_trend": {
+      "title": "SLA compliance — 8-week trend",
+      "target_label": "% target",
+      "y_min": 50,
+      "y_max": 100,
+      "labels": [
+        "W15",
+        "W16",
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21",
+        "W22"
+      ],
+      "target_pct": 90,
+      "subtitle": "% within SLA",
+      "datasets": [
+        {
+          "label": "Incidents",
+          "data": [
+            95,
+            94,
+            93,
+            96,
+            96,
+            96,
+            80,
+            85
+          ],
+          "color_key": "red"
+        },
+        {
+          "label": "Svc Requests",
+          "data": [
+            100,
+            86,
+            91,
+            94,
+            94,
+            87,
+            97,
+            91
+          ],
+          "color_key": "blue"
+        },
+        {
+          "label": "Problems",
+          "data": [
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100
+          ],
+          "color_key": "green"
+        }
+      ]
+    }
+  },
+  "wow_scorecard": {
+    "title": "Volume scorecard — all ticket types",
+    "subtitle": "delta vs prior week shown below each value",
+    "row_header_label": "Type",
+    "current_week_marker": "← now",
+    "weeks": [
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21",
+      "W22"
+    ],
+    "current_week": "W22",
+    "callout": "WoW deltas: red = volume rose (worse for incidents/PRBs); green = volume fell or SLA improved. Current week always highlighted in blue.",
+    "rows": [
+      {
+        "label": "Incidents",
+        "values": [
+          19,
+          35,
+          53,
+          63,
+          77,
+          88,
+          104,
+          118
+        ],
+        "invert_delta": false,
+        "_note": "invert_delta=false means higher=red (bad)"
+      },
+      {
+        "label": "Service Requests",
+        "values": [
+          50,
+          79,
+          93,
+          125,
+          149,
+          176,
+          213,
+          241
+        ],
+        "invert_delta": false
+      },
+      {
+        "label": "RFAC / Changes",
+        "values": [
+          21,
+          21,
+          22,
+          22,
+          20,
+          16,
+          13,
+          10
+        ],
+        "invert_delta": false
+      },
+      {
+        "label": "Problems (PRB)",
+        "values": [
+          9,
+          16,
+          25,
+          33,
+          41,
+          48,
+          56,
+          61
+        ],
+        "invert_delta": false
+      },
+      {
+        "label": "SLA Compliance",
+        "delta_unit": "pp",
+        "values": [
+          "95%",
+          "94%",
+          "93%",
+          "96%",
+          "96%",
+          "96%",
+          "80%",
+          "85%"
+        ],
+        "raw_values": [
+          95,
+          94,
+          93,
+          96,
+          96,
+          96,
+          80,
+          85
+        ],
+        "invert_delta": true,
+        "_note": "invert_delta=true means higher=green (good). delta_unit='pp' appended to WoW delta. Renderer uses raw_values for delta math."
+      }
+    ]
+  },
+  "rfac_scorecard": {
+    "title": "RFAC State Progression",
+    "subtitle": "change phase volume distribution — 8-week lookback",
+    "row_header_label": "Change Phase",
+    "current_week_marker": "← now",
+    "callout": "Active RFAC total (Design + Implementation + Deploy) reconciles to the WoW scorecard each week. Closed / Completed reflects weekly throughput.",
+    "weeks": [
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21",
+      "W22"
+    ],
+    "rows": [
+      {
+        "metric": "Design / Planning",
+        "history": [
+          12,
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4
+        ],
+        "invert_delta": false,
+        "status": "muted"
+      },
+      {
+        "metric": "Implementation / Test",
+        "history": [
+          6,
+          7,
+          8,
+          8,
+          7,
+          5,
+          4,
+          3
+        ],
+        "invert_delta": false,
+        "status": "amber"
+      },
+      {
+        "metric": "Deploy / Post-Review",
+        "history": [
+          3,
+          4,
+          5,
+          6,
+          6,
+          5,
+          4,
+          3
+        ],
+        "invert_delta": false,
+        "status": "blue"
+      },
+      {
+        "metric": "Closed / Completed",
+        "history": [
+          2,
+          3,
+          5,
+          7,
+          9,
+          11,
+          12,
+          14
+        ],
+        "invert_delta": true,
+        "status": "green"
+      }
+    ]
+  },
+  "intervention": {
+    "section_title": "IT Leadership Intervention Required",
+    "banner_icon": "⚠️",
+    "raised_by_label": "Raised by",
+    "open_suffix": "open",
+    "banner_title": "items require a decision or direct action from IT Leadership this week",
+    "banner_sub": "Escalated because they exceed team authority, carry client-visible risk, or are blocked on cross-team dependencies",
+    "items": [
+      {
+        "id": "int-demo-1",
+        "title": "P1 Incident INC0050123 requires architecture decision",
+        "severity": "red",
+        "badge_label": "ESCALATE NOW",
+        "meta": [
+          "INC0050123",
+          "SAP SD"
+        ],
+        "body": "Critical pricing issue affecting <strong>Client A</strong> production — root cause not yet identified, workaround in place.",
+        "decision": "Confirm if emergency change can proceed without full CAB review.",
+        "raised_by": "John Smith · IT Ops Lead",
+        "avatar": "JS",
+        "age_label": "3d open",
+        "age_color": "red"
+      },
+      {
+        "id": "int-demo-2",
+        "title": "SR backlog in Access Management exceeding SLA targets",
+        "severity": "amber",
+        "badge_label": "APPROVAL NEEDED",
+        "meta": [
+          "SR-BACKLOG",
+          "Access Mgmt"
+        ],
+        "body": "Access provisioning requests have accumulated <strong>15%</strong> above threshold due to resource constraints.",
+        "decision": "Approve temporary contractor for catch-up week.",
+        "raised_by": "Sarah Lee · Service Desk Mgr",
+        "avatar": "SL",
+        "age_label": "5d",
+        "age_color": "amber"
+      }
+    ],
+    "decision_label": "Decision required"
+  },
+  "commentary": {
+    "updated": "28 May 2026, 01:02 UTC",
+    "author": "IT Portfolio Management Office",
+    "template_note": "All text in this object is loaded at render time. The HTML template is read-only.",
+    "columns": [
+      {
+        "id": "incidents_problems",
+        "title": "Incidents & Problems",
+        "title_color": "red",
+        "icon": "🔥",
+        "items": [
+          {
+            "tag": "OBSERVATION",
+            "tag_color": "amber",
+            "text": "Total open incidents increased by <strong>6</strong> compared to previous week. P1 count remains elevated."
+          },
+          {
+            "tag": "RISK",
+            "tag_color": "red",
+            "text": "High volume of unassigned tickets — <strong>12%</strong> have no assignee."
+          }
+        ]
+      },
+      {
+        "id": "changes_requests",
+        "title": "Changes & Service Requests",
+        "title_color": "amber",
+        "icon": "⚙️",
+        "items": [
+          {
+            "tag": "UPDATE",
+            "tag_color": "blue",
+            "text": "RFAC pipeline steady with <strong>8</strong> active changes. No CAB backlog."
+          }
+        ]
+      },
+      {
+        "id": "sla_forward",
+        "title": "SLA & Forward Look",
+        "title_color": "green",
+        "icon": "🔭",
+        "items": [
+          {
+            "tag": "POSITIVE",
+            "tag_color": "green",
+            "text": "SLA compliance for incidents improved to <strong>94%</strong> this week."
+          }
+        ]
+      }
+    ],
+    "updated_label": "Updated:",
+    "author_icon": "✎"
+  }
+}

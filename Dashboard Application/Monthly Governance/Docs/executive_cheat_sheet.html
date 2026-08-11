@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpsReview — Executive Cheat Sheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+  /* ── Tokens ─────────────────────────────────────────── */
+  :root {
+    --ink:        #0f1623;
+    --ink-mid:    #2c3a52;
+    --ink-light:  #4e617a;
+    --ink-faint:  #7a94b0;
+    --paper:      #f5f3ee;
+    --paper-warm: #ede9e0;
+    --paper-mid:  #ddd8cc;
+    --rule:       #c8c1b5;
+    --accent:     #1a47a0;
+    --accent-lt:  #dce7ff;
+    --green:      #14774b;
+    --green-bg:   #d6f0e3;
+    --amber:      #9a5e00;
+    --amber-bg:   #fef3d6;
+    --red:        #b81c1c;
+    --red-bg:     #fde8e8;
+    --pulse-bg:   #1a47a0;
+    --pulse-fg:   #ffffff;
+    --shadow-sm:  0 1px 3px rgba(15,22,35,.08), 0 1px 2px rgba(15,22,35,.05);
+    --shadow-md:  0 4px 12px rgba(15,22,35,.10), 0 2px 4px rgba(15,22,35,.06);
+    --shadow-lg:  0 12px 32px rgba(15,22,35,.13), 0 4px 8px rgba(15,22,35,.08);
+    --r:          6px;
+    --r-lg:       12px;
+  }
+
+  /* ── Reset ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* ── Print ───────────────────────────────────────────── */
+  @media print {
+    .no-print { display: none !important; }
+    body { background: #fff; font-size: 11pt; }
+    .page-wrap { max-width: 100%; padding: 0; }
+    .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    .hero { background: #1a47a0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .rag-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .page-wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+
+  /* ── Hero header ─────────────────────────────────────── */
+  .hero {
+    background: var(--accent);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 110% -10%, #2d6be4 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at -10% 110%, #0d2e7a 0%, transparent 60%);
+    border-radius: var(--r-lg);
+    padding: 2.8rem 3rem 2.8rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-left { flex: 1; position: relative; }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.55);
+    margin-bottom: .6rem;
+  }
+  .hero-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: .5rem;
+  }
+  .hero-title span { font-style: italic; color: #93b8ff; }
+  .hero-sub {
+    font-size: .9rem;
+    color: rgba(255,255,255,.7);
+    max-width: 420px;
+    line-height: 1.6;
+  }
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1.4rem;
+  }
+  .hero-badge {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 100px;
+    padding: .25rem .85rem;
+    font-size: .72rem;
+    font-weight: 500;
+    color: rgba(255,255,255,.85);
+    letter-spacing: .04em;
+  }
+  .hero-right {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .6rem;
+    flex-shrink: 0;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: var(--r);
+    padding: .7rem 1.1rem;
+    text-align: right;
+    min-width: 150px;
+  }
+  .hero-stat-label { font-size: .68rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em; }
+  .hero-stat-value { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: #fff; }
+  .print-btn {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: var(--r);
+    color: rgba(255,255,255,.8);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem;
+    padding: .4rem .9rem;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .print-btn:hover { background: rgba(255,255,255,.25); }
+
+  /* ── Section title ───────────────────────────────────── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .45rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent-lt);
+  }
+  .section-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.45rem;
+    color: var(--ink);
+    margin-bottom: 1.1rem;
+  }
+
+  /* ── Grid layouts ────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 2rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+  .grid-tabs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+
+  /* ── Card ────────────────────────────────────────────── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    padding: 1.5rem 1.6rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s, transform .2s;
+  }
+  .card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .card-icon { font-size: 1.5rem; margin-bottom: .6rem; }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin-bottom: .3rem;
+  }
+  .card-tagline {
+    font-size: .78rem;
+    font-style: italic;
+    color: var(--ink-light);
+    margin-bottom: .9rem;
+    padding-bottom: .9rem;
+    border-bottom: 1px solid var(--paper-mid);
+  }
+  .card-body { font-size: .84rem; color: var(--ink-mid); line-height: 1.7; }
+  .card-body ul { padding-left: 1.1rem; }
+  .card-body li { margin-bottom: .3rem; }
+  .card-body li strong { color: var(--ink); }
+  .card-question {
+    margin-top: .9rem;
+    padding: .6rem .9rem;
+    background: var(--accent-lt);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--r) var(--r) 0;
+    font-size: .78rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .card-question strong { color: var(--ink-mid); font-weight: 400; font-style: italic; }
+
+  /* ── RAG Section ─────────────────────────────────────── */
+  .rag-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .rag-row {
+    border-radius: var(--r-lg);
+    padding: 1.3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+  .rag-row.green  { background: var(--green-bg); border: 1.5px solid #a3dfc0; }
+  .rag-row.amber  { background: var(--amber-bg); border: 1.5px solid #f4d47a; }
+  .rag-row.red    { background: var(--red-bg);   border: 1.5px solid #f5b0b0; }
+  .rag-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-block; margin-bottom: .2rem;
+    flex-shrink: 0;
+  }
+  .rag-row.green .rag-dot  { background: #14774b; box-shadow: 0 0 0 4px #a3dfc0; }
+  .rag-row.amber .rag-dot  { background: #c97b00; box-shadow: 0 0 0 4px #f4d47a; }
+  .rag-row.red   .rag-dot  { background: #b81c1c; box-shadow: 0 0 0 4px #f5b0b0; }
+  .rag-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+  }
+  .rag-row.green .rag-label { color: var(--green); }
+  .rag-row.amber .rag-label { color: var(--amber); }
+  .rag-row.red   .rag-label { color: var(--red); }
+  .rag-meaning { font-size: .82rem; color: var(--ink-mid); font-weight: 500; }
+  .rag-action  { font-size: .76rem; color: var(--ink-light); }
+
+  /* ── KPI table inside card ───────────────────────────── */
+  .kpi-table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  .kpi-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    padding: .4rem .5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--paper-mid);
+  }
+  .kpi-table td {
+    font-size: .8rem;
+    padding: .55rem .5rem;
+    border-bottom: 1px solid var(--paper-warm);
+    color: var(--ink-mid);
+    vertical-align: top;
+  }
+  .kpi-table tr:last-child td { border-bottom: none; }
+  .kpi-table td:first-child { font-weight: 600; color: var(--ink); }
+  .kpi-table td.good { color: var(--green); font-weight: 500; }
+
+  /* ── Nav table ───────────────────────────────────────── */
+  .nav-table { width: 100%; border-collapse: collapse; }
+  .nav-table td {
+    padding: .6rem .8rem;
+    font-size: .83rem;
+    border-bottom: 1px solid var(--paper-warm);
+    color: var(--ink-mid);
+  }
+  .nav-table tr:last-child td { border-bottom: none; }
+  .nav-table td:first-child {
+    font-weight: 600;
+    color: var(--ink);
+    width: 45%;
+  }
+  .kbd {
+    display: inline-block;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: .1rem .45rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    color: var(--ink-mid);
+  }
+
+  /* ── Five Questions ──────────────────────────────────── */
+  .five-qs { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: 2rem; }
+  .q-item {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    padding: 1rem 1.2rem;
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+    box-shadow: var(--shadow-sm);
+  }
+  .q-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--accent-lt);
+    line-height: 1;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .q-text strong { color: var(--accent); display: block; font-size: .84rem; margin-bottom: .15rem; }
+  .q-text span { font-size: .78rem; color: var(--ink-light); }
+
+  /* ── Pulse callout ───────────────────────────────────── */
+  .pulse-callout {
+    background: var(--pulse-bg);
+    background-image: linear-gradient(135deg, #1a47a0 0%, #2458c8 100%);
+    border-radius: var(--r-lg);
+    padding: 1.5rem 2rem;
+    color: #fff;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    box-shadow: var(--shadow-md);
+  }
+  .pulse-icon { font-size: 2rem; flex-shrink: 0; }
+  .pulse-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: .25rem; }
+  .pulse-desc { font-size: .82rem; color: rgba(255,255,255,.75); line-height: 1.6; }
+
+  /* ── Glossary ────────────────────────────────────────── */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .6rem;
+    margin-bottom: 2rem;
+  }
+  .gloss-item {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    padding: .7rem .9rem;
+  }
+  .gloss-term {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--accent);
+    display: block;
+    margin-bottom: .2rem;
+  }
+  .gloss-def { font-size: .78rem; color: var(--ink-mid); line-height: 1.5; }
+
+  /* ── Not to worry ────────────────────────────────────── */
+  .safe-list {
+    background: var(--green-bg);
+    border: 1px solid #a3dfc0;
+    border-radius: var(--r-lg);
+    padding: 1.3rem 1.6rem;
+    margin-bottom: 2rem;
+  }
+  .safe-list li {
+    font-size: .84rem;
+    color: var(--green);
+    padding: .3rem 0;
+    padding-left: 1.3rem;
+    position: relative;
+    list-style: none;
+    line-height: 1.55;
+  }
+  .safe-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+  }
+
+  /* ── Section divider ─────────────────────────────────── */
+  .sect { margin-bottom: 2.5rem; }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    font-size: .72rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: .04em;
+  }
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media (max-width: 720px) {
+    .hero { flex-direction: column; }
+    .hero-right { align-items: flex-start; width: 100%; }
+    .hero-stat { text-align: left; min-width: 0; flex: 1; }
+    .hero-right { flex-direction: row; flex-wrap: wrap; }
+    .grid-2, .grid-3, .rag-strip, .five-qs { grid-template-columns: 1fr; }
+    .hero-title { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">TCS Operations Team &nbsp;·&nbsp; Internal – Restricted</div>
+      <h1 class="hero-title">OpsReview<br><span>Executive</span> Cheat Sheet</h1>
+      <p class="hero-sub">Everything you need to read and act on the monthly operations dashboard — no technical background required.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📊 7 Dashboard Tabs</span>
+        <span class="hero-badge">🎯 RAG Colour Guide</span>
+        <span class="hero-badge">📖 20-Term Glossary</span>
+        <span class="hero-badge">🖨 Print-Ready</span>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-stat">
+        <div class="hero-stat-label">Dashboard Version</div>
+        <div class="hero-stat-value">v4.0</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-label">Reporting Cadence</div>
+        <div class="hero-stat-value">Monthly</div>
+      </div>
+    </div>
+    <button class="print-btn no-print" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+
+  <!-- ── What is this? ── -->
+  <div class="sect">
+    <div class="section-label">01 &nbsp; What You Are Looking At</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Purpose of the Dashboard</div>
+        <div class="card-tagline">One view. All signals. Zero guesswork.</div>
+        <div class="card-body">
+          The OpsReview Dashboard is a <strong>monthly IT operations scorecard</strong>. It shows how the SAP and Non-ERP application support team is performing across:
+          <ul style="margin-top:.6rem">
+            <li>Ticket volume and service quality</li>
+            <li>SLA compliance and resolution speed</li>
+            <li>Change and problem management health</li>
+            <li>Project delivery and team capacity</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💡</div>
+        <div class="card-title">What You Do Not Need to Know</div>
+        <div class="card-tagline">This is built for business readers, not technologists.</div>
+        <div class="card-body">
+          <strong>No technical background is required.</strong> Every number is a business-readable metric with a colour indicator. You cannot accidentally change any data by clicking — the dashboard is entirely read-only for viewers.
+          <br><br>
+          The data is refreshed by the operations team <strong>before every governance review</strong>. What you see is the approved version for that period.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RAG ── -->
+  <div class="sect">
+    <div class="section-label">02 &nbsp; The Colour Code (RAG)</div>
+    <p style="font-size:.88rem;color:var(--ink-light);margin-bottom:1.2rem;">Every metric on the dashboard uses the same three colours. The scale never changes between sections or tabs.</p>
+    <div class="rag-strip">
+      <div class="rag-row green">
+        <div class="rag-dot"></div>
+        <div class="rag-label">Green — On Target</div>
+        <div class="rag-meaning">No action needed</div>
+        <div class="rag-action">Acknowledge and move on. Performance is within contracted limits.</div>
+      </div>
+      <div class="rag-row amber">
+        <div class="rag-dot"></div>
+        <div class="rag-label">Amber — Warning</div>
+        <div class="rag-meaning">Approaching the limit</div>
+        <div class="rag-action">Ask the team: <em>"What is the recovery plan and timeline?"</em></div>
+      </div>
+      <div class="rag-row red">
+        <div class="rag-dot"></div>
+        <div class="rag-label">Red — Critical</div>
+        <div class="rag-meaning">Target has been missed</div>
+        <div class="rag-action">Requires a named owner and a committed due date — today, in this meeting.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pulse ── -->
+  <div class="sect">
+    <div class="section-label">03 &nbsp; The Pulse Banner</div>
+    <div class="pulse-callout">
+      <div class="pulse-icon">⚑</div>
+      <div>
+        <div class="pulse-title">Read this first — every time.</div>
+        <div class="pulse-desc">
+          At the top of every dashboard page is a highlighted banner called the <strong>Pulse</strong> or Key Flag. It is written by the operations team before the meeting to draw immediate attention to the single most important event, risk, or achievement of the period. It sets the tone for the entire review. Do not skip it.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Seven Tabs ── -->
+  <div class="sect">
+    <div class="section-label">04 &nbsp; The Seven Tabs — What Each One Tells You</div>
+    <div class="grid-tabs">
+
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Overview</div>
+        <div class="card-tagline">"How are we doing overall this month?"</div>
+        <div class="card-body">
+          Four headline numbers at the top of this tab:
+          <ul>
+            <li><strong>SAP Total Volume</strong> — tickets across all SAP systems. Delta arrow shows MoM direction.</li>
+            <li><strong>SAP SLA Composite</strong> — are service commitments being met? ≥ 98% = green.</li>
+            <li><strong>Non-ERP Total Volume</strong> — same, for non-SAP systems.</li>
+            <li><strong>Non-ERP SLA Composite</strong> — SLA performance for non-SAP.</li>
+          </ul>
+          <br>
+          Two 6-month trend charts below help spot demand risk (rising volume) or throughput risk (growing backlog).
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Is the backlog growing or shrinking?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">💻</div>
+        <div class="card-title">SAP Modules</div>
+        <div class="card-tagline">"Which SAP system needs attention?"</div>
+        <div class="card-body">
+          Click any module (CRM, SCM, FICO, etc.) to drill in. Each shows:
+          <table class="kpi-table" style="margin-top:.7rem">
+            <tr><th>KPI</th><th>Plain English</th></tr>
+            <tr><td>Received vs Baseline</td><td>More tickets than contracted?</td></tr>
+            <tr><td>INC / SR Split</td><td>Problems vs tasks — high INC = instability</td></tr>
+            <tr><td>Net Flow</td><td>Positive = backlog shrinking ✓</td></tr>
+            <tr><td>Response SLA %</td><td>Acknowledged on time?</td></tr>
+            <tr><td>Resolution SLA %</td><td>Fixed on time?</td></tr>
+            <tr><td>MTTR (hours)</td><td>How long did fixes take?</td></tr>
+          </table>
+          <br>Also shows open change requests (RFaC) and Problem Records aging. Old open problems = risk signal.
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Which module has the lowest SLA and what happened?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <div class="card-title">Non-SAP Modules</div>
+        <div class="card-tagline">"Same view, for non-SAP systems."</div>
+        <div class="card-body">
+          Identical layout to SAP Modules, covering: <strong>ACE, CPQ, Democenter, Corp Sol, HR, IAM, M365,</strong> and <strong>SerNow</strong>.
+          <br><br>
+          All the same KPIs apply — received vs baseline, SLA compliance, MTTR, priority breakdown, age distribution, RFaC and Problem Record aging.
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Are Non-ERP modules keeping pace with SAP performance?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Quality &amp; MTTR</div>
+        <div class="card-tagline">"Are we fixing things properly the first time?"</div>
+        <div class="card-body">
+          <table class="kpi-table">
+            <tr><th>Metric</th><th>Good =</th></tr>
+            <tr><td>MTTR</td><td class="good">Lower (&lt; 20 hrs = green)</td></tr>
+            <tr><td>Reopen Rate %</td><td class="good">Lower (&lt; 3% = green)</td></tr>
+            <tr><td>First-Fix Rate %</td><td class="good">Higher (&gt; 85% = green)</td></tr>
+            <tr><td>SLA Near-Misses</td><td>Watch for upward trend</td></tr>
+            <tr><td>SLA Breaches</td><td class="good">Zero is the target</td></tr>
+          </table>
+          <br>
+          <em style="font-size:.77rem;color:var(--ink-light);">A high reopen rate with a low MTTR often means tickets are being closed too quickly without a proper fix.</em>
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Which modules have the highest reopen rate and what is being done?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Action Items</div>
+        <div class="card-tagline">"What did we agree to do, and is it getting done?"</div>
+        <div class="card-body">
+          <ul>
+            <li><strong>Active Action Log</strong> — every open commitment with owner and due date. Overdue items must be challenged.</li>
+            <li><strong>Leadership Escalations</strong> — issues needing senior intervention. Nothing here should be a surprise.</li>
+            <li><strong>Appreciations</strong> — positive recognition received. Worth naming aloud.</li>
+            <li><strong>Service Offers / CCRs</strong> — additional work beyond contracted scope, proposed or approved.</li>
+          </ul>
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "How many items are overdue and who is accountable?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <div class="card-title">Projects &amp; CI</div>
+        <div class="card-tagline">"Are our major projects on track?"</div>
+        <div class="card-body">
+          Each project card shows:
+          <ul>
+            <li><strong>RAG Overall</strong> — health in one colour.</li>
+            <li><strong>Status Phase</strong> — Explore → Prepare → Realize → Deploy.</li>
+            <li><strong>Planned Go-Live</strong> — the target date.</li>
+            <li><strong>Status Narrative</strong> — what happened this period.</li>
+          </ul>
+          <br>
+          The <strong>Continuous Improvement</strong> section lists automation and process improvements, including how much effort they are saving the team each month.
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Which projects are RED and what decision is needed to unblock them?"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <div class="card-title">Headcount</div>
+        <div class="card-tagline">"Is the team sized right for the volume of work?"</div>
+        <div class="card-body">
+          FTE counts for: SAP AMS, SAP Projects, Non-ERP AMS, Non-ERP Projects.
+          <br><br>
+          The bar chart shows <strong>tickets per FTE</strong> per module:
+          <ul>
+            <li><span style="color:var(--green);font-weight:600;">Green</span> — ≤ 35 tickets/FTE — sustainable</li>
+            <li><span style="color:var(--amber);font-weight:600;">Amber</span> — ≤ 45 tickets/FTE — approaching overload</li>
+            <li><span style="color:var(--red);font-weight:600;">Red</span> — &gt; 45 tickets/FTE — under pressure, quality risk</li>
+          </ul>
+        </div>
+        <div class="card-question"><strong>Key question:</strong> "Which modules are running hot and is there a staffing plan?"</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── How to Navigate ── -->
+  <div class="sect">
+    <div class="section-label">05 &nbsp; How to Navigate the Dashboard</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-icon">🖱</div>
+        <div class="card-title">Navigation Controls</div>
+        <div class="card-body">
+          <table class="nav-table">
+            <tr><td>Switch main sections</td><td>Click the tab labels at the top</td></tr>
+            <tr><td>Drill into a module</td><td>Click the module name in the sub-tab row</td></tr>
+            <tr><td>Dark / Light view</td><td>Click the <span class="kbd">☽ / ☀</span> icon (top right)</td></tr>
+            <tr><td>Increase text size</td><td>Click <span class="kbd">A+</span> in the toolbar</td></tr>
+            <tr><td>Decrease text size</td><td>Click <span class="kbd">A−</span> in the toolbar</td></tr>
+            <tr><td>Print or save PDF</td><td>Click the <span class="kbd">🖨</span> icon (top right)</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">What NOT to Worry About</div>
+        <div class="card-body">
+          <ul class="safe-list" style="background:none;border:none;padding:0;margin:0">
+            <li style="color:var(--green)">The dashboard is <strong>read-only</strong>. You cannot accidentally change any data by clicking around.</li>
+            <li style="color:var(--green)">Data is refreshed by the operations team <strong>before every governance review</strong>. What you see is approved.</li>
+            <li style="color:var(--green)">If a metric shows <strong>"N/A"</strong>, it means data was not available for that item — not that something went wrong.</li>
+            <li style="color:var(--green)">A <strong>delta arrow</strong> (↑ ↓) shows change versus last month. Red ↑ on volume = more tickets arrived. Red ↓ on SLA = performance dropped.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Five Questions ── -->
+  <div class="sect">
+    <div class="section-label">06 &nbsp; Five Questions Every Review Should Answer</div>
+    <div class="five-qs">
+      <div class="q-item">
+        <div class="q-num">1</div>
+        <div class="q-text">
+          <strong>Volume</strong>
+          <span>Is ticket volume trending up, down, or stable? Is the backlog growing or being cleared?</span>
+        </div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">2</div>
+        <div class="q-text">
+          <strong>SLA</strong>
+          <span>Are we meeting our contractual commitments? Which modules are amber or red, and why?</span>
+        </div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">3</div>
+        <div class="q-text">
+          <strong>Quality</strong>
+          <span>Are fixes sticking? Is the reopen rate low and the first-fix rate high?</span>
+        </div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">4</div>
+        <div class="q-text">
+          <strong>Actions</strong>
+          <span>Are all agreed actions on track? Who owns the overdue ones and what is the new date?</span>
+        </div>
+      </div>
+      <div class="q-item" style="grid-column: span 2;">
+        <div class="q-num">5</div>
+        <div class="q-text">
+          <strong>Projects</strong>
+          <span>Are projects on schedule and on budget? What decisions or unblocking actions are needed from leadership today?</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Glossary ── -->
+  <div class="sect">
+    <div class="section-label">07 &nbsp; Glossary — Plain English Definitions</div>
+    <div class="glossary-grid">
+      <div class="gloss-item"><span class="gloss-term">INC / Incident</span><span class="gloss-def">An unplanned interruption or degradation of a service</span></div>
+      <div class="gloss-item"><span class="gloss-term">SR / Service Request</span><span class="gloss-def">A standard request — e.g. access, change, new setup</span></div>
+      <div class="gloss-item"><span class="gloss-term">SLA</span><span class="gloss-def">Service Level Agreement — the contractual deadline for responding to or resolving a ticket</span></div>
+      <div class="gloss-item"><span class="gloss-term">MTTR</span><span class="gloss-def">Mean Time to Resolve — average time from ticket creation to resolution (in hours)</span></div>
+      <div class="gloss-item"><span class="gloss-term">RFaC / RFC</span><span class="gloss-def">Request for Change — a formal request to make a planned change to a system</span></div>
+      <div class="gloss-item"><span class="gloss-term">PRB / Problem</span><span class="gloss-def">Problem Record — a root-cause investigation for recurring or major incidents</span></div>
+      <div class="gloss-item"><span class="gloss-term">Net Flow</span><span class="gloss-def">Resolved minus Received — positive means the backlog is shrinking</span></div>
+      <div class="gloss-item"><span class="gloss-term">FTE</span><span class="gloss-def">Full-Time Equivalent — one person working full time</span></div>
+      <div class="gloss-item"><span class="gloss-term">MoM</span><span class="gloss-def">Month-over-Month — the change compared to the previous month</span></div>
+      <div class="gloss-item"><span class="gloss-term">RAG</span><span class="gloss-def">Red / Amber / Green — the traffic-light status system used throughout the dashboard</span></div>
+      <div class="gloss-item"><span class="gloss-term">Baseline</span><span class="gloss-def">The contracted expected volume of tickets per module per month</span></div>
+      <div class="gloss-item"><span class="gloss-term">Near-Miss</span><span class="gloss-def">A ticket that met its SLA deadline but only just — within 10% of the limit</span></div>
+      <div class="gloss-item"><span class="gloss-term">CCR</span><span class="gloss-def">Commercial Change Request — a change to the scope or cost of the contract</span></div>
+      <div class="gloss-item"><span class="gloss-term">CI</span><span class="gloss-def">Continuous Improvement — an ongoing initiative to improve efficiency or quality</span></div>
+      <div class="gloss-item"><span class="gloss-term">AMS</span><span class="gloss-def">Application Managed Services — the ongoing support and maintenance workstream</span></div>
+      <div class="gloss-item"><span class="gloss-term">CW</span><span class="gloss-def">Calendar Week — used to stamp the reporting period (e.g. CW22 = 22nd week of the year)</span></div>
+      <div class="gloss-item"><span class="gloss-term">Reopen Rate</span><span class="gloss-def">% of resolved tickets that were reopened because the fix did not hold</span></div>
+      <div class="gloss-item"><span class="gloss-term">First-Fix Rate</span><span class="gloss-def">% of tickets resolved correctly on the first attempt without reopening</span></div>
+      <div class="gloss-item"><span class="gloss-term">Backlog</span><span class="gloss-def">The number of tickets that remain open and unresolved at the end of the period</span></div>
+      <div class="gloss-item"><span class="gloss-term">Pulse / Key Flag</span><span class="gloss-def">A one-sentence highlight written by the operations team — the most important event of the period</span></div>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    OpsReview Dashboard &nbsp;·&nbsp; Executive Cheat Sheet &nbsp;·&nbsp; v4.0 &nbsp;·&nbsp; Internal – Restricted &nbsp;·&nbsp; TCS Operations Team
+  </div>
+
+</div>
+
+</body>
+</html>

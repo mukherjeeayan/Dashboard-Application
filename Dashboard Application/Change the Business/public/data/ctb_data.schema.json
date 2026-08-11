@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://ctb-dashboard/schemas/ctb_data.schema.json",
+  "title": "CTB Portfolio Data",
+  "description": "Schema for the Change-the-Business portfolio data file consumed by the CTB dashboard.",
+  "type": "object",
+  "required": ["meta", "pulse", "projects"],
+  "properties": {
+    "_instructions": {
+      "type": "object",
+      "description": "Inline documentation — not consumed by the dashboard renderer.",
+      "properties": {
+        "howToUpdate":       { "type": "string" },
+        "ragValues":         { "type": "string" },
+        "ragOverallVsScheduleStatus": { "type": "string" },
+        "scheduleStatusValues": { "type": "string" },
+        "phaseValues":       { "type": "string" },
+        "subPhaseValues":    { "type": "string" },
+        "projectStatusNote": { "type": "string" },
+        "milestoneTypeValues": { "type": "string" },
+        "riskLevelValues":   { "type": "string" },
+        "decisionProjectId": { "type": "string" },
+        "IMPORTANT":         { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "required": ["reportTitle", "period"],
+      "properties": {
+        "reportTitle":     { "type": "string", "description": "Dashboard header title" },
+        "period":          { "type": "string", "description": "Reporting period, e.g. May 2026 / CW20" },
+        "reportDate":      { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "YYYY-MM-DD" },
+        "lastUpdated":     { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}", "description": "ISO 8601 datetime" },
+        "confidentiality": { "type": "string" },
+        "portfolioOwner":  { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "pulse": {
+      "type": "object",
+      "properties": {
+        "keyFlag": { "type": "string", "description": "Headline update shown at the top of the dashboard" }
+      },
+      "additionalProperties": false
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "phase", "rag"],
+        "properties": {
+          "id":              { "type": "string", "description": "Unique project identifier" },
+          "name":            { "type": "string" },
+          "phase":           { "type": "string", "enum": ["DISCOVER", "PREPARE", "EXPLORE", "REALIZE", "DEPLOY", "RUN"] },
+          "subPhase":        { "type": "string" },
+          "scheduleVariance": { "type": "string" },
+          "scheduleStatus":  { "type": "string", "enum": ["ON TRACK", "AT RISK", "DELAYED", "ON HOLD"] },
+          "projectStatus":   { "type": "string", "enum": ["active", "hold", "complete"] },
+          "rag": {
+            "type": "object",
+            "required": ["overall"],
+            "properties": {
+              "schedule": { "type": "string", "enum": ["GREEN", "AMBER", "RED", "HOLD"] },
+              "budget":   { "type": "string", "enum": ["GREEN", "AMBER", "RED", "HOLD"] },
+              "scope":    { "type": "string", "enum": ["GREEN", "AMBER", "RED", "HOLD"] },
+              "quality":  { "type": "string", "enum": ["GREEN", "AMBER", "RED", "HOLD"] },
+              "overall":  { "type": "string", "enum": ["GREEN", "AMBER", "RED", "HOLD"] }
+            },
+            "additionalProperties": false
+          },
+          "nextMilestone":   { "type": "string" },
+          "comment":         { "type": "string" },
+          "deepDiveUrl":     { "type": "string", "format": "uri" },
+          "deepDiveLabel":   { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "title"],
+        "properties": {
+          "level":            { "type": "string", "enum": ["HIGH", "MED", "LOW", "DEP", "ESC", "WATCH"] },
+          "title":            { "type": "string" },
+          "description":      { "type": "string" },
+          "affectedProjects": { "type": "array", "items": { "type": "string" } },
+          "depOwner":         { "type": "string", "enum": ["BUSINESS", "IT"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "type", "description"],
+        "properties": {
+          "date":        { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "YYYY-MM-DD" },
+          "type":        { "type": "string", "enum": ["REVIEW", "GO/NO-GO", "MILESTONE", "APPROVAL", "DECISION"] },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ask"],
+        "properties": {
+          "icon":          { "type": "string" },
+          "ask":           { "type": "string" },
+          "context":       { "type": "string" },
+          "projectId":     { "type": "string" },
+          "dueDate":       { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "YYYY-MM-DD" },
+          "dueDateLabel":  { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

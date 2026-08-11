@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self';" />
+<title>CTB Portfolio Status Dashboard</title>
+<!-- Fonts: offline-safe system stack — no external CDN calls (security + air-gap compliance) -->
+
+<link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+<!-- LOADING STATE -->
+<div id="load-screen">
+  <div class="load-spinner"></div>
+  <span>Loading portfolio data…</span>
+</div>
+
+<!-- ERROR STATE -->
+<div id="error-screen">
+  <div class="error-card">
+    <h2>⚠ Cannot Load Data File</h2>
+    <p>
+      Browsers block local file access for security. You need to serve these files
+      over a local web server. Choose <em>any one</em> of the methods below — they're all one-liners:
+    </p>
+
+    <p><strong>Python (built-in, no install needed):</strong></p>
+    <pre>cd /path/to/your/dashboard/folder
+python -m http.server 8080</pre>
+
+    <p><strong>Node.js (npx, no install needed):</strong></p>
+    <pre>cd /path/to/your/dashboard/folder
+npx serve .</pre>
+
+    <p><strong>VS Code:</strong><br />
+    Install the <em>Live Server</em> extension → right-click <code>dashboard.html</code> from the <code>public/</code> folder → <em>Open with Live Server</em>.</p>
+
+    <p>Then open <strong>http://localhost:8080/dashboard.html</strong> (or whatever port is shown).</p>
+    <div class="note" id="error-detail"></div>
+  </div>
+</div>
+
+<!-- VALIDATION SCREEN (shown when data has errors or warnings) -->
+<div id="validation-screen" class="is-hidden" style="padding:40px; max-width:800px; margin:60px auto; font-family:inherit;">
+  <div id="val-wrap"></div>
+</div>
+
+<!-- MAIN APP SHELL (hidden until data loads) -->
+<div id="app-shell">
+<div class="page">
+
+  <!-- ══ MASTHEAD ══ -->
+  <div class="masthead fade-up">
+    <div class="masthead-brand">
+      <div class="masthead-title" id="meta-title">—</div>
+      <div class="masthead-sub" id="meta-sub">—</div>
+    </div>
+    <div class="masthead-right">
+      <div class="masthead-owner" id="meta-owner"></div>
+      <div class="masthead-pill" id="meta-period">—</div>
+      <div class="masthead-updated" id="meta-updated">—</div>
+      <div class="masthead-refresh" id="refresh-indicator" title="Data snapshot — auto-checks every 5 min">
+        <div class="refresh-dot" id="refresh-dot"></div>
+        <span id="refresh-label">LOADED</span>
+      </div>
+      <button class="masthead-icon-btn" id="export-btn" title="Print / Export to PDF" aria-label="Print or export to PDF">⎙</button>
+      <button class="masthead-icon-btn" id="theme-toggle" title="Toggle dark / light theme" aria-label="Toggle dark / light theme"><span id="theme-icon">☀</span></button>
+      <div class="font-ctrl-group" aria-label="Adjust font size">
+        <button class="masthead-icon-btn" id="font-decrease" title="Decrease font size" aria-label="Decrease font size">A−</button>
+        <button class="masthead-icon-btn" id="font-increase" title="Increase font size" aria-label="Increase font size">A+</button>
+      </div>
+      <button class="help-btn" id="help-toggle"
+        aria-label="How to update this dashboard"
+        aria-expanded="false"
+        title="How to update this dashboard">?</button>
+    </div>
+  </div>
+
+  <!-- ══ HELP PANEL (populated at render time from ctb_data.json _instructions) ══ -->
+  <div id="help-panel"></div>
+
+  <!-- ══ A · THE PULSE ══ -->
+  <div class="sec-row fade-up delay-1">
+    <span class="sec-badge">A · The Pulse — Portfolio Delivery Health</span>
+    <span class="sec-rule"></span>
+  </div>
+
+  <div class="pulse-row fade-up delay-1">
+    <div class="global-rag-card">
+      <div class="rag-header">Global Portfolio RAG</div>
+      <div class="rag-main">
+        <div class="rag-orb GREEN" id="rag-orb"></div>
+        <div>
+          <div class="rag-value GREEN" id="rag-value">—</div>
+          <div class="rag-sub" id="rag-sub">—</div>
+        </div>
+      </div>
+      <div class="rag-counts" id="rag-counts"></div>
+    </div>
+
+    <div class="scorecard-panel">
+      <div class="scorecard-label">Individual Project Delivery Scorecards</div>
+      <div class="scorecard-strip" id="scorecard-strip"></div>
+    </div>
+  </div>
+
+  <div class="flag-banner fade-up delay-2" id="flag-banner">
+    <span class="flag-icon">⚑</span>
+    <span class="flag-text"><strong>KEY FLAG:</strong>&nbsp;<span id="flag-text"></span></span>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="main-grid fade-up delay-3">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-left">
+
+      <!-- B · PROJECT MATRIX -->
+      <div class="sec-row">
+        <span class="sec-badge">B · Active Project Portfolio — Compare at a Glance</span>
+        <span class="sec-rule"></span>
+      </div>
+
+      <!-- FILTER BAR — search + RAG quick-filter chips -->
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-search-wrap">
+          <span class="filter-search-icon">⌕</span>
+          <input type="text" id="filter-search" class="filter-search"
+            placeholder="Search by name, phase or comment…"
+            autocomplete="off" spellcheck="false"
+            aria-label="Search projects" />
+          <button class="filter-clear" id="filter-clear" title="Clear search" aria-label="Clear search">✕</button>
+        </div>
+        <span class="filter-chips-label">Filter:</span>
+        <div class="filter-chips" id="filter-chips" role="group" aria-label="Filter by RAG status">
+          <button class="filter-chip active" data-rag="ALL"   aria-pressed="true">All</button>
+          <button class="filter-chip chip-green" data-rag="GREEN" aria-pressed="false">● Green</button>
+          <button class="filter-chip chip-amber" data-rag="AMBER" aria-pressed="false">● Amber</button>
+          <button class="filter-chip chip-red"   data-rag="RED"   aria-pressed="false">● Red</button>
+          <button class="filter-chip chip-hold"  data-rag="HOLD"  aria-pressed="false">● Hold</button>
+        </div>
+        <span class="filter-result-count" id="filter-result-count" aria-live="polite"></span>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-head-left">
+            <div class="panel-letter">B</div>
+            <div class="panel-title">Project Matrix</div>
+          </div>
+          <div class="panel-meta" id="matrix-count">— workstreams</div>
+        </div>
+        <div class="panel-fade-wrap">
+          <div class="panel-scroll matrix-scroll" id="matrix-scroll">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th>Project / Initiative</th>
+                  <th>Phase</th>
+                  <th>Schedule</th>
+                  <th title="Schedule · Budget · Scope · Quality">SCH · BDG · SCP · QLT</th>
+                  <th>RAG</th>
+                  <th>Next Milestone</th>
+                  <th>Deep Dive</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-body"></tbody>
+            </table>
+            <div class="filter-no-results" id="matrix-no-results">No projects match your filter.</div>
+          </div>
+        </div>
+        <div class="panel-scroll-footer">
+          <span class="scroll-arrow">▾</span> Scroll to see all projects
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="bottom-row">
+
+        <!-- C · MILESTONES (was D — relabelled to match visual reading order) -->
+        <div>
+          <div class="sec-row">
+            <span class="sec-badge">C · Upcoming Milestones</span>
+            <span class="sec-rule"></span>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-head-left">
+                <div class="panel-letter">C</div>
+                <div class="panel-title">Milestones</div>
+              </div>
+              <div class="panel-meta" id="milestone-count">—</div>
+            </div>
+            <div class="panel-fade-wrap">
+              <div class="panel-scroll milestones-scroll">
+                <div id="milestones-body"></div>
+              </div>
+            </div>
+            <div class="panel-scroll-footer">
+              <span class="scroll-arrow">▾</span> Chronological order
+            </div>
+          </div>
+        </div>
+
+        <!-- D · DECISIONS (was E — relabelled to match visual reading order) -->
+        <div>
+          <div class="sec-row">
+            <span class="sec-badge">D · Executive Decisions / C-Suite Asks</span>
+            <span class="sec-rule"></span>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-head-left">
+                <div class="panel-letter">D</div>
+                <div class="panel-title">Decisions Required</div>
+              </div>
+              <div class="panel-meta panel-meta-urgent" id="decisions-action-label"></div>
+            </div>
+            <div class="panel-fade-wrap">
+              <div class="panel-scroll decisions-scroll">
+                <div id="decisions-body"></div>
+              </div>
+            </div>
+            <div class="panel-scroll-footer">
+              <span class="scroll-arrow">▾</span> Scroll for all asks
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /bottom-row -->
+
+    </div><!-- /col-left -->
+
+    <!-- RIGHT COLUMN — E · RISKS (was C — relabelled to match visual reading order) -->
+    <div class="col-right">
+      <div class="sec-row">
+        <span class="sec-badge">E · Cross-Project Risks &amp; Dependencies</span>
+        <span class="sec-rule"></span>
+      </div>
+      <div class="panel" style="flex:1">
+        <div class="panel-head">
+          <div class="panel-head-left">
+            <div class="panel-letter">E</div>
+            <div class="panel-title">Risks &amp; Dependencies</div>
+          </div>
+          <div class="panel-meta" id="risk-count">—</div>
+        </div>
+        <div class="panel-fade-wrap panel-fill">
+          <div class="panel-scroll risks-scroll" id="risk-scroll">
+            <div id="risks-body"></div>
+          </div>
+        </div>
+        <div class="panel-scroll-footer">
+          <span class="scroll-arrow">▾</span> Scroll for all risks
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+</div><!-- /page -->
+</div><!-- /app-shell -->
+
+
+<script src="js/utils.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

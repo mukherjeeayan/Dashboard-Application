@@ -19,6 +19,14 @@ export interface CreatePlanInput {
   jurisdictionPackId: string;
 }
 
+export interface UpdatePlanInput {
+  ownerName?: string;
+  dateOfBirth?: string;
+  targetRetirementDate?: string;
+  baseCurrency?: string;
+  jurisdictionPackId?: string;
+}
+
 export interface Account {
   id: string;
   planId: string;
@@ -494,6 +502,10 @@ export const api = {
   createPlan: (input: CreatePlanInput) =>
     request<Plan>("/plans", { method: "POST", body: JSON.stringify(input) }),
   getPlan: (id: string) => request<Plan>(`/plans/${id}`),
+  updatePlan: (id: string, input: UpdatePlanInput) =>
+    request<Plan>(`/plans/${id}`, { method: "PUT", body: JSON.stringify(input) }),
+  deletePlan: (id: string) =>
+    request<void>(`/plans/${id}`, { method: "DELETE" }),
   listAccounts: (planId: string) => request<Account[]>(`/plans/${planId}/accounts`),
   createAccount: (planId: string, input: CreateAccountInput) =>
     request<Account>(`/plans/${planId}/accounts`, {

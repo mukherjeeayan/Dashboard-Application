@@ -84,17 +84,27 @@ export default function App() {
   }, [refreshPlans]);
 
   const createPlan = async () => {
-    if (!packId || !dateOfBirth || !targetRetirementDate) return;
+    setCreateError(null);
+    if (!packId || !dateOfBirth || !targetRetirementDate) {
+      setCreateError(
+        "Please fill in date of birth, target retirement date, and a jurisdiction.",
+      );
+      return;
+    }
     const pack = packs.find((p) => p.packId === packId);
-    const created = await api.createPlan({
-      ownerName: ownerName || undefined,
-      dateOfBirth,
-      targetRetirementDate,
-      baseCurrency: pack?.currency ?? "INR",
-      jurisdictionPackId: packId,
-    });
-    await refreshPlans();
-    setSelectedId(created.id);
+    try {
+      const created = await api.createPlan({
+        ownerName: ownerName || undefined,
+        dateOfBirth,
+        targetRetirementDate,
+        baseCurrency: pack?.currency ?? "INR",
+        jurisdictionPackId: packId,
+      });
+      await refreshPlans();
+      setSelectedId(created.id);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   const selected = plans.find((p) => p.id === selectedId) ?? null;
@@ -156,6 +166,7 @@ export default function App() {
             <button onClick={createPlan} className="btn">
               Create plan
             </button>
+            {createError && <p className="error" role="alert">{createError}</p>}
           </div>
         </div>
       </aside>
